@@ -67,7 +67,7 @@
           icon_expr=""
           link_target=""
           url_expr="string:${object_url}"
-          visible="True">
+          visible="False">
     <permission value="View"/>
   </action>
 
@@ -79,7 +79,8 @@
           description=""
           icon_expr=""
           link_target=""
-          url_expr="string:${object_url}/edit" visible="True">
+          url_expr="string:${object_url}/edit"
+          visible="False">
     <permission value="Modify portal content"/>
   </action>
 

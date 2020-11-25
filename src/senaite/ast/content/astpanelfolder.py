@@ -20,11 +20,10 @@
 
 from plone.dexterity.content import Container
 from senaite.ast.interfaces import IASTPanelFolder
-from senaite.core.interfaces import IHideActionsMenu
 from zope.interface import implementer
 
 
-@implementer(IASTPanelFolder, IHideActionsMenu)
+@implementer(IASTPanelFolder)
 class ASTPanelFolder(Container):
     """AST Panel folder
     """

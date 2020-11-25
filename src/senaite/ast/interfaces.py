@@ -18,6 +18,8 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims.interfaces import IDoNotSupportSnapshots
+from senaite.core.interfaces import IHideActionsMenu
 from senaite.lims.interfaces import ISenaiteLIMS
 from zope.interface import Interface
 
@@ -35,6 +37,6 @@ class IASTPanel(Interface):
     """
 
 
-class IASTPanelFolder(Interface):
+class IASTPanelFolder(IHideActionsMenu, IDoNotSupportSnapshots):
     """Marker interface for ASTPanelFolder content
     """
