@@ -4,6 +4,7 @@
     i18n_domain="senaite.ast">
 
   <!-- Package includes -->
+  <include package=".content"/>
   <include package=".theme"/>
 
   <!-- Static directory for js, css and image resources -->
