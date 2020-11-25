@@ -1,0 +1,47 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="senaite.ast">
+
+  <five:registerPackage package="." initialize=".initialize"/>
+
+  <!-- Register locales -->
+  <i18n:registerTranslations directory="locales"/>
+
+  <!-- Import senaite.core permissions -->
+  <include package="bika.lims" file="permissions.zcml" />
+
+  <!-- Package includes -->
+  <include package=".browser"/>
+
+  <!-- Default profile -->
+  <genericsetup:registerProfile
+    name="default"
+    title="SENAITE AST"
+    directory="profiles/default"
+    description="Antibiotic Sensitivity Testing (AST) for SENAITE"
+    pre_handler=".setuphandlers.pre_install"
+    post_handler=".setuphandlers.post_install"
+    provides="Products.GenericSetup.interfaces.EXTENSION" />
+
+  <!-- Generic Setup Handler -->
+  <genericsetup:importStep
+    name="senaite.ast.setup_handler"
+    title="SENAITE AST: Setup Handler"
+    description="Run various configuration actions"
+    handler=".setuphandlers.setup_handler">
+    <depends name="typeinfo"/>
+  </genericsetup:importStep>
+
+  <!-- Uninstall profile -->
+  <genericsetup:registerProfile
+    name="uninstall"
+    title="SENAITE AST (uninstall)"
+    directory="profiles/uninstall"
+    description="Antibiotic Sensitivity Testing (AST)"
+    post_handler=".setuphandlers.post_uninstall"
+    provides="Products.GenericSetup.interfaces.EXTENSION" />
+
+</configure>

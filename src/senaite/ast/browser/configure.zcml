@@ -1,0 +1,15 @@
+<configure
+    xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="senaite.ast">
+
+  <!-- Package includes -->
+  <include package=".theme"/>
+
+  <!-- Static directory for js, css and image resources -->
+  <plone:static
+    directory="static"
+    type="plone"
+    name="senaite.ast.static" />
+
+</configure>
