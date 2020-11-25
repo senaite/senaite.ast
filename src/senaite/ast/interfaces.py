@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 from senaite.lims.interfaces import ISenaiteLIMS
+from zope.interface import Interface
 
 
 class ISenaiteASTLayer(ISenaiteLIMS):
@@ -26,4 +27,14 @@ class ISenaiteASTLayer(ISenaiteLIMS):
     This interface is referred in profiles/default/browserlayer.xml.
     All views and viewlets register against this layer will appear in the site
     only when the add-on installer has been run.
+    """
+
+
+class IASTPanel(Interface):
+    """Marker interface for ASTPanel content
+    """
+
+
+class IASTPanelFolder(Interface):
+    """Marker interface for ASTPanelFolder content
     """

@@ -14,7 +14,16 @@
   <include package="bika.lims" file="permissions.zcml" />
 
   <!-- Package includes -->
+  <include package=".behaviors" />
   <include package=".browser"/>
+
+  <!-- Vocabularies -->
+  <utility
+      component="senaite.ast.vocabularies.AntibioticsVocabularyFactory"
+      name="senaite.ast.vocabularies.antibiotics" />
+  <utility
+      component="senaite.ast.vocabularies.MicroorganismsVocabularyFactory"
+      name="senaite.ast.vocabularies.microorganisms" />
 
   <!-- Default profile -->
   <genericsetup:registerProfile
