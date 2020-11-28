@@ -6,6 +6,7 @@ from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
+from senaite.ast.config import AST_RESULTS_CHOICES
 from senaite.ast.config import AST_SERVICE_KEYWORD
 
 _marker = object()
@@ -111,6 +112,7 @@ def to_interim(antibiotic):
     return {
         "keyword": obj.abbreviation,
         "title": obj.abbreviation,
+        "choices": AST_RESULTS_CHOICES,
         "value": "",
         "unit": "",
         "wide": False,
