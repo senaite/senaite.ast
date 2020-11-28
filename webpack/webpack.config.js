@@ -20,6 +20,7 @@ module.exports = {
   entry: {
     "senaite.ast": [
       "./senaite.ast.js",
+      "./scss/senaite.ast.scss"
     ],
   },
   output: {
