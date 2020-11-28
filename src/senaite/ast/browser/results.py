@@ -14,7 +14,8 @@ class ASTAnalysesSection(LabAnalysesSection):
     """Field analyses section adapter for Sample view
     """
     order = 20
-    title = _("Antibiotic Sensitivity")
+    title = _("Antibiotic Sensitivities")
+    icon_name = "ast_panel"
     capture = "ast"
 
     def is_visible(self):
