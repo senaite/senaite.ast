@@ -63,16 +63,11 @@ class AddPanelView(BrowserView):
         the current sample
         """
         # Get the existing AST analyses from this sample
-        analyses = self.context.getAnalyses(getPointOfCapture="ast")
-        analyses = map(api.get_object, analyses)
-
-        # Skip those that are invalid
-        skip = ["cancelled", "retracted", "rejected"]
-        ans = filter(lambda a: api.get_review_status(a) not in skip, analyses)
+        analyses = utils.get_ast_analyses(self.context)
 
         # Do a mapping title:analysis
-        existing = map(api.get_title, ans)
-        return dict(zip(existing, ans))
+        existing = map(api.get_title, analyses)
+        return dict(zip(existing, analyses))
 
     @view.memoize
     def to_interim(self, antibiotic):

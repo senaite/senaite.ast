@@ -28,6 +28,7 @@ from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
 from senaite.ast.config import SERVICE_CATEGORY
 from senaite.ast.config import SERVICES_SETTINGS
+from senaite.ast.config import AST_CALCULATION_TITLE
 from zope.component import getUtility
 
 
@@ -53,6 +54,7 @@ def setup_handler(context):
     setup_navigation_types(portal)
 
     # Setup AST required contents
+    setup_ast_calculation(portal)
     setup_ast_category(portal)
     setup_ast_services(portal)
 
@@ -113,6 +115,22 @@ def setup_ast_category(portal):
     logger.info("Setup category '{}' [DONE]".format(name))
 
 
+def setup_ast_calculation(portal):
+    """Setup AST "dummy" calculations. These are only used to allow result entry
+    without the need of user having to enter a final result
+    """
+    logger.info("Setup AST calculation ...")
+    folder = api.get_setup().bika_calculations
+    calculation = api.create(folder, "Calculation", title=AST_CALCULATION_TITLE)
+    calculation.setFormula("'-'")
+
+    # Do not allow the modification of this service
+    roles = security.get_valid_roles_for(calculation)
+    security.revoke_permission_for(calculation, ModifyPortalContent, roles)
+    calculation.reindexObject()
+    logger.info("Setup AST calculation [DONE]")
+
+
 def setup_ast_services(portal):
     """Setup AST services to be used for results entry: zone size, resistance,
     selective reporting
@@ -129,8 +147,12 @@ def setup_ast_services(portal):
         # Get the category
         cat_name = SERVICE_CATEGORY
         categories = api.get_setup().bika_analysiscategories.objectValues()
-        category = filter(lambda c: api.get_title(c) == cat_name, categories)
-        category = category[0]
+        category = filter(lambda c: api.get_title(c) == cat_name, categories)[0]
+
+        # Get the calculation
+        calc_name = AST_CALCULATION_TITLE
+        calcs = api.get_setup().bika_calculations.objectValues()
+        calc = filter(lambda c: api.get_title(c) == calc_name, calcs)[0]
 
         # Create the service
         title = settings["title"].format(_("Antibiotic Sensitivity"))
@@ -138,11 +160,12 @@ def setup_ast_services(portal):
                              title=title, Keyword=key)
         service.setStringResult(True)
         service.setPointOfCapture("ast")
-        service.reindexObject()
+        service.setCalculation(calc)
 
         # Do not allow the modification of this service
         roles = security.get_valid_roles_for(service)
         security.revoke_permission_for(service, ModifyPortalContent, roles)
+        service.reindexObject()
 
     logger.info("Setup AST services [DONE]")
 

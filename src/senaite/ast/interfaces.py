@@ -40,3 +40,8 @@ class IASTPanel(Interface):
 class IASTPanelFolder(IHideActionsMenu, IDoNotSupportSnapshots):
     """Marker interface for ASTPanelFolder content
     """
+
+
+class IASTAnalysis(Interface):
+    """Marker interface for AST-type analyses
+    """

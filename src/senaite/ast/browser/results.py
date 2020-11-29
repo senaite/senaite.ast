@@ -56,6 +56,7 @@ class ManageResultsView(AnalysesView):
 
         self.contentFilter.update({
             "getPointOfCapture": "ast",
+            "getAncestorsUIDs": [api.get_uid(context)],
             "sort_on": "title",
             "sort_order": "ascending",
         })
@@ -113,13 +114,6 @@ class ManageResultsView(AnalysesView):
                 .format(obj.getServiceUID, obj.UID),
             value="<i class='fas fa-info-circle'></i>",
             css_class="service_info", tabindex="-1")
-
-        # Note that getSampleTypeUID returns the type of the Sample, no matter
-        # if the sample associated to the analysis is a regular Sample (routine
-        # analysis) or if is a Reference Sample (Reference Analysis). If the
-        # analysis is a duplicate, it returns the Sample Type of the sample
-        # associated to the source analysis.
-        item['st_uid'] = obj.getSampleTypeUID
 
         # Fill item's row class
         self._folder_item_css_class(obj, item)

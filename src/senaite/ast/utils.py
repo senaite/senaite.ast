@@ -27,6 +27,8 @@ from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
 from senaite.ast.config import SERVICES_SETTINGS
+from senaite.ast.interfaces import IASTAnalysis
+from zope.interface import alsoProvides
 
 
 _marker = object()
@@ -61,9 +63,6 @@ def new_analysis_id(sample, analysis_keyword):
 def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     """Creates a new AST analysis
     """
-    # Get the analysis title
-    title = get_analysis_title(keyword, microorganism)
-
     # Convert antibiotics to interims
     interims = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
@@ -75,10 +74,22 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     analysis = create_analysis(sample, service, id=new_id)
 
     # Assign the name of the microorganism as the title
+    title = get_analysis_title(keyword, microorganism)
+    short_title = api.get_title(microorganism)
     analysis.setTitle(title)
+    analysis.setShortTitle(short_title)
 
     # Assign the antibiotics as interims
     analysis.setInterimFields(interims)
+
+    # Compute all combinations of interim/antibiotic and possible result and
+    # and generate the result options for this analysis (the "Result" field is
+    # never displayed and is only used for reporting)
+    result_options = get_result_options(analysis)
+    analysis.setResultOptions(result_options)
+
+    # Apply the IASTAnalysis marker interface
+    alsoProvides(analysis, IASTAnalysis)
 
     # Initialize the analysis and reindex
     doActionFor(analysis, "initialize")
@@ -114,6 +125,20 @@ def update_ast_analysis(analysis, antibiotics):
 
     # Assign the antibiotics
     analysis.setInterimFields(interims)
+
+    # Compute all combinations of interim/antibiotic and possible result and
+    # and generate the result options for this analysis (the "Result" field is
+    # never displayed and is only used for reporting)
+    result_options = get_result_options(analysis)
+    analysis.setResultOptions(result_options)
+
+    # We do not want these analyses to be reported by default. This decision
+    # is taken automatically on submit
+    analysis.setHidden(True)
+
+    # Apply the IASTAnalysis marker interface (just in case)
+    alsoProvides(analysis, IASTAnalysis)
+
     analysis.reindexObject()
 
 
@@ -135,8 +160,48 @@ def to_interim(keyword, antibiotic):
         "wide": False,
         "hidden": False,
         "size": properties.get("size", "5"),
-        "type": properties.get("type", "")
+        "type": properties.get("type", ""),
+        "full_title": api.get_title(obj),
     }
+
+
+def get_result_options(analysis):
+    """Generates a list of result option from the analysis passed in, where
+    each result option represents a combination of interim/antibiotic and
+    possible result
+    """
+    def to_result_option(interim_field, interim_choice, result_value):
+        value = None
+
+        # Abbreviation and full name of antibiotic
+        abbreviation = interim_field.get("keyword")
+        full_name = interim_field.get("full_title")
+
+        text = interim_choice.split(":")
+        if len(text) > 1:
+            result_text = "{}: {}".format(full_name, text[1].strip())
+            value = {
+                "ResultText": result_text,
+                "ResultValue": result_value,
+                "InterimKeyword": abbreviation,
+                "InterimValue": text[0],
+            }
+        return value
+
+    options = []
+    for interim in analysis.getInterimFields():
+        choices = interim.get("choices")
+        if not choices:
+            continue
+
+        # Generate the result options
+        for choice in choices.split("|"):
+            result_value = str(len(options))
+            option = to_result_option(interim, choice, result_value)
+            if option:
+                options.append(option)
+
+    return options
 
 
 def get_analysis_title(keyword, microorganism):
@@ -145,3 +210,30 @@ def get_analysis_title(keyword, microorganism):
     title = SERVICES_SETTINGS[keyword]["title"]
     obj = api.get_object(microorganism)
     return title.format(api.get_title(obj))
+
+
+def get_ast_analyses(sample, short_title=None, skip_invalid=True):
+    """Returns the ast analyses assigned to the sample passed in and for the
+    microorganism name specified, if any
+    """
+    analyses = sample.getAnalyses(getPointOfCapture="ast")
+    analyses = map(api.get_object, analyses)
+
+    if short_title:
+        # Filter by microorganism name (short title)
+        analyses = filter(lambda a: a.getShortTitle() == short_title, analyses)
+
+    # Skip invalid analyses
+    skip = skip_invalid and ["cancelled", "retracted", "rejected"] or []
+    analyses = filter(lambda a: api.get_review_status(a) not in skip, analyses)
+
+    return analyses
+
+
+def get_ast_siblings(analysis):
+    """Returns the AST analyses for same sample and microorganism
+    """
+    sample = analysis.getRequest()
+    microorganism = analysis.getShortTitle()
+    analyses = get_ast_analyses(sample, short_title=microorganism)
+    return filter(lambda an: an != analysis, analyses)
