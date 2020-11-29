@@ -36,6 +36,10 @@ class IASTPanelBehavior(model.Schema):
 
     microorganisms = schema.List(
         title=_(u"Microorganisms"),
+        description=_(
+            "The names of selected microorganisms are displayed as row headers "
+            "in the sensitivity results entry view"
+        ),
         required=True,
         value_type=schema.Choice(
             source="senaite.ast.vocabularies.microorganisms"
@@ -44,10 +48,34 @@ class IASTPanelBehavior(model.Schema):
 
     antibiotics = schema.List(
         title=_(u"Antibiotics"),
+        description=_(
+            "The abbreviations of selected antibiotics are displayed as "
+            "column headers in the sensitivity results entry view"
+        ),
         required=True,
         value_type=schema.Choice(
             source="senaite.ast.vocabularies.antibiotics"
         )
+    )
+
+    zone_size = schema.Bool(
+        title=_(u"Include zone size in mm"),
+        description=_(
+            "When enabled, an additional row for the introduction of the zone "
+            "size (in mm) is displayed in the results entry view, below "
+            "resistance call options"
+        ),
+        default=True,
+    )
+
+    selective_reporting = schema.Bool(
+        title=_(u"Selective reporting"),
+        description=_(
+            "When enabled, an additional row to indicate whether the "
+            "resistance result for each microorganism-antibiotic tuple has to "
+            "be reported in results report or not"
+        ),
+        default=True,
     )
 
 

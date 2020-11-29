@@ -19,13 +19,42 @@
 # Some rights reserved, see README and LICENSE.
 
 
+# Analysis Category name AST Services will be added into
+SERVICE_CATEGORY = "Antibiotic Sensitivity Testing (AST)"
+
+# Keyword of the Analysis Service to be used as the template for the creation
+# of zone size (mm) results. This service is automatically created on install
+# and is not editable
+ZONE_SIZE_KEY = "senaite_ast_zone"
+
 # Keyword of the Analysis Service to be used as the template for the creation
 # of AST analyses. This Service is automatically created on install and is not
 # editable
-AST_SERVICE_KEYWORD = "senaite_ast"
+RESISTANCE_KEY = "senaite_ast_resistance"
 
-# Analysis Category name the AST Service will be added into
-AST_SERVICE_CATEGORY = "Antibiotic Sensitivity Testing (AST)"
+# Keyword of the Analysis Service to be used as the template for the creation
+# of analyses that will be used to tell whether the AST result has to be
+# reported in results report or not
+REPORT_KEY = "senaite_ast_report"
 
-# Choices for AST results
-AST_RESULTS_CHOICES = "0:|1:R|2:S|3:+|4:-"
+
+# Settings for analyses creation
+SERVICES_SETTINGS = {
+
+    RESISTANCE_KEY: {
+        "title": "{} - Resistance",
+        "choices": "0:|1:R|2:S|3:+|4:-",
+    },
+
+    ZONE_SIZE_KEY: {
+        "title": "{} - Zone size (mm)",
+        "size": "1",
+    },
+
+    REPORT_KEY: {
+        "title": "{} - Report",
+        "choices": "0:|1:Y|2:N",
+        "type": "boolean",
+    },
+
+}

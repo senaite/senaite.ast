@@ -19,8 +19,12 @@
 # Some rights reserved, see README and LICENSE.
 
 from bika.lims import api
+from plone.memoize import view
 from Products.Five.browser import BrowserView
 from senaite.ast import utils
+from senaite.ast.config import RESISTANCE_KEY
+from senaite.ast.config import ZONE_SIZE_KEY
+from senaite.ast.config import REPORT_KEY
 
 
 class AddPanelView(BrowserView):
@@ -33,35 +37,66 @@ class AddPanelView(BrowserView):
         panel_uid = self.request.form.get("panel_uid")
         panel = api.get_object(panel_uid)
 
-        # Convert the antibiotics assigned to interims
-        antibiotics = map(utils.to_interim, panel.antibiotics)
+        # Get the objects assigned to the panel
+        antibiotics = map(api.get_object, panel.antibiotics)
+        microorganisms = map(api.get_object, panel.microorganisms)
 
+        # Create an analysis for each microorganism
+        for microorganism in microorganisms:
+
+            # Create/Update the zone size analysis
+            if panel.zone_size:
+                self.add_ast_analysis(ZONE_SIZE_KEY, microorganism, antibiotics)
+
+            # Create/Update the sensitivity result analysis
+            self.add_ast_analysis(RESISTANCE_KEY, microorganism, antibiotics)
+
+            # Create/Update the selective reporting analysis
+            if panel.selective_reporting:
+                self.add_ast_analysis(REPORT_KEY, microorganism, antibiotics)
+
+        return "{} objects affected".format(len(panel.microorganisms))
+
+    @view.memoize
+    def get_ast_analyses_info(self):
+        """Returns a dict of (title, analyses) with the analyses assigned to
+        the current sample
+        """
         # Get the existing AST analyses from this sample
         analyses = self.context.getAnalyses(getPointOfCapture="ast")
         analyses = map(api.get_object, analyses)
 
         # Skip those that are invalid
         skip = ["cancelled", "retracted", "rejected"]
-        analyses = filter(lambda a: api.get_review_status(a) not in skip,
-                          analyses)
+        ans = filter(lambda a: api.get_review_status(a) not in skip, analyses)
 
         # Do a mapping title:analysis
-        existing = map(api.get_title, analyses)
-        existing = dict(zip(existing, analyses))
+        existing = map(api.get_title, ans)
+        return dict(zip(existing, ans))
 
-        # Create an analysis for each microorganism
-        for microorganism in panel.microorganisms:
-            microorganism = api.get_object(microorganism)
+    @view.memoize
+    def to_interim(self, antibiotic):
+        """Converts an antibiotic to an interim
+        """
+        return utils.to_interim(antibiotic)
 
-            # Check if there is already an analysis for this microorganism
-            title = api.get_title(microorganism)
-            analysis = existing.get(title)
-            if analysis:
-                # Add the new antibiotics to this analysis
-                utils.update_ast_analysis(analysis, antibiotics)
-                continue
+    def get_analysis(self, title):
+        """Search for an existing and valid AST-like analysis in current sample
+        """
+        existing = self.get_ast_analyses_info()
+        return existing.get(title)
 
-            # Create a new analysis
-            utils.create_ast_analysis(self.context, microorganism, antibiotics)
+    def add_ast_analysis(self, keyword, microorganism, antibiotics):
+        """Updates or creates an ast analysis for the microorganism and
+        antibiotics passed-in
+        """
+        title = utils.get_analysis_title(keyword, microorganism)
+        analysis = self.get_analysis(title)
+        if analysis:
+            # Add new antibiotics to this analysis
+            utils.update_ast_analysis(analysis, antibiotics)
+            return
 
-        return "{} objects created".format(len(panel.microorganisms))
+        # Create a new analysis
+        sample = self.context
+        utils.create_ast_analysis(sample, keyword, microorganism, antibiotics)

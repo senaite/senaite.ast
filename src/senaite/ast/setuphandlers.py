@@ -26,9 +26,10 @@ from senaite.ast import logger
 from senaite.ast import messageFactory as _
 from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
-from senaite.ast.config import AST_SERVICE_CATEGORY
-from senaite.ast.config import AST_SERVICE_KEYWORD
+from senaite.ast.config import SERVICE_CATEGORY
+from senaite.ast.config import SERVICES_SETTINGS
 from zope.component import getUtility
+
 
 # Tuples of (folder_id, folder_name, type)
 SETUP_FOLDERS = [
@@ -53,7 +54,7 @@ def setup_handler(context):
 
     # Setup AST required contents
     setup_ast_category(portal)
-    setup_ast_service(portal)
+    setup_ast_services(portal)
 
     logger.info("{} setup handler [DONE]".format(PRODUCT_NAME.upper()))
 
@@ -99,7 +100,7 @@ def setup_navigation_types(portal):
 def setup_ast_category(portal):
     """Setup a service category the AST service will be assigned to
     """
-    name = AST_SERVICE_CATEGORY
+    name = SERVICE_CATEGORY
     logger.info("Setup category '{}' ...".format(name))
     folder = api.get_setup().bika_analysiscategories
     exists = filter(lambda c: api.get_title(c) == name, folder.objectValues())
@@ -112,39 +113,38 @@ def setup_ast_category(portal):
     logger.info("Setup category '{}' [DONE]".format(name))
 
 
-def setup_ast_service(portal):
-    """Setup an AST analysis service that will be used as the template for the
-    creation of AST analyses. This service is not editable (used internally) and
-    its keyword is "__ast"
+def setup_ast_services(portal):
+    """Setup AST services to be used for results entry: zone size, resistance,
+    selective reporting
     """
-    key = AST_SERVICE_KEYWORD
-    logger.info("Setup template service '{}' ...".format(key))
-    folder = api.get_setup().bika_analysisservices
-    exists = filter(lambda s: s.getKeyword() == key, folder.objectValues())
-    if exists:
-        logger.info("Service '{}' exists already [SKIP]".format(key))
-        return
+    logger.info("Setup AST services ...")
+    for key, settings in SERVICES_SETTINGS.items():
+        logger.info("Setup template service '{}' ...".format(key))
+        folder = api.get_setup().bika_analysisservices
+        exists = filter(lambda s: s.getKeyword() == key, folder.objectValues())
+        if exists:
+            logger.info("Service '{}' exists already".format(key))
+            return
 
-    # Get the category
-    cat_name = AST_SERVICE_CATEGORY
-    categories = api.get_setup().bika_analysiscategories.objectValues()
-    category = filter(lambda c: api.get_title(c) == cat_name, categories)
-    category = category[0]
+        # Get the category
+        cat_name = SERVICE_CATEGORY
+        categories = api.get_setup().bika_analysiscategories.objectValues()
+        category = filter(lambda c: api.get_title(c) == cat_name, categories)
+        category = category[0]
 
-    # Create the service
-    title = _("Antibiotic Sensitivity")
-    service = api.create(folder, "AnalysisService", Category=category,
-                         title=title, Keyword=key)
-    service.setShortTitle("AST")
-    service.setScientificName(True)
-    service.setStringResult(True)
-    service.setPointOfCapture("ast")
-    service.reindexObject()
+        # Create the service
+        title = settings["title"].format(_("Antibiotic Sensitivity"))
+        service = api.create(folder, "AnalysisService", Category=category,
+                             title=title, Keyword=key)
+        service.setStringResult(True)
+        service.setPointOfCapture("ast")
+        service.reindexObject()
 
-    # Do not allow the modification of this service
-    roles = security.get_valid_roles_for(service)
-    security.revoke_permission_for(service, ModifyPortalContent, roles)
-    logger.info("Setup template service '{}' [DONE]".format(key))
+        # Do not allow the modification of this service
+        roles = security.get_valid_roles_for(service)
+        security.revoke_permission_for(service, ModifyPortalContent, roles)
+
+    logger.info("Setup AST services [DONE]")
 
 
 def pre_install(portal_setup):

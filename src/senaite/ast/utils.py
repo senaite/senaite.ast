@@ -26,8 +26,8 @@ from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
-from senaite.ast.config import AST_RESULTS_CHOICES
-from senaite.ast.config import AST_SERVICE_KEYWORD
+from senaite.ast.config import SERVICES_SETTINGS
+
 
 _marker = object()
 
@@ -58,23 +58,20 @@ def new_analysis_id(sample, analysis_keyword):
     return new_id
 
 
-def create_ast_analysis(sample, microorganism, antibiotics):
+def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     """Creates a new AST analysis
     """
-    # Service to use as the template
-    service = get_service(AST_SERVICE_KEYWORD)
+    # Get the analysis title
+    title = get_analysis_title(keyword, microorganism)
 
     # Convert antibiotics to interims
-    interims = map(to_interim, antibiotics)
-
-    # Title of microorganism becomes the title of the analysis
-    obj = api.get_object(microorganism)
-    title = api.get_title(obj)
+    interims = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
     # Create a new ID to prevent clashes
-    new_id = new_analysis_id(sample, service.getKeyword())
+    new_id = new_analysis_id(sample, keyword)
 
     # Create the analysis
+    service = get_service(keyword)
     analysis = create_analysis(sample, service, id=new_id)
 
     # Assign the name of the microorganism as the title
@@ -91,19 +88,18 @@ def create_ast_analysis(sample, microorganism, antibiotics):
 
 
 def update_ast_analysis(analysis, antibiotics):
-    """Updates the ast analysis with the antibiotics passed-in
-    """
     # There is nothing to do if the analysis has been verified
     analysis = api.get_object(analysis)
     if IVerified.providedBy(analysis):
         return
 
-    # Convert the antibiotics to interims
-    antibiotics = map(to_interim, antibiotics)
+    # Convert antibiotics to interims
+    keyword = analysis.getKeyword()
+    interims = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
-    # Compare the antibiotics passed-in with those assigned to the analysis
+    # Compare the interims passed-in with those assigned to the analysis
     keys = map(lambda i: i.get("keyword"), analysis.getInterimFields())
-    abx = filter(lambda a: a["keyword"] not in keys, antibiotics)
+    abx = filter(lambda a: a["keyword"] not in keys, interims)
     if not abx:
         # Analysis has all antibiotics assigned already
         return
@@ -117,24 +113,35 @@ def update_ast_analysis(analysis, antibiotics):
             return
 
     # Assign the antibiotics
-    analysis.setInterimFields(antibiotics)
+    analysis.setInterimFields(interims)
     analysis.reindexObject()
 
 
-def to_interim(antibiotic):
+def to_interim(keyword, antibiotic):
     """Converts a list of antibiotics to a list of interims
     """
     if isinstance(antibiotic, dict):
         # Already an interim
         return antibiotic
 
+    properties = SERVICES_SETTINGS[keyword]
     obj = api.get_object(antibiotic)
     return {
         "keyword": obj.abbreviation,
         "title": obj.abbreviation,
-        "choices": AST_RESULTS_CHOICES,
+        "choices": properties.get("choices", ""),
         "value": "",
         "unit": "",
         "wide": False,
         "hidden": False,
+        "size": properties.get("size", "5"),
+        "type": properties.get("type", "")
     }
+
+
+def get_analysis_title(keyword, microorganism):
+    """Returns the analysis title for the service keyword and microorganism
+    """
+    title = SERVICES_SETTINGS[keyword]["title"]
+    obj = api.get_object(microorganism)
+    return title.format(api.get_title(obj))

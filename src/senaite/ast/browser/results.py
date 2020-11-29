@@ -19,15 +19,19 @@
 # Some rights reserved, see README and LICENSE.
 
 import json
+from collections import OrderedDict
 
 from bika.lims import api
 from bika.lims.browser.analyses import AnalysesView
 from bika.lims.browser.analysisrequest.sections import LabAnalysesSection
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.utils import get_link
+from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
+from senaite.ast.config import SERVICES_SETTINGS
+from senaite.ast.config import ZONE_SIZE_KEY
 
 
 class ASTAnalysesSection(LabAnalysesSection):
@@ -54,6 +58,8 @@ class ManageResultsView(AnalysesView):
 
         self.contentFilter.update({
             "getPointOfCapture": "ast",
+            "sort_on": "title",
+            "sort_order": "ascending",
         })
 
         self.form_id = "ast_analyses"
@@ -61,24 +67,46 @@ class ManageResultsView(AnalysesView):
         self.show_workflow_action_buttons = True
         self.show_search = False
 
+        # Add the Microorganism column
+        new_columns = (
+            ("Microorganism", {
+                "title": _("Microorganism"),
+                "sortable": False}),
+        )
+        old_columns = self.columns.items()
+        self.columns = OrderedDict(list(new_columns) + list(old_columns))
         self.columns["Service"].update({
-            "title": _("Microorganism"),
+            "title": _("Result"),
         })
 
         # Remove the columns we are not interested in from review_states
         hide = ["Method", "Instrument", "Analyst", "DetectionLimitOperand",
                 "Specification", "Uncertainty", "retested", "Attachments",
-                "DueDate"]
+                "DueDate", "state_title", "Result", "Hidden"]
 
+        all_columns = self.columns.keys()
+        all_columns = filter(lambda c: c not in hide, all_columns)
         for review_state in self.review_states:
-            columns = filter(lambda c: c not in hide, review_state["columns"])
-            review_state.update({"columns": columns})
+            review_state.update({"columns": all_columns})
+
+    @view.memoize
+    def get_service_id(self, service_uid_brain_object):
+        obj = api.get_object(service_uid_brain_object)
+        return api.get_id(obj)
 
     def folderitem(self, obj, item, index):
-        item['Service'] = obj.Title
+        keyword = obj.getKeyword
+        item["Keyword"] = keyword
+        item["service_uid"] = obj.getServiceUID
+        splitted = obj.Title.split("-")
+        item["Microorganism"] = splitted[0].strip()
+        item["Service"] = splitted[1].strip()
         item['class']['service'] = 'service_title'
-        item['service_uid'] = obj.getServiceUID
-        item['Keyword'] = obj.getKeyword
+
+        # This is used for sorting
+        service_id = self.get_service_id(obj.getServiceUID)
+        sort_key = "{}:{}".format(item["Microorganism"], service_id)
+        item["sort_key"] = sort_key
 
         # Append info link before the service
         # see: bika.lims.site.coffee for the attached event handler
@@ -86,7 +114,7 @@ class ManageResultsView(AnalysesView):
             "analysisservice_info?service_uid={}&analysis_uid={}"
                 .format(obj.getServiceUID, obj.UID),
             value="<i class='fas fa-info-circle'></i>",
-            css_class="service_info")
+            css_class="service_info", tabindex="-1")
 
         # Note that getSampleTypeUID returns the type of the Sample, no matter
         # if the sample associated to the analysis is a regular Sample (routine
@@ -154,7 +182,7 @@ class ManageResultsView(AnalysesView):
             for state in self.review_states:
                 # Resort interim fields
                 columns = state["columns"]
-                position = columns.index("Result")
+                position = columns.index("CaptureDate")
                 for col_id in interim_keys:
                     if col_id not in columns:
                         columns.insert(position, col_id)
@@ -166,7 +194,29 @@ class ManageResultsView(AnalysesView):
             self.show_select_column = True
 
         self.json_interim_fields = json.dumps(self.interim_fields)
-        self.items = items
+
+        # Sort items
+        items = sorted(items, key=lambda it: it["sort_key"])
+
+        # Group files by organism
+        first_item = None
+        rowspan = 1
+        for item in items:
+            if not first_item:
+                first_item = item
+                continue
+
+            if first_item.get("Microorganism") != item.get("Microorganism"):
+                first_item["rowspan"] = {"Microorganism": rowspan}
+                first_item = item
+                rowspan = 1
+                continue
+
+            item["skip"] = ["Microorganism"]
+            rowspan += 1
+
+        if first_item and rowspan > 1:
+            first_item["rowspan"] = {"Microorganism": rowspan}
 
         return items
 
