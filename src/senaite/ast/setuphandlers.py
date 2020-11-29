@@ -122,7 +122,7 @@ def setup_ast_calculation(portal):
     logger.info("Setup AST calculation ...")
     folder = api.get_setup().bika_calculations
     calculation = api.create(folder, "Calculation", title=AST_CALCULATION_TITLE)
-    calculation.setFormula("'-'")
+    calculation.setFormula('"-"')
 
     # Do not allow the modification of this service
     roles = security.get_valid_roles_for(calculation)

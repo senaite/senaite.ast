@@ -21,6 +21,7 @@
 from bika.lims import api
 from bika.lims import workflow as wf
 from bika.lims.catalog import SETUP_CATALOG
+from bika.lims.interfaces import IInternalUse
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
@@ -88,8 +89,9 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     result_options = get_result_options(analysis)
     analysis.setResultOptions(result_options)
 
-    # Apply the IASTAnalysis marker interface
+    # Apply the IASTAnalysis and IInternalUser marker interfaces
     alsoProvides(analysis, IASTAnalysis)
+    alsoProvides(analysis, IInternalUse)
 
     # Initialize the analysis and reindex
     doActionFor(analysis, "initialize")
@@ -131,10 +133,6 @@ def update_ast_analysis(analysis, antibiotics):
     # never displayed and is only used for reporting)
     result_options = get_result_options(analysis)
     analysis.setResultOptions(result_options)
-
-    # We do not want these analyses to be reported by default. This decision
-    # is taken automatically on submit
-    analysis.setHidden(True)
 
     # Apply the IASTAnalysis marker interface (just in case)
     alsoProvides(analysis, IASTAnalysis)

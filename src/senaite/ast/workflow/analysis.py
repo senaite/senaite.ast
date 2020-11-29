@@ -18,6 +18,7 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims.interfaces import IInternalUse
 from bika.lims.interfaces import IAuditable
 from bika.lims.interfaces import ISubmitted
 from senaite.ast import utils
@@ -98,7 +99,10 @@ def AfterTransitionEventHandler(analysis, event):  # noqa CamelCase
     capture_date = resistance.getResultCaptureDate()
     resistance.setResult(result)
     resistance.setResultCaptureDate(capture_date)
-    resistance.setHidden(False)
 
-    # Enable the audit for this analysis
+    # We do want to report this resistance analysis
+    if IInternalUse.providedBy(resistance):
+        noLongerProvides(resistance, IInternalUse)
+
+    # Re-enable the audit for this analysis
     alsoProvides(resistance, IAuditable)
