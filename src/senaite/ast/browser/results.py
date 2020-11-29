@@ -198,27 +198,46 @@ class ManageResultsView(AnalysesView):
         # Sort items
         items = sorted(items, key=lambda it: it["sort_key"])
 
-        # Group files by organism
-        first_item = None
+        # Group items by organism
+        self.group_by_microorganism(items)
+
+        return items
+
+    def group_by_microorganism(self, items):
+        """Groups the items by microorganism, adding a rowspan to the first
+        cell of the row
+        """
+        def apply_rowspan(item, rowspan):
+            remarks = self.is_analysis_remarks_enabled()
+            rowspan = remarks and rowspan * 2 or rowspan
+            item["rowspan"] = {"Microorganism": rowspan}
+
         rowspan = 1
+        first_item = None
         for item in items:
             if not first_item:
                 first_item = item
                 continue
 
             if first_item.get("Microorganism") != item.get("Microorganism"):
-                first_item["rowspan"] = {"Microorganism": rowspan}
+                apply_rowspan(first_item, rowspan)
                 first_item = item
                 rowspan = 1
                 continue
 
+            # Skip this cell (included in the first item rowspan)
             item["skip"] = ["Microorganism"]
             rowspan += 1
 
         if first_item and rowspan > 1:
-            first_item["rowspan"] = {"Microorganism": rowspan}
+            apply_rowspan(first_item, rowspan)
 
-        return items
+
+    @view.memoize
+    def is_analysis_remarks_enabled(self):
+        """Check if analysis remarks are enabled
+        """
+        return api.get_setup().getEnableAnalysisRemarks()
 
     def get_children_hook(self, parent_uid, child_uids=None):
         """Hook to get the children of an item
