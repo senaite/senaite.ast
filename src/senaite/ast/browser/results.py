@@ -30,8 +30,6 @@ from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
-from senaite.ast.config import SERVICES_SETTINGS
-from senaite.ast.config import ZONE_SIZE_KEY
 
 
 class ASTAnalysesSection(LabAnalysesSection):
@@ -232,7 +230,6 @@ class ManageResultsView(AnalysesView):
         if first_item and rowspan > 1:
             apply_rowspan(first_item, rowspan)
 
-
     @view.memoize
     def is_analysis_remarks_enabled(self):
         """Check if analysis remarks are enabled
@@ -255,9 +252,8 @@ class ManageResultsView(AnalysesView):
         brains = api.search(query, SETUP_CATALOG)
         return map(self.get_panel_info, brains)
 
-    def get_panel_info(self, uid_brain_object):
-        obj = api.get_object(uid_brain_object)
+    def get_panel_info(self, brain_or_object):
         return {
-            "uid": api.get_uid(obj),
-            "title": api.get_title(obj),
+            "uid": api.get_uid(brain_or_object),
+            "title": api.get_title(brain_or_object),
         }
