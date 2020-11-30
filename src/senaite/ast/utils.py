@@ -18,6 +18,7 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import copy
 from bika.lims import api
 from bika.lims import workflow as wf
 from bika.lims.catalog import SETUP_CATALOG
@@ -61,6 +62,16 @@ def new_analysis_id(sample, analysis_keyword):
     return new_id
 
 
+def create_ast_analyses(sample, keywords, microorganism, antibiotics):
+    """Create new AST analyses
+    """
+    output = []
+    for keyword in keywords:
+        an = create_ast_analysis(sample, keyword, microorganism, antibiotics)
+        output.append(an)
+    return output
+
+
 def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     """Creates a new AST analysis
     """
@@ -100,7 +111,7 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     return analysis
 
 
-def update_ast_analysis(analysis, antibiotics):
+def update_ast_analysis(analysis, antibiotics, remove=False):
     # There is nothing to do if the analysis has been verified
     analysis = api.get_object(analysis)
     if IVerified.providedBy(analysis):
@@ -110,11 +121,29 @@ def update_ast_analysis(analysis, antibiotics):
     keyword = analysis.getKeyword()
     interims = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
-    # Compare the interims passed-in with those assigned to the analysis
-    keys = map(lambda i: i.get("keyword"), analysis.getInterimFields())
-    abx = filter(lambda a: a["keyword"] not in keys, interims)
-    if not abx:
-        # Analysis has all antibiotics assigned already
+    # Get the analysis interims
+    an_interims = copy.deepcopy(analysis.getInterimFields()) or []
+    an_keys = sorted(map(lambda i: i.get("keyword"), an_interims))
+
+    # Remove non-specified antibiotics
+    if remove:
+        in_keys = map(lambda i: i.get("keyword"), interims)
+        an_interims = filter(lambda a: a["keyword"] in in_keys, an_interims)
+
+    # Keep analysis' original antibiotics
+    abx = filter(lambda a: a["keyword"] not in an_keys, interims)
+    an_interims.extend(abx)
+
+    # Is there any difference?
+    new_keys = sorted(map(lambda i: i.get("keyword"), an_interims))
+    if new_keys == an_keys:
+        # No changes
+        return
+
+    # If no antibiotics, remove the analysis
+    if remove and not an_interims:
+        sample = analysis.getRequest()
+        sample._delObject(api.get_id(analysis))
         return
 
     if ISubmitted.providedBy(analysis):
@@ -126,7 +155,7 @@ def update_ast_analysis(analysis, antibiotics):
             return
 
     # Assign the antibiotics
-    analysis.setInterimFields(interims)
+    analysis.setInterimFields(an_interims)
 
     # Compute all combinations of interim/antibiotic and possible result and
     # and generate the result options for this analysis (the "Result" field is

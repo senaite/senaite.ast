@@ -37,6 +37,14 @@
     permission="senaite.core.permissions.ManageAnalysisRequests"
     layer="senaite.ast.interfaces.ISenaiteASTLayer" />
 
+  <!-- AST Panel configuration view -->
+  <browser:page
+    for="bika.lims.interfaces.IAnalysisRequest"
+    name="ast_panel"
+    class=".panel.ASTPanelView"
+    permission="senaite.core.permissions.ManageAnalysisRequests"
+    layer="senaite.ast.interfaces.ISenaiteASTLayer" />
+
   <!-- Adds a Panel to the Sample -->
   <browser:page
     for="bika.lims.interfaces.IAnalysisRequest"

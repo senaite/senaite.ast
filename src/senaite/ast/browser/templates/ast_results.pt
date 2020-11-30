@@ -31,8 +31,13 @@
           <button id="astpanel_add"
                   name="astpanel_add"
                   type="submit"
-                  class="btn btn-outline-primary btn-sm"
+                  class="btn btn-outline-primary btn-sm mr-2"
                   i18n:translate="">Add</button>
+
+          <a id="astpanel_custom"
+             class="btn btn-outline-primary btn-sm"
+             tal:attributes="href python:context.absolute_url() + '/ast_panel'"
+             i18n:translate="">Custom ...</a>
         </div>
       </form>
     </div>

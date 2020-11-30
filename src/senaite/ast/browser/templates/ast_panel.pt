@@ -1,0 +1,52 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      metal:use-macro="here/main_template/macros/master"
+      i18n:domain="senaite.ast">
+
+  <body>
+
+    <!-- Title -->
+    <metal:title fill-slot="content-title">
+      <h1 i18n:translate="" tal:content="view/title"/>
+    </metal:title>
+
+    <metal:core fill-slot="content-core">
+
+      <form class="form"
+            name="ast_panel"
+            action="ast_panel"
+            method="POST">
+
+        <div id="folderlisting-main-table"
+             tal:content="structure view/contents_table"></div>
+
+        <div>
+            <!-- Hidden Fields -->
+            <input type="hidden" name="submitted" value="1"/>
+            <input tal:replace="structure context/@@authenticator/authenticator"/>
+
+            <!-- Buttons -->
+            <div class="form-group">
+
+              <!-- Save -->
+              <input type="submit"
+                     class="btn btn-success btn-sm"
+                     name="button_submit"
+                     i18n:attributes="value"
+                     value="Save"/>
+
+              <!-- Cancel -->
+              <input class="btn btn-info btn-sm"
+                     type="submit"
+                     name="button_cancel"
+                     i18n:attributes="value"
+                     value="Cancel"/>
+
+            </div>
+        </div>
+      </form>
+    </metal:core>
+  </body>
+
+</html>
