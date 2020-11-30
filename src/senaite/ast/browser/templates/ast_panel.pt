@@ -11,6 +11,11 @@
       <h1 i18n:translate="" tal:content="view/title"/>
     </metal:title>
 
+    <!-- Description -->
+    <metal:title fill-slot="content-description">
+      <div class="visualClear"></div>
+    </metal:title>
+
     <metal:core fill-slot="content-core">
 
       <form class="form"
