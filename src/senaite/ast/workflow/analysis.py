@@ -18,6 +18,8 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import copy
+
 from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import IInternalUse
@@ -129,3 +131,23 @@ def after_submit(analysis):
 
     # Re-enable the audit for this analysis
     alsoProvides(resistance, IAuditable)
+
+
+def after_retract(analysis):
+    """Event fired when an analysis is retracted
+    """
+    if not IASTAnalysis.providedBy(analysis):
+        return
+
+    # The original analysis is the one being retracted
+    retest = analysis.getRetest()
+    if not retest:
+        return
+
+    # Get the original interim fields and purge them
+    interim_fields = copy.deepcopy(analysis.getInterimFields())
+    map(lambda interim: interim.update({"value": ""}), interim_fields)
+
+    # Set the original interim fields to the new analysis
+    retest.setInterimFields(interim_fields)
+    retest.reindexObject()
