@@ -25,6 +25,7 @@ from bika.lims import senaiteMessageFactory as _sc
 from bika.lims.catalog import CATALOG_ANALYSIS_LISTING
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import ISubmitted
+from bika.lims.interfaces import IVerified
 from bika.lims.utils import get_link_for
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -177,9 +178,10 @@ class ASTPanelView(ListingView):
         uid = api.get_uid(antibiotic)
         has_analysis = self.has_analysis_for(microorganism, antibiotic)
         item[uid] = has_analysis
-        item["allow_edit"].append(uid)
-        if has_analysis and not self.is_editable(microorganism, antibiotic):
-            item.setdefault("disabled", []).append(uid)
+        if self.can_add_analyses():
+            item["allow_edit"].append(uid)
+            if has_analysis and not self.is_editable(microorganism, antibiotic):
+                item.setdefault("disabled", []).append(uid)
 
     def is_editable(self, microorganism, antibiotic):
         """Returns whether there are submitted analyses for this microorganism,
@@ -265,6 +267,14 @@ class ASTPanelView(ListingView):
         }
         brains = api.search(query, SETUP_CATALOG)
         return map(api.get_object, brains)
+
+    @view.memoize
+    def can_add_analyses(self):
+        """Returns whether the status of context allows to add analyses or not
+        """
+        if IVerified.providedBy(self.context):
+            return False
+        return api.is_active(self.context)
 
     def get_children_hook(self, parent_uid, child_uids=None):
         return super(ASTPanelView, self).get_children_hook(

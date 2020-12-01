@@ -24,6 +24,7 @@ from collections import OrderedDict
 from bika.lims import api
 from bika.lims.browser.analyses import AnalysesView
 from bika.lims.browser.analysisrequest.sections import LabAnalysesSection
+from bika.lims.interfaces import IVerified
 from bika.lims.utils import get_link
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -255,3 +256,10 @@ class ManageResultsView(AnalysesView):
             "uid": api.get_uid(brain_or_object),
             "title": api.get_title(brain_or_object),
         }
+
+    def can_add_analyses(self):
+        """Returns whether the status of context allows to add analyses or not
+        """
+        if IVerified.providedBy(self.context):
+            return False
+        return api.is_active(self.context)

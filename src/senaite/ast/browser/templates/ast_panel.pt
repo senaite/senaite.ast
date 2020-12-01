@@ -26,7 +26,7 @@
         <div id="folderlisting-main-table"
              tal:content="structure view/contents_table"></div>
 
-        <div>
+        <div tal:condition="python: view.can_add_analyses()">
             <!-- Hidden Fields -->
             <input type="hidden" name="submitted" value="1"/>
             <input tal:replace="structure context/@@authenticator/authenticator"/>

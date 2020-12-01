@@ -3,7 +3,8 @@
   i18n:domain="senaite.ast">
 
   <!-- Form for the assignment of an AST panel -->
-  <div class="row mt-3 mb-3">
+  <div class="row mt-3 mb-3"
+       tal:condition="python: view.can_add_analyses()">
     <div class="col-sm-12">
       <form id="add_ast_panel_form"
             class="form form-inline"
