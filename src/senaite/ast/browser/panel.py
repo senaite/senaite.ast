@@ -70,7 +70,7 @@ class ASTPanelView(ListingView):
         self.review_states = [
             {
                 "id": "default",
-                "title": _sc("All"),
+                "title": _sc("All microorganisms"),
                 "contentFilter": {},
                 "columns": self.columns.keys(),
             }
@@ -81,7 +81,7 @@ class ASTPanelView(ListingView):
         form = self.request.form
         form_submitted = form.get("submitted", False)
         if not form_submitted:
-            return super(ASTPanelView, self).__call__(*args, **kwargs)
+            return super(ASTPanelView, self).__call__()
 
         # Form submitted
         button_submit = form.get("button_submit", False)
@@ -265,3 +265,7 @@ class ASTPanelView(ListingView):
         }
         brains = api.search(query, SETUP_CATALOG)
         return map(api.get_object, brains)
+
+    def get_children_hook(self, parent_uid, child_uids=None):
+        return super(ASTPanelView, self).get_children_hook(
+            parent_uid, child_uids=child_uids)

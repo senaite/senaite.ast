@@ -18,23 +18,46 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims import api
+from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import IInternalUse
 from bika.lims.interfaces import IAuditable
 from bika.lims.interfaces import ISubmitted
+from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
+from senaite.ast.interfaces import IASTAnalysis
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
 
-def AfterTransitionEventHandler(analysis, event):  # noqa CamelCase
-    """Actions to be done when a transition for an analysis takes place
+def after_initialize(analysis):
+    """Event fired when an analysis is initialized
     """
-    if not event.transition:
+    if analysis.getKeyword() != IDENTIFICATION_KEY:
         return
 
-    if event.transition.id != "submit":
+    # Get the names list of active microorganisms
+    query = {"portal_type": "Microorganism", "is_active": True}
+    names = sorted(map(api.get_title, api.search(query, SETUP_CATALOG)))
+
+    # Maybe no microorganisms where identified
+    names.insert(0, _("No culture growth obtained"))
+
+    # Generate the analysis result options
+    options = zip(range(len(names)), names)
+    options = map(lambda m: {"ResultValue": m[0], "ResultText": m[1]}, options)
+    analysis.setResultOptions(options)
+    analysis.setResultOptionsType("multiselect")
+    analysis.reindexObject()
+
+
+def after_submit(analysis):
+    """Event fired when an analysis result gets submitted
+    """
+    if not IASTAnalysis.providedBy(analysis):
         return
 
     # Check that values for all interim fields are set

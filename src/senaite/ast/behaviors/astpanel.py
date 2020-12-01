@@ -38,7 +38,9 @@ class IASTPanelBehavior(model.Schema):
         title=_(u"Microorganisms"),
         description=_(
             "The names of selected microorganisms are displayed as row headers "
-            "in the sensitivity results entry view"
+            "in the sensitivity results entry view. From all microorganisms "
+            "selected here, only those identified in the Sample are added in "
+            "results entry view"
         ),
         required=True,
         value_type=schema.Choice(

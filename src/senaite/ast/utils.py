@@ -19,6 +19,9 @@
 # Some rights reserved, see README and LICENSE.
 
 import copy
+import itertools
+import json
+
 from bika.lims import api
 from bika.lims import workflow as wf
 from bika.lims.catalog import SETUP_CATALOG
@@ -28,6 +31,7 @@ from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
+from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
 from zope.interface import alsoProvides
@@ -264,3 +268,42 @@ def get_ast_siblings(analysis):
     microorganism = analysis.getShortTitle()
     analyses = get_ast_analyses(sample, short_title=microorganism)
     return filter(lambda an: an != analysis, analyses)
+
+
+def get_identified_microorganisms(sample):
+    """Returns the identified microorganisms from the sample passed-in. It
+    resolves the microorganisms by looking to the results of the
+    "Identification" analyses
+    """
+    keyword = IDENTIFICATION_KEY
+    ans = sample.getAnalyses(getKeyword=keyword, full_objects=True)
+
+    # Discard invalid analyses
+    skip = ["rejected", "cancelled", "retracted"]
+    ans = filter(lambda a: api.get_review_status(a) not in skip, ans)
+
+    # Get the names of the selected microorganisms
+    names = map(get_microorganisms_from_result, ans)
+    names = list(itertools.chain.from_iterable(names))
+
+    # Get the microorganisms
+    objects = api.get_setup().microorganisms.objectValues()
+    return filter(lambda m: api.get_title(m) in names, objects)
+
+
+def get_microorganisms_from_result(analysis):
+    """Returns the microorganisms from the Identification analysis passed-in
+    """
+    if analysis.getKeyword() != IDENTIFICATION_KEY:
+        return []
+
+    try:
+        selected = json.loads(analysis.getResult())
+        selected = map(str, selected)
+    except:
+        return []
+
+    options = analysis.getResultOptions()
+    options = filter(lambda o: str(o["ResultValue"]) in selected, options)
+    names = map(lambda o: o["ResultText"], options)
+    return filter(None, names)

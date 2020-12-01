@@ -18,6 +18,7 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from senaite.ast import messageFactory as _
 
 # Analysis Category name AST Services will be added into
 SERVICE_CATEGORY = "Antibiotic Sensitivity Testing (AST)"
@@ -36,6 +37,12 @@ RESISTANCE_KEY = "senaite_ast_resistance"
 # of analyses that will be used to tell whether the AST result has to be
 # reported in results report or not
 REPORT_KEY = "senaite_ast_report"
+
+# Keyword of the Analysis Service for the identification of microorganisms
+# This analysis service is used for the automatic selection of microorganisms
+# to include in an AST testing when an AST Panel is selected. If this service
+# is not present, the system assign all microorganisms from the panel
+IDENTIFICATION_KEY = "senaite_ast_identification"
 
 # Title for the AST calculation object. This calculation allows AST machinery
 # to assign a final result by its own, without prompting the user
@@ -60,5 +67,9 @@ SERVICES_SETTINGS = {
         # XXX types for interims are not yet supported by senaite.app.listing
         "type": "boolean",
     },
+
+    IDENTIFICATION_KEY: {
+        "title": _("Microorganism identification"),
+    }
 
 }

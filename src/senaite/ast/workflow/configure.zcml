@@ -4,8 +4,8 @@
 
   <!-- After event handler for AST Analyses -->
   <subscriber
-    for="senaite.ast.interfaces.IASTAnalysis
+    for="bika.lims.interfaces.IAnalysis
          Products.DCWorkflow.interfaces.IAfterTransitionEvent"
-    handler=".analysis.AfterTransitionEventHandler" />
+    handler=".AfterAnalysisTransitionEventHandler" />
 
 </configure>

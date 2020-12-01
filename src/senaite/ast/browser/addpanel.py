@@ -41,6 +41,10 @@ class AddPanelView(BrowserView):
         antibiotics = map(api.get_object, panel.antibiotics)
         microorganisms = map(api.get_object, panel.microorganisms)
 
+        # Exclude those not identified in the current sample
+        identified = utils.get_identified_microorganisms(self.context)
+        microorganisms = filter(lambda m: m in identified, microorganisms)
+
         # Create an analysis for each microorganism
         for microorganism in microorganisms:
 

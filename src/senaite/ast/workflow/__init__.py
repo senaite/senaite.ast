@@ -17,3 +17,19 @@
 #
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
+
+from senaite.ast import check_installed
+from senaite.ast.workflow import analysis as wf_analysis
+
+
+@check_installed(None)
+def AfterAnalysisTransitionEventHandler(analysis, event):  # noqa CamelCase
+    """Actions to be done when a transition for an analysis takes place
+    """
+    if not event.transition:
+        return
+
+    function_name = "after_{}".format(event.transition.id)
+    if hasattr(wf_analysis, function_name):
+        # Call the after_* function from events package
+        getattr(wf_analysis, function_name)(analysis)

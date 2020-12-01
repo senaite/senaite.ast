@@ -26,6 +26,7 @@ from senaite.ast import logger
 from senaite.ast import messageFactory as _
 from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
+from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import SERVICE_CATEGORY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.config import AST_CALCULATION_TITLE
@@ -136,9 +137,10 @@ def setup_ast_services(portal):
     selective reporting
     """
     logger.info("Setup AST services ...")
+    setup = api.get_setup()
     for key, settings in SERVICES_SETTINGS.items():
         logger.info("Setup template service '{}' ...".format(key))
-        folder = api.get_setup().bika_analysisservices
+        folder = setup.bika_analysisservices
         exists = filter(lambda s: s.getKeyword() == key, folder.objectValues())
         if exists:
             logger.info("Service '{}' exists already".format(key))
@@ -146,21 +148,30 @@ def setup_ast_services(portal):
 
         # Get the category
         cat_name = SERVICE_CATEGORY
-        categories = api.get_setup().bika_analysiscategories.objectValues()
+        categories = setup.bika_analysiscategories.objectValues()
         category = filter(lambda c: api.get_title(c) == cat_name, categories)[0]
 
         # Get the calculation
         calc_name = AST_CALCULATION_TITLE
-        calcs = api.get_setup().bika_calculations.objectValues()
+        calcs = setup.bika_calculations.objectValues()
         calc = filter(lambda c: api.get_title(c) == calc_name, calcs)[0]
 
         # Create the service
-        title = settings["title"].format(_("Antibiotic Sensitivity"))
+        title = settings["title"]
+        if "{}" in title:
+            title = title.format(_("Antibiotic Sensitivity"))
         service = api.create(folder, "AnalysisService", Category=category,
                              title=title, Keyword=key)
-        service.setStringResult(True)
-        service.setPointOfCapture("ast")
-        service.setCalculation(calc)
+        if key == IDENTIFICATION_KEY:
+            # This is the lab analysis for the identification of microorganisms
+            # The options are the list of microorganisms and are automatically
+            # added when the corresponding analysis is initialized
+            service.setResultOptionsType("multiselect")
+        else:
+            # These are "ast" analyses
+            service.setStringResult(True)
+            service.setPointOfCapture("ast")
+            service.setCalculation(calc)
 
         # Do not allow the modification of this service
         roles = security.get_valid_roles_for(service)

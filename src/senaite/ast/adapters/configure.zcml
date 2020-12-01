@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="senaite.ast">
+
+  <!-- AST Panel listing customization form in Sample view. Adds the filter
+   button Identified microorganisms and makes it the default filter -->
+  <subscriber
+    for="senaite.ast.browser.panel.ASTPanelView
+         bika.lims.interfaces.IAnalysisRequest"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".listing.ASTPanelViewAdapter" />
+
+</configure>
