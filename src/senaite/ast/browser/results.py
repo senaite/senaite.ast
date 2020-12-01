@@ -65,7 +65,7 @@ class ManageResultsView(AnalysesView):
         self.form_id = "ast_analyses"
         self.allow_edit = True
         self.show_workflow_action_buttons = True
-        self.show_search = True
+        self.show_search = False
 
         # Add the Microorganism column
         new_columns = (
