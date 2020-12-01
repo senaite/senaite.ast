@@ -133,6 +133,20 @@ def after_submit(analysis):
     alsoProvides(resistance, IAuditable)
 
 
+def after_retest(analysis):
+    """Event fired when an analysis is retested
+    """
+    if not IASTAnalysis.providedBy(analysis):
+        return
+
+    source = analysis.getRetestOf()
+    if not source:
+        return
+
+    # Set the original interim fields to the retest
+    copy_interims(source, analysis)
+
+
 def after_retract(analysis):
     """Event fired when an analysis is retracted
     """
@@ -144,10 +158,13 @@ def after_retract(analysis):
     if not retest:
         return
 
-    # Get the original interim fields and purge them
-    interim_fields = copy.deepcopy(analysis.getInterimFields())
-    map(lambda interim: interim.update({"value": ""}), interim_fields)
-
     # Set the original interim fields to the new analysis
-    retest.setInterimFields(interim_fields)
-    retest.reindexObject()
+    copy_interims(analysis, retest)
+
+
+def copy_interims(source, destination):
+    """Copies the interims from the source analysis to destination analysis
+    """
+    interim_fields = copy.deepcopy(source.getInterimFields())
+    map(lambda interim: interim.update({"value": ""}), interim_fields)
+    destination.setInterimFields(interim_fields)
