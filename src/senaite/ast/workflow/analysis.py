@@ -90,7 +90,7 @@ def after_submit(analysis):
         to_report = report_analysis[0].getInterimFields()
 
         # XXX senaite.app.listing has no support boolean type for interim fields
-        to_report = filter(lambda k: k.get("formatted_value") == "Y", to_report)
+        to_report = filter(lambda k: k.get("value") == "1", to_report)
 
         # Get the abbreviation of microorganisms (keyword)
         keywords = map(lambda k: k.get("keyword"), to_report)
