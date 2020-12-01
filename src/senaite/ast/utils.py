@@ -307,3 +307,23 @@ def get_microorganisms_from_result(analysis):
     options = filter(lambda o: str(o["ResultValue"]) in selected, options)
     names = map(lambda o: o["ResultText"], options)
     return filter(None, names)
+
+
+def get_panels_for(microorganisms):
+    """Returns a list of active AST Panels, sorted by title ascending, that at
+    least have one of the microorganisms passed-in assigned
+    """
+    output = []
+    uids = map(api.get_uid, microorganisms)
+    query = {
+        "portal_type": "ASTPanel",
+        "sort_on": "sortable_title",
+        "sort_order": "ascending",
+        "is_active": True,
+    }
+    panels = map(api.get_object, api.search(query, SETUP_CATALOG))
+    for panel in panels:
+        matches = map(lambda p: p in uids, panel.microorganisms)
+        if any(matches):
+            output.append(panel)
+    return output

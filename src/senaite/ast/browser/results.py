@@ -24,12 +24,12 @@ from collections import OrderedDict
 from bika.lims import api
 from bika.lims.browser.analyses import AnalysesView
 from bika.lims.browser.analysisrequest.sections import LabAnalysesSection
-from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.utils import get_link
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
+from senaite.ast import utils
 
 
 class ASTAnalysesSection(LabAnalysesSection):
@@ -236,15 +236,19 @@ class ManageResultsView(AnalysesView):
         super(ManageResultsView, self).get_children_hook(
             parent_uid, child_uids=child_uids)
 
+    @view.memoize
     def get_panels(self):
-        query = {
-            "portal_type": "ASTPanel",
-            "sort_on": "sortable_title",
-            "sort_order": "ascending",
-            "is_active": True,
-        }
-        brains = api.search(query, SETUP_CATALOG)
-        return map(self.get_panel_info, brains)
+        """Returns a list of dict elements each one representing a panel, sorted
+        by title ascending. Each panel has at least one of the microorganisms
+        identified in the current sample
+        :return: a list of dicts
+        """
+        # Get the identified microorganisms for this Sample
+        microorganisms = utils.get_identified_microorganisms(self.context)
+
+        # Get the panels with at least of these microorganisms assigned
+        panels = utils.get_panels_for(microorganisms)
+        return map(self.get_panel_info, panels)
 
     def get_panel_info(self, brain_or_object):
         return {
