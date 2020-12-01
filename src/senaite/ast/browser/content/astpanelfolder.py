@@ -159,7 +159,7 @@ class ASTPanelFolderView(ListingView):
         if obj.multi_resistant:
             params.update({
                 "value": "{}*".format(title),
-                "title": _("Multiresistant (MRO)")
+                "title": _("Multi-resistant (MRO)")
             })
 
         return {

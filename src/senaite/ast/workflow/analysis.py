@@ -79,7 +79,7 @@ def after_submit(analysis):
     resistance = filter(lambda an: an.getKeyword() == RESISTANCE_KEY, analyses)
     resistance = resistance[0]
 
-    # Results are the values (R/S/+/-) set for resistance analysis interims
+    # Results are the values (R/S/+/-) set for resistance' interim fields
     results = resistance.getInterimFields()
 
     # Find out the resistance results to report
@@ -89,13 +89,13 @@ def after_submit(analysis):
         # interim fields of the "selective reporting" analysis
         to_report = report_analysis[0].getInterimFields()
 
-        # XXX make senaite.app.listing to support boolean type for interims
+        # XXX senaite.app.listing has no support boolean type for interim fields
         to_report = filter(lambda k: k.get("formatted_value") == "Y", to_report)
 
-        # Get the abbreviation of micoorganisms (keyword)
+        # Get the abbreviation of microorganisms (keyword)
         keywords = map(lambda k: k.get("keyword"), to_report)
 
-        # Filter the interims from resistance
+        # Filter the interim fields from resistance
         results = filter(lambda r: r.get("keyword") in keywords, results)
 
     # The "selected" result options are those to be reported

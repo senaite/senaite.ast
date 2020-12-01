@@ -64,7 +64,7 @@ SERVICES_SETTINGS = {
     REPORT_KEY: {
         "title": "{} - Report",
         "choices": "0:|1:Y|2:N",
-        # XXX types for interims are not yet supported by senaite.app.listing
+        # XXX senaite.app.listing has no support for boolean types (interim)
         "type": "boolean",
     },
 

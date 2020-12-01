@@ -56,7 +56,7 @@ def get_service(keyword, default=_marker):
 
 
 def new_analysis_id(sample, analysis_keyword):
-    """Returns a new analysis id for an hypothetic new test with given keyword
+    """Returns a new analysis id for an eventual new test with given keyword
     to prevent clashes with ids of other analyses from same sample
     """
     new_id = analysis_keyword
@@ -79,8 +79,8 @@ def create_ast_analyses(sample, keywords, microorganism, antibiotics):
 def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     """Creates a new AST analysis
     """
-    # Convert antibiotics to interims
-    interims = map(lambda ab: to_interim(keyword, ab), antibiotics)
+    # Convert antibiotics to interim fields
+    interim_fields = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
     # Create a new ID to prevent clashes
     new_id = new_analysis_id(sample, keyword)
@@ -95,8 +95,8 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     analysis.setTitle(title)
     analysis.setShortTitle(short_title)
 
-    # Assign the antibiotics as interims
-    analysis.setInterimFields(interims)
+    # Assign the antibiotics as interim fields
+    analysis.setInterimFields(interim_fields)
 
     # Compute all combinations of interim/antibiotic and possible result and
     # and generate the result options for this analysis (the "Result" field is
@@ -121,21 +121,21 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     if IVerified.providedBy(analysis):
         return
 
-    # Convert antibiotics to interims
+    # Convert antibiotics to interim fields
     keyword = analysis.getKeyword()
-    interims = map(lambda ab: to_interim(keyword, ab), antibiotics)
+    interim_fields = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
-    # Get the analysis interims
+    # Get the analysis interim fields
     an_interims = copy.deepcopy(analysis.getInterimFields()) or []
     an_keys = sorted(map(lambda i: i.get("keyword"), an_interims))
 
     # Remove non-specified antibiotics
     if remove:
-        in_keys = map(lambda i: i.get("keyword"), interims)
+        in_keys = map(lambda i: i.get("keyword"), interim_fields)
         an_interims = filter(lambda a: a["keyword"] in in_keys, an_interims)
 
     # Keep analysis' original antibiotics
-    abx = filter(lambda a: a["keyword"] not in an_keys, interims)
+    abx = filter(lambda a: a["keyword"] not in an_keys, interim_fields)
     an_interims.extend(abx)
 
     # Is there any difference?
@@ -174,7 +174,7 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
 
 
 def to_interim(keyword, antibiotic):
-    """Converts a list of antibiotics to a list of interims
+    """Converts a list of antibiotics to a list of interim fields
     """
     if isinstance(antibiotic, dict):
         # Already an interim
@@ -227,8 +227,8 @@ def get_result_options(analysis):
 
         # Generate the result options
         for choice in choices.split("|"):
-            result_value = str(len(options))
-            option = to_result_option(interim, choice, result_value)
+            val = str(len(options))
+            option = to_result_option(interim, choice, val)
             if option:
                 options.append(option)
 
@@ -300,7 +300,10 @@ def get_microorganisms_from_result(analysis):
     try:
         selected = json.loads(analysis.getResult())
         selected = map(str, selected)
-    except:
+    except Exception as e:
+        logger.error("Cannot extract microorganisms from {}: {}".format(
+            api.get_path(analysis), str(e)
+        ))
         return []
 
     options = analysis.getResultOptions()

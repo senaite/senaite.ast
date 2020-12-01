@@ -73,12 +73,6 @@ class AddPanelView(BrowserView):
         existing = map(api.get_title, analyses)
         return dict(zip(existing, analyses))
 
-    @view.memoize
-    def to_interim(self, antibiotic):
-        """Converts an antibiotic to an interim
-        """
-        return utils.to_interim(antibiotic)
-
     def get_analysis(self, title):
         """Search for an existing and valid AST-like analysis in current sample
         """

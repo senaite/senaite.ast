@@ -97,9 +97,9 @@ class ManageResultsView(AnalysesView):
         keyword = obj.getKeyword
         item["Keyword"] = keyword
         item["service_uid"] = obj.getServiceUID
-        splitted = obj.Title.split("-")
-        item["Microorganism"] = splitted[0].strip()
-        item["Service"] = splitted[1].strip()
+        tokens = obj.Title.split("-")
+        item["Microorganism"] = tokens[0].strip()
+        item["Service"] = tokens[1].strip()
         item['class']['service'] = 'service_title'
 
         # This is used for sorting

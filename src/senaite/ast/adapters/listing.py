@@ -59,5 +59,5 @@ class ASTPanelViewAdapter(object):
                 "columns": self.listing.columns.keys()
             })
 
-    def folder_item(self, obj, item, index):
+    def folder_item(self, obj, item, index):  # noqa
         return item
