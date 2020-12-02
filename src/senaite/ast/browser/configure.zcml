@@ -24,10 +24,13 @@
     layer="senaite.ast.interfaces.ISenaiteASTLayer" />
 
   <!-- Section for AST Analyses in Sample View-->
-  <subscriber
+  <browser:viewlet
     for="bika.lims.interfaces.IAnalysisRequest"
-    provides="senaite.core.interfaces.ISampleSection"
-    factory=".results.ASTAnalysesSection"/>
+    name="senaite.core.section.ast_analyses"
+    manager="senaite.core.browser.viewlets.interfaces.IContentSection"
+    class=".results.ASTAnalysesViewlet"
+    layer="senaite.core.interfaces.ISenaiteCore"
+    permission="zope2.View" />
 
   <!-- AST results entry in Sample view -->
   <browser:page

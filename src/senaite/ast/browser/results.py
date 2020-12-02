@@ -23,7 +23,7 @@ from collections import OrderedDict
 
 from bika.lims import api
 from bika.lims.browser.analyses import AnalysesView
-from bika.lims.browser.analysisrequest.sections import LabAnalysesSection
+from bika.lims.browser.analysisrequest.sections import LabAnalysesViewlet
 from bika.lims.interfaces import IVerified
 from bika.lims.utils import get_link
 from plone.memoize import view
@@ -33,9 +33,8 @@ from senaite.ast import messageFactory as _
 from senaite.ast import utils
 
 
-class ASTAnalysesSection(LabAnalysesSection):
-    """Field analyses section adapter for Sample view
-    """
+class ASTAnalysesViewlet(LabAnalysesViewlet):
+
     order = 20
     title = _("Antibiotic Sensitivities")
     icon_name = "ast_panel"
