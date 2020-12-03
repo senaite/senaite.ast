@@ -23,7 +23,6 @@ from collections import OrderedDict
 
 from bika.lims import api
 from bika.lims.browser.analyses import AnalysesView
-from bika.lims.browser.analysisrequest.sections import LabAnalysesViewlet
 from bika.lims.interfaces import IVerified
 from bika.lims.utils import get_link
 from plone.memoize import view
@@ -31,16 +30,17 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
 
 
 class ASTAnalysesViewlet(LabAnalysesViewlet):
-
-    order = 20
+    """AST Analyses section viewlet for Sample view
+    """
     title = _("Antibiotic Sensitivities")
     icon_name = "ast_panel"
     capture = "ast"
 
-    def is_visible(self):
+    def available(self):
         """Returns true if senaite.ast is installed
         """
         return is_installed()

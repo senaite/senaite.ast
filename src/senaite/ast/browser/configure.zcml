@@ -27,7 +27,7 @@
   <browser:viewlet
     for="bika.lims.interfaces.IAnalysisRequest"
     name="senaite.core.section.ast_analyses"
-    manager="senaite.core.browser.viewlets.interfaces.IContentSection"
+    manager="senaite.core.browser.viewlets.interfaces.ISampleSection"
     class=".results.ASTAnalysesViewlet"
     layer="senaite.core.interfaces.ISenaiteCore"
     permission="zope2.View" />
