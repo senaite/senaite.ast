@@ -104,7 +104,9 @@ class ASTPanelView(ListingView):
         antibiotics = map(api.get_object_by_uid, uids)
 
         # Generate a transposed dict microorganism->antibiotics
-        microorganisms = api.search(self.contentFilter, self.catalog)
+        # Add all microorganisms, so analyses without any antibiotic selected
+        # can also be removed
+        microorganisms = self.get_microorganisms()
         mapping = dict(map(lambda m: (api.get_uid(m), []), microorganisms))
         for antibiotic in antibiotics:
             abx_uid = api.get_uid(antibiotic)
@@ -119,7 +121,7 @@ class ASTPanelView(ListingView):
         return self.redirect(_("AST analyses updated"))
 
     def update_analyses(self, microorganism, antibiotics):
-        analyses = self.get_analyses_for(microorganism, skip_invalid=True)
+        analyses = self.get_analyses_for(microorganism)
 
         # Filter those that are not yet submitted
         analyses = filter(lambda a: not ISubmitted.providedBy(a), analyses)
@@ -190,7 +192,8 @@ class ASTPanelView(ListingView):
         """Returns whether there are submitted analyses for this microorganism,
         antibiotic and current context
         """
-        analyses = self.get_analyses_for(microorganism, antibiotic)
+        analyses = self.get_analyses_for(microorganism, antibiotic,
+                                         skip_invalid=False)
         analyses = filter(ISubmitted.providedBy, analyses)
         return len(analyses) == 0
 
@@ -198,11 +201,12 @@ class ASTPanelView(ListingView):
         """Returns whether there are ast analyses for this microorganism,
          antibiotic and current context
          """
-        analyses = self.get_analyses_for(microorganism, antibiotic)
+        analyses = self.get_analyses_for(microorganism, antibiotic,
+                                         skip_invalid=False)
         return len(analyses) > 0
 
     def get_analyses_for(self, microorganism=None, antibiotic=None,
-                         skip_invalid=False):
+                         skip_invalid=True):
         """Returns the ast-analyses for this microorganism, antibiotic and
         current context, if any
         """
@@ -260,6 +264,12 @@ class ASTPanelView(ListingView):
         }
         brains = api.search(query, SETUP_CATALOG)
         return map(api.get_object, brains)
+
+    @view.memoize
+    def get_microorganisms(self):
+        """Returns the list of microorganisms registered in the system
+        """
+        return api.search(self.contentFilter, self.catalog)
 
     @view.memoize
     def can_add_analyses(self):

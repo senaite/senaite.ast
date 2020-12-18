@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 from bika.lims import api
+from bika.lims.interfaces import ISubmitted
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import messageFactory as _
@@ -58,18 +59,41 @@ class ASTPanelReportingView(ASTPanelView):
         antibiotic passed-in
         """
         uid = api.get_uid(antibiotic)
-        has_analysis = self.has_analysis_for(microorganism, antibiotic)
 
-        if self.can_add_analyses():
-            # The sample is in an editable status
-            item["allow_edit"].append(uid)
+        # Check whether there are analyses assigned
+        analyses = self.get_analyses_for(microorganism, antibiotic)
+        analysis = filter(lambda a: a.getKeyword() == REPORT_KEY, analyses)
+        analysis = analysis and analysis[-1] or None
 
-        item[uid] = has_analysis
-        if has_analysis and self.is_editable(microorganism, antibiotic):
+        # Set whether reporting is enabled/disabled
+        item[uid] = self.is_reporting_enabled(analysis, antibiotic)
+
+        # If sample is not in an editable status, no further actions required
+        if not self.can_add_analyses():
             return
 
-        # There is no analysis or is not editable. Disable the checkbox
-        item.setdefault("disabled", []).append(uid)
+        item["allow_edit"].append(uid)
+        if not analyses:
+            # No analyses assigned for this microorganism
+            item.setdefault("disabled", []).append(uid)
+
+        elif analysis and ISubmitted.providedBy(analysis):
+            # Analysis assigned, but report info submitted already
+            item.setdefault("disable", []).append(uid)
+
+    def is_reporting_enabled(self, analysis, antibiotic):
+        """Returns whether the reporting is enabled for the analysis and
+        antibiotic passed-in
+        """
+        if not analysis:
+            return False
+        interim_fields = analysis.getInterimFields()
+        for interim in interim_fields:
+            keyword = interim.get("keyword")
+            if antibiotic.abbreviation == keyword:
+                # choices = "0:|1:Y|2:N"
+                return str(interim.get("value")) == "1"
+        return False
 
     @view.memoize
     def get_microorganisms(self):
@@ -93,15 +117,24 @@ class ASTPanelReportingView(ASTPanelView):
         """Update the ast reporting analyses for the given microorganism and
         list of antibiotics
         """
+        # Get all the analysis for the given microorganism
+        analyses = self.get_analyses_for(microorganism)
+
         # Get the selective reporting analysis for the given microorganism
-        analyses = self.get_analyses_for(microorganism, skip_invalid=True)
-        analyses = filter(lambda a: a.getKeyword() == REPORT_KEY, analyses)
-        if not analyses:
-            return
+        rep_analyses = filter(lambda a: a.getKeyword() == REPORT_KEY, analyses)
+
+        # Check whether selective reporting analysis exists for this micro
+        if not rep_analyses:
+            # Get the antibiotics assigned for this microorganism
+            all_abx = utils.get_antibiotics(analyses)
+
+            # Create the selective reporting analysis
+            rep_analyses = [utils.create_ast_analysis(self.context, REPORT_KEY,
+                                                      microorganism, all_abx)]
 
         # Reporting is true for the given antibiotics
         selected = map(lambda o: o.abbreviation, antibiotics)
-        for analysis in analyses:
+        for analysis in rep_analyses:
             interim_fields = analysis.getInterimFields()
             for antibiotic in interim_fields:
                 keyword = antibiotic.get("keyword")
