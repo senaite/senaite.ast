@@ -153,11 +153,8 @@ class ManageResultsView(AnalysesView):
                 if field not in item:
                     item[field] = ""
 
-        # XXX order the list of interim columns
-        interim_keys = self.interim_columns.keys()
-        interim_keys.reverse()
-
         # Add InterimFields keys (Antibiotic abbreviations) to columns
+        interim_keys = sorted(self.interim_columns.keys(), reverse=True)
         for col_id in interim_keys:
             if col_id not in self.columns:
                 self.columns[col_id] = {

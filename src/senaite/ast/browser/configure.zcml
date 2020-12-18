@@ -48,7 +48,15 @@
     permission="senaite.core.permissions.ManageAnalysisRequests"
     layer="senaite.ast.interfaces.ISenaiteASTLayer" />
 
-  <!-- Adds a Panel to the Sample -->
+  <!-- AST Panel selective reporting view -->
+  <browser:page
+    for="bika.lims.interfaces.IAnalysisRequest"
+    name="ast_reporting"
+    class=".reporting.ASTPanelReportingView"
+    permission="senaite.core.permissions.ManageAnalysisRequests"
+    layer="senaite.ast.interfaces.ISenaiteASTLayer" />
+
+  <!-- End-point for the addition of a Panel to the Sample -->
   <browser:page
     for="bika.lims.interfaces.IAnalysisRequest"
     name="add_ast_panel"

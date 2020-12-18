@@ -36,9 +36,14 @@
                   i18n:translate="">Add</button>
 
           <a id="astpanel_custom"
-             class="btn btn-outline-primary btn-sm"
+             class="btn btn-outline-primary btn-sm mr-2"
              tal:attributes="href python:context.absolute_url() + '/ast_panel'"
              i18n:translate="">Custom ...</a>
+
+          <a class="btn btn-outline-secondary btn-sm mr-2"
+             tal:attributes="href python:context.absolute_url() + '/ast_reporting'"
+             i18n:translate="">Selective reporting</a>
+
         </div>
       </form>
     </div>
