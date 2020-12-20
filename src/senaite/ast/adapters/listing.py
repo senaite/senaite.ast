@@ -41,6 +41,9 @@ class ASTPanelViewAdapter(object):
         self.context = context
 
     def before_render(self):
+        # If there are microorganisms identified for the current sample,
+        # display a new filter "Identified microorganisms" and make it the
+        # default, so only identified microorganisms are listed
         microorganisms = utils.get_identified_microorganisms(self.context)
         if microorganisms:
             # Get the microorganisms uids

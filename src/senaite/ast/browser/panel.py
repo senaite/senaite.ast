@@ -21,8 +21,6 @@
 import collections
 
 from bika.lims import api
-from bika.lims import senaiteMessageFactory as _sc
-from bika.lims.catalog import CATALOG_ANALYSIS_LISTING
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
@@ -32,12 +30,17 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.app.listing.view import ListingView
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
-from senaite.ast.config import REPORT_KEY
 
 
 class ASTPanelView(ListingView):
+    """Listing view that represents the configuration of an AST Panel,
+    displaying microorganisms as rows and antibiotics as rows. A checkbox is
+    rendered on each cell, meaning that an AST result will be expected for
+    that microorganism-antibiotic tuple
+    """
 
     template = ViewPageTemplateFile("templates/ast_panel.pt")
 
@@ -71,7 +74,7 @@ class ASTPanelView(ListingView):
         self.review_states = [
             {
                 "id": "default",
-                "title": _sc("All microorganisms"),
+                "title": _("All microorganisms"),
                 "contentFilter": {},
                 "columns": self.columns.keys(),
             }
@@ -101,7 +104,9 @@ class ASTPanelView(ListingView):
         antibiotics = map(api.get_object_by_uid, uids)
 
         # Generate a transposed dict microorganism->antibiotics
-        microorganisms = api.search(self.contentFilter, self.catalog)
+        # Add all microorganisms, so analyses without any antibiotic selected
+        # can also be removed
+        microorganisms = self.get_microorganisms()
         mapping = dict(map(lambda m: (api.get_uid(m), []), microorganisms))
         for antibiotic in antibiotics:
             abx_uid = api.get_uid(antibiotic)
@@ -116,7 +121,7 @@ class ASTPanelView(ListingView):
         return self.redirect(_("AST analyses updated"))
 
     def update_analyses(self, microorganism, antibiotics):
-        analyses = self.get_analyses_for(microorganism, skip_invalid=True)
+        analyses = self.get_analyses_for(microorganism)
 
         # Filter those that are not yet submitted
         analyses = filter(lambda a: not ISubmitted.providedBy(a), analyses)
@@ -187,7 +192,8 @@ class ASTPanelView(ListingView):
         """Returns whether there are submitted analyses for this microorganism,
         antibiotic and current context
         """
-        analyses = self.get_analyses_for(microorganism, antibiotic)
+        analyses = self.get_analyses_for(microorganism, antibiotic,
+                                         skip_invalid=False)
         analyses = filter(ISubmitted.providedBy, analyses)
         return len(analyses) == 0
 
@@ -195,15 +201,16 @@ class ASTPanelView(ListingView):
         """Returns whether there are ast analyses for this microorganism,
          antibiotic and current context
          """
-        analyses = self.get_analyses_for(microorganism, antibiotic)
+        analyses = self.get_analyses_for(microorganism, antibiotic,
+                                         skip_invalid=False)
         return len(analyses) > 0
 
     def get_analyses_for(self, microorganism=None, antibiotic=None,
-                         skip_invalid=False):
+                         skip_invalid=True):
         """Returns the ast-analyses for this microorganism, antibiotic and
         current context, if any
         """
-        ans = self.get_analyses()
+        ans = self.get_analyses(skip_invalid=skip_invalid)
 
         # Microorganism name is the ShortTitle
         if microorganism:
@@ -213,10 +220,6 @@ class ASTPanelView(ListingView):
         # Antibiotic is defined as an interim
         if antibiotic:
             ans = filter(lambda a: self.has_antibiotic(a, antibiotic), ans)
-
-        # Skip invalids
-        skip = skip_invalid and ["cancelled", "retracted", "rejected"] or []
-        ans = filter(lambda a: api.get_review_status(a) not in skip, ans)
 
         return ans
 
@@ -243,16 +246,10 @@ class ASTPanelView(ListingView):
         return antibiotic[0]
 
     @view.memoize
-    def get_analyses(self):
+    def get_analyses(self, skip_invalid=False):
         """Returns the list of ast-like analyses from current context
         """
-        query = {
-            "portal_type": "Analysis",
-            "getPointOfCapture": "ast",
-            "getAncestorsUIDs": [api.get_uid(self.context)],
-        }
-        brains = api.search(query, CATALOG_ANALYSIS_LISTING)
-        return map(api.get_object, brains)
+        return utils.get_ast_analyses(self.context, skip_invalid=skip_invalid)
 
     @view.memoize
     def get_antibiotics(self):
@@ -267,6 +264,12 @@ class ASTPanelView(ListingView):
         }
         brains = api.search(query, SETUP_CATALOG)
         return map(api.get_object, brains)
+
+    @view.memoize
+    def get_microorganisms(self):
+        """Returns the list of microorganisms registered in the system
+        """
+        return api.search(self.contentFilter, self.catalog)
 
     @view.memoize
     def can_add_analyses(self):

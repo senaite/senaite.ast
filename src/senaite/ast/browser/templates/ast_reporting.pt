@@ -19,13 +19,13 @@
     <metal:core fill-slot="content-core">
 
       <form class="form"
-            name="ast_panel"
-            action="ast_panel"
+            name="ast_reporting"
+            action="ast_reporting"
             method="POST">
 
         <div tal:content="structure view/contents_table"></div>
 
-        <div tal:condition="python: view.can_add_analyses()">
+        <div>
             <!-- Hidden Fields -->
             <input type="hidden" name="submitted" value="1"/>
             <input tal:replace="structure context/@@authenticator/authenticator"/>

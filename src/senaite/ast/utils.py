@@ -273,7 +273,7 @@ def get_ast_siblings(analysis):
 def get_identified_microorganisms(sample):
     """Returns the identified microorganisms from the sample passed-in. It
     resolves the microorganisms by looking to the results of the
-    "Identification" analyses
+    "Identification" analysis
     """
     keyword = IDENTIFICATION_KEY
     ans = sample.getAnalyses(getKeyword=keyword, full_objects=True)
@@ -289,6 +289,43 @@ def get_identified_microorganisms(sample):
     # Get the microorganisms
     objects = api.get_setup().microorganisms.objectValues()
     return filter(lambda m: api.get_title(m) in names, objects)
+
+
+def get_microorganism(analysis):
+    """Returns the microorganism object from the analysis passed-in, if any
+    """
+    microorganism = get_microorganisms([analysis, ])
+    return microorganism and microorganism[0] or None
+
+
+def get_microorganisms(analyses):
+    """Returns the list of microorganisms from the analyses passed-in
+    """
+    names = map(lambda a: a.getShortTitle(), analyses)
+    objects = api.get_setup().microorganisms.objectValues()
+    objects = filter(lambda m: api.get_title(m) in names, objects)
+    return filter(None, objects)
+
+
+def get_antibiotics(analyses):
+    """Returns the list of antibiotics assigned to the analyses passed-in
+    """
+    if isinstance(analyses, (list, tuple)):
+        abx = map(get_antibiotics, analyses)
+        abx = list(itertools.chain.from_iterable(abx))
+        # Remove duplicates and Nones
+        return filter(None, list(set(abx)))
+
+    # Antibiotics are stored as interim fields and keyword is the abbreviation
+    analysis = api.get_object(analyses)
+    interim_fields = analysis.getInterimFields()
+    abbreviations = map(lambda i: i.get("keyword"), interim_fields)
+    abbreviations = filter(None, abbreviations)
+
+    # Get the antibiotics
+    objects = api.get_setup().antibiotics.objectValues()
+    objects = filter(lambda a: a.abbreviation in abbreviations, objects)
+    return filter(None, objects)
 
 
 def get_microorganisms_from_result(analysis):
