@@ -57,7 +57,7 @@ class ManageResultsView(AnalysesView):
         self.contentFilter.update({
             "getPointOfCapture": "ast",
             "getAncestorsUIDs": [api.get_uid(context)],
-            "sort_on": "title",
+            "sort_on": "sortable_title",
             "sort_order": "ascending",
         })
 
@@ -112,8 +112,9 @@ class ManageResultsView(AnalysesView):
         item['class']['service'] = 'service_title'
 
         # This is used for sorting
-        service_id = self.get_service_id(obj.getServiceUID)
-        sort_key = "{}:{}".format(item["Microorganism"], service_id)
+        anlaysis = api.get_object(obj)
+        analysis_sort_key = anlaysis.getSortKey()
+        sort_key = "{}:{}".format(item["Microorganism"], analysis_sort_key)
         item["sort_key"] = sort_key
 
         # Append info link before the service

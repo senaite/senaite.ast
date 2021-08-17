@@ -60,11 +60,21 @@ class IASTPanelBehavior(model.Schema):
         )
     )
 
+    disk_content = schema.Bool(
+        title=_(u"Include disk content in μg"),
+        description=_(
+            u"When enabled, an additional row for the introduction of the disk "
+            u"content (potency) in μg is displayed in the results entry view, "
+            u"above resistance call options"
+        ),
+        default=True,
+    )
+
     zone_size = schema.Bool(
-        title=_(u"Include zone size in mm"),
+        title=_(u"Include zone diameter in mm"),
         description=_(
             "When enabled, an additional row for the introduction of the zone "
-            "size (in mm) is displayed in the results entry view, below "
+            "diameter (in mm) is displayed in the results entry view, above "
             "resistance call options"
         ),
         default=True,

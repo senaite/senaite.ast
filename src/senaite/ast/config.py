@@ -29,6 +29,15 @@ SERVICE_CATEGORY = _("Antibiotic Sensitivity Testing (AST)")
 ZONE_SIZE_KEY = "senaite_ast_zone"
 
 # Keyword of the Analysis Service to be used as the template for the creation
+# disk content (potency) analyses. This is the concentration of antimicrobial
+# agent added to the filter paper disk to determine in vitro antimicrobial
+# susceptibility testing results following a standardised disk diffusion method
+# equivalent to disk load, disk mass, disk strength, and disk charge. This
+# Service is automatically created on install and is not editable
+#
+DISK_CONTENT_KEY = "senaite_ast_potency"
+
+# Keyword of the Analysis Service to be used as the template for the creation
 # of AST analyses. This Service is automatically created on install and is not
 # editable
 RESISTANCE_KEY = "senaite_ast_resistance"
@@ -57,11 +66,25 @@ SERVICES_SETTINGS = {
     RESISTANCE_KEY: {
         "title": "{} - " + _("Resistance"),
         "choices": "0:|1:R|2:S|3:+|4:-",
+        "sort_key": 530,
+    },
+
+    DISK_CONTENT_KEY: {
+        "title": "{} - " + _(u"Disk content (μg)"),
+        "description":
+            _("Concentration of antimicrobial agent added to the filter paper "
+              "disk to determine in vitro antimicrobial susceptibility testing "
+              "results following a standardised disk diffusion method "
+              "equivalent to disk load, disk mass, disk strength, and disk "
+              "charge."),
+        "size": "1",
+        "sort_key": 510,
     },
 
     ZONE_SIZE_KEY: {
-        "title": "{} - " + _("Zone size (mm)"),
+        "title": "{} - " + _("Zone diameter (mm)"),
         "size": "1",
+        "sort_key": 520,
     },
 
     REPORT_KEY: {
@@ -69,10 +92,12 @@ SERVICES_SETTINGS = {
         "choices": "0:|1:Y|2:N",
         # XXX senaite.app.listing has no support for boolean types (interim)
         "type": "boolean",
+        "sort_key": 540,
     },
 
     IDENTIFICATION_KEY: {
         "title": _("Microorganism identification"),
+        "sort_key": 500,
     }
 
 }

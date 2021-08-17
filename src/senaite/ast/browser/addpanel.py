@@ -22,6 +22,7 @@ from bika.lims import api
 from plone.memoize import view
 from Products.Five.browser import BrowserView
 from senaite.ast import utils
+from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.config import REPORT_KEY
@@ -47,6 +48,10 @@ class AddPanelView(BrowserView):
 
         # Create an analysis for each microorganism
         for microorganism in microorganisms:
+
+            # Create/Update the disk content (potency) analysis
+            if panel.disk_content:
+                self.add_ast_analysis(DISK_CONTENT_KEY, microorganism, antibiotics)
 
             # Create/Update the zone size analysis
             if panel.zone_size:
