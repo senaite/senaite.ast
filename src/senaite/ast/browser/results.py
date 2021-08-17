@@ -97,9 +97,18 @@ class ManageResultsView(AnalysesView):
         keyword = obj.getKeyword
         item["Keyword"] = keyword
         item["service_uid"] = obj.getServiceUID
+
+        # The analysis title is made of Microorganism plus the name of the
+        # analysis type (diameter, etc.), separated by '-'.
+        # E.g.:
+        #   Escherichia coli - Zone size (mm)
+        # Therefore, we need to take into consideration the possibility of
+        # having that same separator '-' in the Microorganism's name.
+        # E.g.:
+        #   Escherichia coli (meropenem-resistant - CRE) - Zone size (mm)
         tokens = obj.Title.split("-")
-        item["Microorganism"] = tokens[0].strip()
-        item["Service"] = tokens[1].strip()
+        item["Microorganism"] = "-".join(tokens[:-1]).strip()
+        item["Service"] = tokens[-1].strip()
         item['class']['service'] = 'service_title'
 
         # This is used for sorting
