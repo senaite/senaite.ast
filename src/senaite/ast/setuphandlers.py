@@ -38,6 +38,13 @@ SETUP_FOLDERS = [
     ("astpanels", "AST Panels", "ASTPanelFolder"),
 ]
 
+# Tuples of (portal_type, list of behaviors)
+BEHAVIORS = [
+    ("Antibiotic", [
+        "senaite.ast.behaviors.astbreakpoint.IASTBreakpointBehavior"
+    ])
+]
+
 
 def setup_handler(context):
     """Generic setup handler
@@ -58,6 +65,9 @@ def setup_handler(context):
     setup_ast_calculation(portal)
     setup_ast_category(portal)
     setup_ast_services(portal)
+
+    # Add Breakpoints behavior to Antibiotic content type
+    setup_behaviors(portal)
 
     logger.info("{} setup handler [DONE]".format(PRODUCT_NAME.upper()))
 
@@ -195,6 +205,36 @@ def setup_ast_services(portal):
     logger.info("Setup AST services [DONE]")
 
 
+def setup_behaviors(portal):
+    """Assigns additional behaviors to existing content types
+    """
+    logger.info("Setup Behaviors ...")
+    pt = api.get_tool("portal_types")
+    for portal_type, behavior_ids in BEHAVIORS:
+        fti = pt.get(portal_type)
+        fti_behaviors = fti.behaviors
+        additional = filter(lambda b: b not in fti_behaviors, behavior_ids)
+        if additional:
+            fti_behaviors = list(fti_behaviors)
+            fti_behaviors.extend(additional)
+            fti.behaviors = tuple(fti_behaviors)
+
+    logger.info("Setup Behaviors [DONE]")
+
+
+def remove_behaviors(portal):
+    """Remove behaviors added by this add-on to existing content types
+    """
+    logger.info("Removing Behaviors ...")
+    pt = api.get_tool("portal_types")
+    for portal_type, behavior_ids in BEHAVIORS:
+        fti = pt.get(portal_type)
+        orig_behaviors = filter(lambda b: b not in behavior_ids, fti.behaviors)
+        fti.behaviors = tuple(orig_behaviors)
+
+    logger.info("Removing Behaviors [DONE]")
+
+
 def search_by_title(container, title):
     """Returns the items from the container that match with the title passed-in
     """
@@ -237,5 +277,8 @@ def post_uninstall(portal_setup):
     profile_id = "profile-{}:uninstall".format(PRODUCT_NAME)
     context = portal_setup._getImportContext(profile_id)  # noqa
     portal = context.getSite()  # noqa
+
+    # Remove additional behaviors
+    remove_behaviors(portal)
 
     logger.info("{} uninstall handler [DONE]".format(PRODUCT_NAME.upper()))
