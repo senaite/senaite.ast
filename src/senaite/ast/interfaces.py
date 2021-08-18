@@ -45,3 +45,8 @@ class IASTPanelFolder(IHideActionsMenu, IDoNotSupportSnapshots):
 class IASTAnalysis(Interface):
     """Marker interface for AST-type analyses
     """
+
+
+class IASTBreakpoint(Interface):
+    """Marker interface for contents that implement IASTBreakpointBehavior
+    """
