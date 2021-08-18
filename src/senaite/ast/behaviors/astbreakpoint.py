@@ -33,7 +33,6 @@ from zope.interface import Interface
 from zope.interface import provider
 
 
-# parts for the data grid type fields
 class IBreakpointSchema(Interface):
 
     microorganism = schema.Choice(
@@ -41,6 +40,7 @@ class IBreakpointSchema(Interface):
         source="senaite.ast.vocabularies.microorganisms",
         required=True,
     )
+
     disk_content = schema.Int(
         title=_(u"Disk content (μg)"),
         min=0,
@@ -85,7 +85,6 @@ class IASTBreakpointBehavior(model.Schema):
     directives.widget(
         "breakpoints",
         DataGridWidgetFactory,
-        klass="testing",
         auto_append=True)
 
 

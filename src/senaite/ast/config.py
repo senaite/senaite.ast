@@ -34,7 +34,6 @@ ZONE_SIZE_KEY = "senaite_ast_zone"
 # susceptibility testing results following a standardised disk diffusion method
 # equivalent to disk load, disk mass, disk strength, and disk charge. This
 # Service is automatically created on install and is not editable
-#
 DISK_CONTENT_KEY = "senaite_ast_potency"
 
 # Keyword of the Analysis Service to be used as the template for the creation
