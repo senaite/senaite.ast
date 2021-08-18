@@ -18,4 +18,4 @@ before_install:
 install:
   - bin/buildout -N -t 3
 script:
-  - bin/test -s senaite.ast.tests
+  - bin/test -s senaite.ast
