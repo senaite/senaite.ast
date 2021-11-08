@@ -23,4 +23,13 @@
       for="plone.dexterity.interfaces.IDexterityContent"
       marker="senaite.ast.interfaces.IASTBreakpoint" />
 
+  <plone:behavior
+      name="senaite.ast.behavior.breakpointstable"
+      title="BreakpointsTable"
+      description="Adds AST Breakpoints Table behavior"
+      provides=".breakpointstable.IBreakpointsTableBehavior"
+      factory=".breakpointstable.BreakpointsTable"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      marker="senaite.ast.interfaces.IBreakpointsTable" />
+
 </configure>
