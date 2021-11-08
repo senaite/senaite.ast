@@ -36,6 +36,7 @@ from zope.component import getUtility
 # Tuples of (folder_id, folder_name, type)
 SETUP_FOLDERS = [
     ("astpanels", "AST Panels", "ASTPanelFolder"),
+    ("astbreakpoints", "AST Breakpoints Tables", "BreakpointsTables"),
 ]
 
 # Tuples of (portal_type, list of behaviors)
