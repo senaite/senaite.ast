@@ -51,7 +51,8 @@ class AddPanelView(BrowserView):
         for microorganism in microorganisms:
 
             # Create/Update the breakpoints table analysis
-            self.add_breakpoints_analysis(panel, microorganism, antibiotics)
+            if panel.breakpoints_table:
+                self.add_breakpoints_analysis(panel, microorganism, antibiotics)
 
             # Create/Update the disk content (potency) analysis
             if panel.disk_content:
