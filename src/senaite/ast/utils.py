@@ -31,8 +31,6 @@ from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
-from senaite.ast import messageFactory as _
-from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
@@ -184,15 +182,10 @@ def to_interim(keyword, antibiotic):
 
     properties = SERVICES_SETTINGS[keyword]
     obj = api.get_object(antibiotic)
-    choices = properties.get("choices", "")
-    if keyword == BREAKPOINTS_TABLE_KEY:
-        # This is a choices field, but calculated on creation
-        choices = get_breakpoints_tables_choices()
-
     return {
         "keyword": obj.abbreviation,
         "title": obj.abbreviation,
-        "choices": choices,
+        "choices": properties.get("choices", ""),
         "value": "",
         "unit": "",
         "wide": False,
@@ -200,6 +193,7 @@ def to_interim(keyword, antibiotic):
         "size": properties.get("size", "5"),
         "type": properties.get("type", ""),
         "full_title": api.get_title(obj),
+        "uid": api.get_uid(obj),
     }
 
 
@@ -376,9 +370,9 @@ def get_panels_for(microorganisms):
     return output
 
 
-def get_breakpoints_tables_choices():
-    """Returns a string that represents a valid choices string for the interim
-    field for the selection of the critical breakpoints table
+def get_breakpoints_tables_for(microorganism, antibiotic):
+    """Returns the list of BreakpointsTable objects registered and active that
+    have an entry for the microorganism and antibiotic passed-in
     """
     query = {
         "portal_type": "BreakpointsTable",
@@ -386,12 +380,31 @@ def get_breakpoints_tables_choices():
         "sort_order": "ascending",
         "is_active": True,
     }
-    choices = []
+    matches = []
     for brain in api.search(query, SETUP_CATALOG):
-        uid = api.get_uid(brain)
-        title = api.get_title(brain)
+        obj = api.get_object(brain)
+        for breakpoint in obj.breakpoints:
+            abx_uid = breakpoint.get("antibiotic")
+            micro_uid = breakpoint.get("microorganism")
+            if api.get_uid(microorganism) == micro_uid:
+                if api.get_uid(antibiotic) == abx_uid:
+                    matches.append(obj)
+                    break
+    return matches
+
+
+def to_interim_choices(objects, empty_value=None):
+    """Returns a string with a suitable format for its use as choices subfield
+    for interim fields
+    """
+    choices = []
+    if empty_value:
+        choices.append("0:{}".format(empty_value))
+
+    for obj in objects:
+        obj = api.get_object(obj)
+        uid = api.get_uid(obj)
+        title = api.get_title(obj)
         choice = "{}:{}".format(uid, title)
         choices.append(choice)
-
-    choices.insert(0, "0:{}".format(_("Custom")))
     return "|".join(choices)

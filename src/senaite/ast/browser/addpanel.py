@@ -21,12 +21,15 @@
 from bika.lims import api
 from plone.memoize import view
 from Products.Five.browser import BrowserView
+from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.config import REPORT_KEY
+from senaite.ast.utils import get_breakpoints_tables_for
+from senaite.ast.utils import to_interim_choices
 
 
 class AddPanelView(BrowserView):
@@ -114,14 +117,32 @@ class AddPanelView(BrowserView):
         analysis = self.add_ast_analysis(BREAKPOINTS_TABLE_KEY, microorganism,
                                          antibiotics)
 
-        # Choose the panel's selected breakpoint
-        selected_uid = "0"
+        # Get the panel's default breakpoints table
+        default_table = "0"
         if panel.breakpoints_table:
-            selected_uid = panel.breakpoints_table[0]
+            default_table = panel.breakpoints_table[0]
 
+        # Populate with suitable breakpoints tables
+        # Note that only those breakpoint tables that have a pair combination
+        # of the microorganism-antibiotic are considered, regardless of having
+        # a default breakpoints table defined at panel level.
+        # Antibiotics are stored as interim fields
         interim_fields = analysis.getInterimFields()
-        for interim in interim_fields:
-            interim.update({"value": selected_uid})
-        analysis.setInterimFields(interim_fields)
+        for interim_field in interim_fields:
 
+            # Get the breakpoint tables for this antibiotic and microorganism
+            uid = interim_field.get("uid")
+            breakpoints = get_breakpoints_tables_for(microorganism, uid)
+            breakpoints_uids = map(api.get_uid, breakpoints)
+
+            # Convert these breakpoints to interim choices and update interim
+            choices = to_interim_choices(breakpoints, empty_value=_("Custom"))
+            interim_field.update({"choices": choices})
+
+            # Set the default breakpoints table, if match
+            if default_table in breakpoints_uids:
+                # Set the panel's default breakpoints table
+                interim_field.update({"value": default_table})
+
+        analysis.setInterimFields(interim_fields)
         return analysis
