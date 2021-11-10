@@ -185,6 +185,12 @@ class ASTPanelView(ListingView):
         item[uid] = has_analysis
         if self.can_add_analyses():
             item["allow_edit"].append(uid)
+
+            # Render the checkbox as disabled/enabled
+            disabled = item.get("disabled", None)
+            if not isinstance(disabled, (list, tuple)):
+                item["disabled"] = []
+
             if has_analysis and not self.is_editable(microorganism, antibiotic):
                 item.setdefault("disabled", []).append(uid)
 

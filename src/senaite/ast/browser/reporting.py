@@ -73,13 +73,19 @@ class ASTPanelReportingView(ASTPanelView):
             return
 
         item["allow_edit"].append(uid)
+
+        # Render the checkbox as disabled/enabled
+        disabled = item.get("disabled", None)
+        if not isinstance(disabled, (list, tuple)):
+            item["disabled"] = []
+
         if not analyses:
             # No analyses assigned for this microorganism
             item.setdefault("disabled", []).append(uid)
 
         elif analysis and ISubmitted.providedBy(analysis):
             # Analysis assigned, but report info submitted already
-            item.setdefault("disable", []).append(uid)
+            item.setdefault("disabled", []).append(uid)
 
     def is_reporting_enabled(self, analysis, antibiotic):
         """Returns whether the reporting is enabled for the analysis and
