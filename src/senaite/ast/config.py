@@ -36,6 +36,12 @@ ZONE_SIZE_KEY = "senaite_ast_zone"
 # Service is automatically created on install and is not editable
 DISK_CONTENT_KEY = "senaite_ast_potency"
 
+# Keyword of the Analysis Service to be used to store the clinical breakpoints
+# table to use to calculate the susceptibility testing category
+# ('senaite_ast_resistance') automatically based on the zone size (mm)
+# submitted for a given tuple of Microorganism - Antibiotic
+BREAKPOINTS_TABLE_KEY = "senaite_ast_breakpoint"
+
 # Keyword of the Analysis Service to be used as the template for the creation
 # of AST analyses. This Service is automatically created on install and is not
 # editable
@@ -68,11 +74,23 @@ SERVICES_SETTINGS = {
             _(u"The susceptibility testing category defines the likelihood of "
               u"therapeutic success when a given microorganism is exposed to a "
               u"specific antimicrobial agent. Three different categories are "
-              u"available in accordance with EUCAST (European Committe on "
+              u"available in accordance with EUCAST (European Committee on "
               u"Antimicrobial Susceptibility Testing): S (Susceptible), I "
               u"(Susceptible, increased exposure) and R (Resistant)"),
         "choices": "0:|1:S|2:I|3:R",
         "sort_key": 530,
+    },
+
+    BREAKPOINTS_TABLE_KEY: {
+        "title": "{} - " + _(u"Breakpoints table"),
+        "description":
+            _(u"Default clinical breakpoints table to use for the automatic"
+              u"calculation of the susceptibility testing category when a "
+              u"zone diameter for a given microorganism - antibiotic tuple is "
+              u"submitted."),
+        # XXX This is a choices field, but choices are populated on creation
+        "choices": "get_breakpoint_tables_choices",
+        "sort_key": 505,
     },
 
     DISK_CONTENT_KEY: {
