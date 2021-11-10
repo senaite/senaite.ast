@@ -114,7 +114,8 @@ class IASTPanelBehavior(model.Schema):
             u"content (potency) in μg is displayed in the results entry view, "
             u"above resistance call options"
         ),
-        default=True,
+        required=False,
+        default=False,
     )
 
     zone_size = schema.Bool(
@@ -124,6 +125,7 @@ class IASTPanelBehavior(model.Schema):
             "diameter (in mm) is displayed in the results entry view, above "
             "resistance call options"
         ),
+        required=False,
         default=True,
     )
 
@@ -134,7 +136,8 @@ class IASTPanelBehavior(model.Schema):
             "resistance result for each microorganism-antibiotic tuple has to "
             "be reported in results report or not"
         ),
-        default=True,
+        required=False,
+        default=False,
     )
 
 
@@ -177,3 +180,30 @@ class ASTPanel(object):
         return copy(breakpoints_table)
 
     breakpoints_table = property(_get_breakpoints_table, _set_breakpoints_table)
+
+    def _set_disk_content(self, value):
+        self.context.disk_content = value
+
+    def _get_disk_content(self):
+        disk_content = getattr(self.context, "disk_content", None)
+        return disk_content
+
+    disk_content = property(_get_disk_content, _set_disk_content)
+
+    def _set_zone_size(self, value):
+        self.context.zone_size = value
+
+    def _get_zone_size(self):
+        zone_size = getattr(self.context, "zone_size", None)
+        return zone_size
+
+    zone_size = property(_get_zone_size, _set_zone_size)
+
+    def _set_selective_reporting(self, value):
+        self.context.selective_reporting = value
+
+    def _get_selective_reporting(self):
+        selective_reporting = getattr(self.context, "selective_reporting", None)
+        return selective_reporting
+
+    selective_reporting = property(_get_selective_reporting, _set_selective_reporting)
