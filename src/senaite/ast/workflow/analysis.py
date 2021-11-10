@@ -27,10 +27,13 @@ from bika.lims.interfaces import IAuditable
 from bika.lims.interfaces import ISubmitted
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
+from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.interfaces import IASTAnalysis
+from senaite.ast.utils import get_microorganism
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
@@ -56,6 +59,89 @@ def after_initialize(analysis):
     analysis.reindexObject()
 
 
+def handle_auto_category(analysis):
+    """Handles the automatic assignment of the result for the sensitivity
+    testing category analysis (ast_resistance) based on the value set for both
+    the diameter zone in mm and the breakpoints table, if any
+    """
+    import pdb;pdb.set_trace()
+    keywords = [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY]
+    keyword = analysis.getKeyword()
+    if keyword not in keywords:
+        return
+
+    def get_by_keyword(analyses_in, service_keyword):
+        for an in analyses_in:
+            if an.getKeyword() == service_keyword:
+                return an
+        return None
+
+    # Get the AST siblings for same sample and microorganism
+    siblings = utils.get_ast_siblings(analysis)
+
+    # Extract the analysis that stores the sensitivity category
+    resistance_analysis = get_by_keyword(siblings, RESISTANCE_KEY)
+    if ISubmitted.providedBy(resistance_analysis):
+        # Sensitivity category submitted already, nothing to do here!
+        return
+
+    # Extract the counterpart analysis
+    submitted = filter(ISubmitted.providedBy, siblings)
+    analyses = submitted + [analysis]
+    breakpoints_analysis = get_by_keyword(analyses, BREAKPOINTS_TABLE_KEY)
+    zone_sizes_analysis = get_by_keyword(analyses, ZONE_SIZE_KEY)
+    if not all([breakpoints_analysis, zone_sizes_analysis]):
+        return
+
+    # The result for each antibiotic is stored as an interim field
+    breakpoints = breakpoints_analysis.getInterimFields()
+    zone_sizes = zone_sizes_analysis.getInterimFields()
+    categories = resistance_analysis.getInterimFields()
+
+    # Get the mapping of Antibiotic -> BreakpointsTable
+    breakpoints = dict(map(lambda b: (b['uid'], b['value']), breakpoints))
+
+    # Get the mapping of Antibiotic -> Zone sizes
+    zone_sizes = dict(map(lambda z: (z['uid'], z['value']), zone_sizes))
+
+    # Get the microorganism this analysis is associated to
+    microorganism = get_microorganism(analysis)
+    microorganism_uid = api.get_uid(microorganism)
+
+    # Update sensitivity categories
+    for category in categories:
+        antibiotic_uid = category["uid"]
+
+        breakpoint = breakpoints.get(antibiotic_uid)
+        if breakpoint == "0":
+            # Default N/A breakpoint defined
+            continue
+
+        zone_size = zone_sizes.get(antibiotic_uid)
+        if not zone_size:
+            # No zone size entered yet
+            continue
+
+        # Findout the category by looking to the breakpoints table
+        zone_size = api.to_float(zone_size)
+        break_obj = api.get_object(breakpoint)
+        for val in break_obj.breakpoints:
+            if val.get("antibiotic") != antibiotic_uid:
+                continue
+            if val.get("microorganism") != microorganism_uid:
+                continue
+
+            # Choices for sensitivity category 0:|1:S|2:I|3:R
+            diameter_s = api.to_float(val.get("diameter_s"))
+            diameter_r = api.to_float(val.get("diameter_r"))
+            if zone_size < diameter_r:
+                category.update({"value": "3"})
+            elif zone_size >= diameter_s:
+                category.update({"value": "1"})
+
+    resistance_analysis.setInterimFields(categories)
+
+
 def after_submit(analysis):
     """Event fired when an analysis result gets submitted
     """
@@ -67,6 +153,9 @@ def after_submit(analysis):
     values = map(lambda interim: interim.get("value"), interim_fields)
     if not all(values):
         return
+
+    # Handles the automatic calculation of sensitivity categories
+    handle_auto_category(analysis)
 
     # All siblings for same microorganism and sample have to be submitted
     siblings = utils.get_ast_siblings(analysis)

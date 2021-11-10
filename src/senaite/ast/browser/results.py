@@ -30,6 +30,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.ast.config import RESISTANCE_KEY
 from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
 
 
@@ -141,6 +142,12 @@ class ManageResultsView(AnalysesView):
         self._folder_item_report_visibility(obj, item)
         # Renders remarks toggle button
         self._folder_item_remarks(obj, item)
+
+        if keyword == RESISTANCE_KEY:
+            import pdb;pdb.set_trace()
+            an_obj = self.get_object(obj)
+            interims = an_obj.getInterimFields()
+            item["disabled"] = map(lambda it: it["uid"], interims)
 
         return item
 
