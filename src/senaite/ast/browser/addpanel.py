@@ -113,7 +113,14 @@ class AddPanelView(BrowserView):
         analysis = self.add_ast_analysis(BREAKPOINTS_TABLE_KEY, microorganism,
                                          antibiotics)
 
-        # Selected breakpoint
-        selected_uid = panel.breakpoints_table
+        # Choose the panel's selected breakpoint
+        selected_uid = "0"
+        if panel.breakpoints_table:
+            selected_uid = panel.breakpoints_table[0]
+
+        interim_fields = analysis.getInterimFields()
+        for interim in interim_fields:
+            interim.update({"value": selected_uid})
+        analysis.setInterimFields(interim_fields)
 
         return analysis

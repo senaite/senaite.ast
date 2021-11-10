@@ -174,6 +174,6 @@ class ASTPanel(object):
 
     def _get_breakpoints_table(self):
         breakpoints_table = getattr(self.context, "breakpoints_table", None)
-        return breakpoints_table
+        return copy(breakpoints_table)
 
     breakpoints_table = property(_get_breakpoints_table, _set_breakpoints_table)
