@@ -112,7 +112,7 @@ class ManageResultsView(AnalysesView):
         item['class']['service'] = 'service_title'
 
         # This is used for sorting
-        sort_key = "{}:{}".format(item["Microorganism"], index)
+        sort_key = "{}:{}".format(item["Microorganism"], format(index, '05d'))
         item["sort_key"] = sort_key
 
         # Append info link before the service
