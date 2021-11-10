@@ -143,12 +143,6 @@ class ManageResultsView(AnalysesView):
         # Renders remarks toggle button
         self._folder_item_remarks(obj, item)
 
-        if keyword == RESISTANCE_KEY:
-            import pdb;pdb.set_trace()
-            an_obj = self.get_object(obj)
-            interims = an_obj.getInterimFields()
-            item["disabled"] = map(lambda it: it["uid"], interims)
-
         return item
 
     def folderitems(self):
