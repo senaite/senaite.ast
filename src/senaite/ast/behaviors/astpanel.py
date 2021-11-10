@@ -21,10 +21,14 @@
 from copy import copy
 
 from bika.lims import api
+from bika.lims import SETUP_CATALOG
+from plone.autoform import directives
 from plone.autoform.interfaces import IFormFieldProvider
 from plone.dexterity.interfaces import IDexterityContent
 from plone.supermodel import model
 from senaite.ast import messageFactory as _
+from senaite.core.schema import UIDReferenceField
+from senaite.core.z3cform.widgets.uidreference import UIDReferenceWidgetFactory
 from zope import schema
 from zope.component import adapter
 from zope.interface import implementer
@@ -58,6 +62,49 @@ class IASTPanelBehavior(model.Schema):
         value_type=schema.Choice(
             source="senaite.ast.vocabularies.antibiotics"
         )
+    )
+
+    breakpoints_table = UIDReferenceField(
+        title=_(u"Clinical breakpoints table"),
+        description=_(
+            u"Default clinical breakpoints table to use for this panel. If "
+            u"set, the system will automatically calculate the susceptibility "
+            u"testing category as soon as the zone diameter in mm is submitted "
+            u"by the user. If the 'Include clinical breakpoints selector' is "
+            u"enabled for this panel, user will also be able to overwrite the "
+            u"clinical breakpoints table breakpoints table for each antibiotic-"
+            u"microorganism pair."
+        ),
+        allowed_types=("BreakpointsTable", ),
+        multi_valued=False,
+        required=False,
+    )
+
+    directives.widget(
+        "breakpoints_table",
+        UIDReferenceWidgetFactory,
+        catalog=SETUP_CATALOG,
+        query={
+            "portal_type": "BreakpointsTable",
+            "is_active": True,
+            "sort_on": "title",
+            "sort_order": "ascending",
+        },
+        display_template="<a href='${url}'>${title}</a>",
+        columns=[
+            {
+                "name": "title",
+                "width": "30",
+                "align": "left",
+                "label": _(u"Title"),
+            }, {
+                "name": "description",
+                "width": "70",
+                "align": "left",
+                "label": _(u"Description"),
+            },
+        ],
+        limit=15,
     )
 
     disk_content = schema.Bool(
@@ -121,3 +168,12 @@ class ASTPanel(object):
         return copy(antibiotics)
 
     antibiotics = property(_get_antibiotics, _set_antibiotics)
+
+    def _set_breakpoints_table(self, value):
+        self.context.breakpoints_table = value
+
+    def _get_breakpoints_table(self):
+        breakpoints_table = getattr(self.context, "breakpoints_table", None)
+        return breakpoints_table
+
+    breakpoints_table = property(_get_breakpoints_table, _set_breakpoints_table)
