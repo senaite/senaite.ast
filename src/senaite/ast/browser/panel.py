@@ -129,7 +129,7 @@ class ASTPanelView(ListingView):
         if not analyses:
             if antibiotics:
                 # Create new analyses
-                keywords = [ZONE_SIZE_KEY, RESISTANCE_KEY, REPORT_KEY]
+                keywords = [ZONE_SIZE_KEY, RESISTANCE_KEY]
                 utils.create_ast_analyses(self.context, keywords, microorganism,
                                           antibiotics)
 

@@ -89,7 +89,7 @@ SERVICES_SETTINGS = {
               u"zone diameter for a given microorganism - antibiotic tuple is "
               u"submitted."),
         # XXX This is a choices field, but choices are populated on creation
-        "choices": "get_breakpoint_tables_choices",
+        "choices": "",
         "sort_key": 505,
     },
 
