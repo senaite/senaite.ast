@@ -188,6 +188,7 @@ def update_breakpoint_tables_choices(analysis, default_table=None):
     tables that better suit with the microorganism the analysis is associated
     to and with the antibiotic
     """
+    default_table = default_table or "0"
     microorganism = get_microorganism(analysis)
     interim_fields = analysis.getInterimFields()
     for interim_field in interim_fields:
@@ -204,10 +205,15 @@ def update_breakpoint_tables_choices(analysis, default_table=None):
         # Set the default breakpoints table, if match
         value = interim_field.get("value", default_table)
         if value in breakpoints_uids:
-            # Set the panel's default breakpoints table
+            interim_field.update({"value": value})
+        else:
             interim_field.update({"value": default_table})
 
     analysis.setInterimFields(interim_fields)
+
+    # Set the default result to '-' so user can directly save without the
+    # need of manually confirming each interim field value on result entry
+    analysis.setResult("-")
 
 
 def to_interim(keyword, antibiotic):

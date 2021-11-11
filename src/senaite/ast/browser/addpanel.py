@@ -119,10 +119,11 @@ class AddPanelView(BrowserView):
                                          antibiotics)
 
         # Get the panel's default breakpoints table
-        default_table = "0"
+        default_table = None
         if panel.breakpoints_table:
             default_table = panel.breakpoints_table[0]
 
         # Update each microorganism-antibiotic with suitable breakpoints table
         update_breakpoint_tables_choices(analysis, default_table=default_table)
+
         return analysis
