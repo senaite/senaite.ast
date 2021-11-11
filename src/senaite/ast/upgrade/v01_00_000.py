@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# This file is part of SENAITE.PATIENT.
+# This file is part of SENAITE.AST.
 #
-# SENAITE.PATIENT is free software: you can redistribute it and/or modify it
+# SENAITE.AST is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
 # Software Foundation, version 2.
 #
