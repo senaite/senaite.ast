@@ -21,15 +21,12 @@
 from bika.lims import api
 from plone.memoize import view
 from Products.Five.browser import BrowserView
-from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.config import REPORT_KEY
-from senaite.ast.utils import get_breakpoints_tables_for
-from senaite.ast.utils import to_interim_choices
 from senaite.ast.utils import update_breakpoint_tables_choices
 
 
@@ -125,5 +122,4 @@ class AddPanelView(BrowserView):
 
         # Update each microorganism-antibiotic with suitable breakpoints table
         update_breakpoint_tables_choices(analysis, default_table=default_table)
-
         return analysis

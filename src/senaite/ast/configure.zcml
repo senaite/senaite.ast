@@ -28,6 +28,9 @@
       component="senaite.ast.vocabularies.MicroorganismsVocabularyFactory"
       name="senaite.ast.vocabularies.microorganisms" />
 
+  <!-- Datamanagers -->
+  <adapter factory=".datamanagers.ASTAnalysisDataManager" />
+
   <!-- Default profile -->
   <genericsetup:registerProfile
     name="default"
