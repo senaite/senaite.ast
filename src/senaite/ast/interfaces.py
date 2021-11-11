@@ -47,11 +47,6 @@ class IASTAnalysis(Interface):
     """
 
 
-class IASTBreakpoint(Interface):
-    """Marker interface for contents that implement IASTBreakpointBehavior
-    """
-
-
 class IBreakpointsTable(Interface):
     """Marker interface for contents that implement IBreakpointsTableBehavior
     """

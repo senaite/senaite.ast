@@ -22,6 +22,9 @@ from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
 from senaite.ast.setuphandlers import add_setup_folders
+from senaite.ast.setuphandlers import setup_ast_calculation
+from senaite.ast.setuphandlers import setup_ast_category
+from senaite.ast.setuphandlers import setup_ast_services
 from senaite.ast.setuphandlers import setup_navigation_types
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
@@ -56,6 +59,11 @@ def upgrade(tool):
 
     # Configure visible navigation items
     setup_navigation_types(portal)
+
+    # Setup calculations and services
+    setup_ast_calculation(portal)
+    setup_ast_category(portal)
+    setup_ast_services(portal)
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True

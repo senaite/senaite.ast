@@ -41,9 +41,6 @@ SETUP_FOLDERS = [
 
 # Tuples of (portal_type, list of behaviors)
 BEHAVIORS = [
-    ("Antibiotic", [
-        "senaite.ast.behaviors.astbreakpoint.IASTBreakpointBehavior"
-    ])
 ]
 
 
@@ -67,7 +64,7 @@ def setup_handler(context):
     setup_ast_category(portal)
     setup_ast_services(portal)
 
-    # Add Breakpoints behavior to Antibiotic content type
+    # Add behaviors
     setup_behaviors(portal)
 
     logger.info("{} setup handler [DONE]".format(PRODUCT_NAME.upper()))

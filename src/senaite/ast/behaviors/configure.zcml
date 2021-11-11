@@ -15,15 +15,6 @@
       marker="senaite.ast.interfaces.IASTPanel" />
 
   <plone:behavior
-      name="senaite.ast.breakpoint"
-      title="ASTBreakpoint"
-      description="Adds AST Breakpoint behavior"
-      provides=".astbreakpoint.IASTBreakpointBehavior"
-      factory=".astbreakpoint.ASTBreakpoint"
-      for="plone.dexterity.interfaces.IDexterityContent"
-      marker="senaite.ast.interfaces.IASTBreakpoint" />
-
-  <plone:behavior
       name="senaite.ast.behavior.breakpointstable"
       title="BreakpointsTable"
       description="Adds AST Breakpoints Table behavior"
