@@ -18,6 +18,8 @@
 # Copyright 2020-2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims import api
+from bika.lims.catalog import CATALOG_ANALYSIS_LISTING
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
@@ -65,5 +67,51 @@ def upgrade(tool):
     setup_ast_category(portal)
     setup_ast_services(portal)
 
+    # Add 'uid' in interims dict of ast-like analyses
+    fix_uid_ast_interims(portal)
+
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True
+
+
+def fix_uid_ast_interims(portal):
+    """Walks through al ast-like analyses and add the uid of the antibiotic they
+    relate to
+    """
+    logger.info("Fixing antibiotic UIDs in interims ...")
+    query = {
+        "getPointOfCapture": "ast",
+        "sort_on": "sortable_title",
+        "sort_order": "ascending",
+    }
+    analyses = api.search(query, CATALOG_ANALYSIS_LISTING)
+    total = len(analyses)
+    for num, analysis in enumerate(analyses):
+        if num % 100 == 0:
+            logger.info("Fixing antibiotic UIDs in interims: {0}/{1}"
+                        .format(num, total))
+        analysis = api.get_object(analysis)
+        interims = analysis.getInterimFields()
+        for interim in interims:
+            uid = interim.get("uid")
+            if uid:
+                continue
+
+            keyword = interim.get("keyword")
+            antibiotic = get_antibiotic(keyword)
+            if antibiotic:
+                abx_uid = api.get_uid(antibiotic)
+                interim.update({"uid": abx_uid})
+
+        analysis.setInterimFields(interims)
+
+    logger.info("Fixing antibiotic UIDs in interims [DONE]")
+
+
+def get_antibiotic(abbreviation):
+    objects = api.get_setup().antibiotics.objectValues()
+    objects = filter(lambda a: a.abbreviation == abbreviation, objects)
+    objects = filter(None, objects)
+    if objects:
+        return objects[0]
+    return None

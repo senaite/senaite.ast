@@ -361,16 +361,17 @@ def get_antibiotics(analyses):
         # Remove duplicates and Nones
         return filter(None, list(set(abx)))
 
-    # Antibiotics are stored as interim fields and keyword is the abbreviation
+    # Antibiotics are stored as interim fields
     analysis = api.get_object(analyses)
     interim_fields = analysis.getInterimFields()
-    abbreviations = map(lambda i: i.get("keyword"), interim_fields)
-    abbreviations = filter(None, abbreviations)
+    uids = map(lambda i: i.get("uid"), interim_fields)
+    uids = filter(None, uids)
+    if not uids:
+        return []
 
-    # Get the antibiotics
-    objects = api.get_setup().antibiotics.objectValues()
-    objects = filter(lambda a: a.abbreviation in abbreviations, objects)
-    return filter(None, objects)
+    query = {"UID": uids, "portal_type": "Antibiotic"}
+    brains = api.search(query, SETUP_CATALOG)
+    return map(api.get_object, brains)
 
 
 def get_microorganisms_from_result(analysis):
