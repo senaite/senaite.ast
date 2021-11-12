@@ -452,3 +452,31 @@ def to_interim_choices(objects, empty_value=None):
         choice = "{}:{}".format(uid, title)
         choices.append(choice)
     return "|".join(choices)
+
+
+def get_breakpoint(breakpoints_table, microorganism, antibiotic):
+    """Returns the breakpoint from the breakpoints_table for the antibiotic and
+    microorganism specified if exists. Returns empty dict otherwise
+    """
+    if not all([breakpoints_table, microorganism, antibiotic]):
+        return {}
+
+    if breakpoints_table == "0":
+        # Default N/A breakpoint
+        return {}
+
+    break_obj = api.get_object(breakpoints_table, default=None)
+    if not break_obj:
+        return {}
+
+    antibiotic_uid = api.get_uid(antibiotic)
+    microorganism_uid = api.get_uid(microorganism)
+    for val in break_obj.breakpoints:
+        if val.get("antibiotic") != antibiotic_uid:
+            continue
+        if val.get("microorganism") != microorganism_uid:
+            continue
+
+        return copy.deepcopy(val)
+
+    return {}

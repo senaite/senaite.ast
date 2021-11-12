@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
+from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.interfaces import IASTAnalysis
@@ -39,10 +40,12 @@ class ASTAnalysisDataManager(RoutineAnalysisDataManager):
         if obj.getKeyword() not in [ZONE_SIZE_KEY, BREAKPOINTS_TABLE_KEY]:
             return recalculated
 
-        # Add the sensitivity category analysis too, so the results for this
-        # test are automatically refreshed in results entry listing when the
-        # user saves results for either zone size or breakpoints
+        # Add the sensitivity category and disk dosage analysis too, so the
+        # results for this test are automatically refreshed in results entry
+        # listing when the user saves results for either zone size or
+        # breakpoints
+        keep = [RESISTANCE_KEY, DISK_CONTENT_KEY]
         siblings = get_ast_siblings(obj)
-        res = filter(lambda s: s.getKeyword() == RESISTANCE_KEY, siblings)
+        res = filter(lambda s: s.getKeyword() in keep, siblings)
         recalculated.update(res)
         return recalculated

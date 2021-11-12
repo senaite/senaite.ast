@@ -22,8 +22,10 @@ from bika.lims import api
 from bika.lims.interfaces import ISubmitted
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
+from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
+from senaite.ast.utils import get_breakpoint
 from senaite.ast.utils import get_microorganism
 
 
@@ -53,7 +55,7 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
         # Sensitivity category submitted already, nothing to do here!
         return default_return
 
-    # Extract the counterpart analysis
+    # Extract the counterpart analyses
     breakpoints_analysis = get_by_keyword(analyses, BREAKPOINTS_TABLE_KEY)
     zone_sizes_analysis = get_by_keyword(analyses, ZONE_SIZE_KEY)
     if not all([breakpoints_analysis, zone_sizes_analysis]):
@@ -72,38 +74,32 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
 
     # Get the microorganism this analysis is associated to
     microorganism = get_microorganism(analysis)
-    microorganism_uid = api.get_uid(microorganism)
 
     # Update sensitivity categories
     for category in categories:
-        antibiotic_uid = category["uid"]
+        abx_uid = category["uid"]
 
-        breakpoint = breakpoints.get(antibiotic_uid)
-        if breakpoint == "0":
-            # Default N/A breakpoint defined
-            continue
-
-        zone_size = zone_sizes.get(antibiotic_uid)
+        # Get the zone size
+        zone_size = zone_sizes.get(abx_uid)
         if not zone_size:
             # No zone size entered yet
             continue
 
-        # Find-out the category by looking to the breakpoints table
-        zone_size = api.to_float(zone_size)
-        break_obj = api.get_object(breakpoint)
-        for val in break_obj.breakpoints:
-            if val.get("antibiotic") != antibiotic_uid:
-                continue
-            if val.get("microorganism") != microorganism_uid:
-                continue
+        # Get the selected Breakpoints Table for this category
+        breakpoints_uid = breakpoints.get(abx_uid)
 
-            # Choices for sensitivity category 0:|1:S|2:I|3:R
-            diameter_s = api.to_float(val.get("diameter_s"))
-            diameter_r = api.to_float(val.get("diameter_r"))
-            if zone_size < diameter_r:
-                category.update({"value": "3"})
-            elif zone_size >= diameter_s:
-                category.update({"value": "1"})
+        # Get the breakpoint for this microorganism and antibiotic
+        breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
+        if not breakpoint:
+            continue
+
+        # Choices for sensitivity category 0:|1:S|2:I|3:R
+        diameter_s = api.to_float(breakpoint.get("diameter_s"))
+        diameter_r = api.to_float(breakpoint.get("diameter_r"))
+        if zone_size < diameter_r:
+            category.update({"value": "3"})
+        elif zone_size >= diameter_s:
+            category.update({"value": "1"})
 
     # Assign the updated categories to the resistance analysis
     resistance_analysis.setInterimFields(categories)
@@ -114,6 +110,37 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
         # Let's set the result as '-' so user can directly submit the whole
         # analysis without the need of confirming every single one
         resistance_analysis.setResult("-")
+
+    # Update disk dosage / concentration
+    disk_dosages_analysis = get_by_keyword(analyses, DISK_CONTENT_KEY)
+    if disk_dosages_analysis:
+        disk_dosages = disk_dosages_analysis.getInterimFields()
+
+        for dosage in disk_dosages:
+            abx_uid = dosage["uid"]
+
+            # Get the selected Breakpoints Table for this category
+            breakpoints_uid = breakpoints.get(abx_uid)
+
+            # Get the breakpoint for this microorganism and antibiotic
+            breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
+            if not breakpoint:
+                continue
+
+            # Update the dosage
+            breakpoint_dosage = breakpoint.get("disk_content")
+            if api.to_float(breakpoint_dosage, default=0) > 0:
+                dosage.update({"value": breakpoint_dosage})
+
+        # Assign the inferred disk dosages
+        disk_dosages_analysis.setInterimFields(disk_dosages)
+
+        # Validate if all values for dosage interims are set
+        valid = map(lambda cat: cat.get("value"), categories)
+        if all(valid):
+            # Let's set the result as '-' so user can directly submit the whole
+            # analysis without the need of confirming every single one
+            disk_dosages_analysis.setResult("-")
 
     # Return something, cause is called by a Calculation
     return default_return
