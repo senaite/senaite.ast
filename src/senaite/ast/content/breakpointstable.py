@@ -18,9 +18,9 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from bika.lims.catalog import SETUP_CATALOG
 from plone.dexterity.content import Item
 from senaite.ast.interfaces import IBreakpointsTable
+from senaite.core.catalog import SETUP_CATALOG
 from zope.interface import implementer
 
 
