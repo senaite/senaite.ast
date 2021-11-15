@@ -428,13 +428,10 @@ def get_breakpoints_tables_for(microorganism, antibiotic):
     matches = []
     for brain in api.search(query, SETUP_CATALOG):
         obj = api.get_object(brain)
-        for breakpoint in obj.breakpoints:
-            abx_uid = breakpoint.get("antibiotic")
-            micro_uid = breakpoint.get("microorganism")
-            if api.get_uid(microorganism) == micro_uid:
-                if api.get_uid(antibiotic) == abx_uid:
-                    matches.append(obj)
-                    break
+        breakpoint = get_breakpoint(obj, microorganism, antibiotic)
+        if breakpoint:
+            matches.append(obj)
+
     return matches
 
 
