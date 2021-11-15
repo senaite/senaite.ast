@@ -21,12 +21,12 @@
 from copy import copy
 
 from bika.lims import api
-from bika.lims import SETUP_CATALOG
 from plone.autoform import directives
 from plone.autoform.interfaces import IFormFieldProvider
 from plone.dexterity.interfaces import IDexterityContent
 from plone.supermodel import model
 from senaite.ast import messageFactory as _
+from senaite.core.catalog import SETUP_CATALOG
 from senaite.core.schema import UIDReferenceField
 from senaite.core.z3cform.widgets.uidreference import UIDReferenceWidgetFactory
 from zope import schema
