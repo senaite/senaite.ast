@@ -71,7 +71,7 @@ class IASTPanelBehavior(model.Schema):
             u"set, the system will automatically calculate the susceptibility "
             u"testing category as soon as the zone diameter in mm is submitted "
             u"by the user. If the 'Include clinical breakpoints selector' is "
-            u"enabled for this panel, user will also be able to overwrite the "
+            u"enabled for this panel, users will also be able to overwrite the "
             u"clinical breakpoints table breakpoints table for each antibiotic-"
             u"microorganism pair."
         ),
