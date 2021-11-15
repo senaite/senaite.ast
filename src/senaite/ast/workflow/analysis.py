@@ -21,9 +21,8 @@
 import copy
 
 from bika.lims import api
-from bika.lims.catalog import SETUP_CATALOG
-from bika.lims.interfaces import IInternalUse
 from bika.lims.interfaces import IAuditable
+from bika.lims.interfaces import IInternalUse
 from bika.lims.interfaces import ISubmitted
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
@@ -31,6 +30,7 @@ from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.interfaces import IASTAnalysis
+from senaite.core.catalog import SETUP_CATALOG
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 

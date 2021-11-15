@@ -5,10 +5,18 @@
 
   <!-- AST Panels folder view -->
   <browser:page
-    for="senaite.ast.content.astpanelfolder.IASTPanelFolder"
+    for="senaite.ast.interfaces.IASTPanelFolder"
     name="view"
     class=".astpanelfolder.ASTPanelFolderView"
     permission="senaite.core.permissions.ManageBika"
     layer="senaite.ast.interfaces.ISenaiteASTLayer" />
+
+  <!-- BreakpointsTables folder view -->
+  <browser:page
+      for="senaite.ast.interfaces.IBreakpointsTables"
+      name="view"
+      class=".breakpointstables.BreakpointsTablesView"
+      permission="senaite.core.permissions.ManageBika"
+      layer="senaite.ast.interfaces.ISenaiteASTLayer" />
 
 </configure>

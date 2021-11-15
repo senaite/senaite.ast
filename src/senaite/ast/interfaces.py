@@ -45,3 +45,13 @@ class IASTPanelFolder(IHideActionsMenu, IDoNotSupportSnapshots):
 class IASTAnalysis(Interface):
     """Marker interface for AST-type analyses
     """
+
+
+class IBreakpointsTable(Interface):
+    """Marker interface for contents that implement IBreakpointsTableBehavior
+    """
+
+
+class IBreakpointsTables(IHideActionsMenu, IDoNotSupportSnapshots):
+    """Marker interface for the container of BreakpointTable contents
+    """

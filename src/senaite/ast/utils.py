@@ -31,6 +31,8 @@ from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
+from senaite.ast import messageFactory as _
+from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
@@ -59,11 +61,14 @@ def new_analysis_id(sample, analysis_keyword):
     """Returns a new analysis id for an eventual new test with given keyword
     to prevent clashes with ids of other analyses from same sample
     """
-    new_id = analysis_keyword
     analyses = sample.getAnalyses(getKeyword=analysis_keyword)
-    if analyses:
-        new_id = "{}-{}".format(analysis_keyword, len(analyses))
-    return new_id
+    existing_ids = map(api.get_id, analyses)
+    idx = len(analyses)
+    while True:
+        new_id = "{}-{}".format(analysis_keyword, idx)
+        if new_id not in existing_ids:
+            return new_id
+        idx += 1
 
 
 def create_ast_analyses(sample, keywords, microorganism, antibiotics):
@@ -161,6 +166,10 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     # Assign the antibiotics
     analysis.setInterimFields(an_interims)
 
+    # Update the antibiotics with the proper choices if necessary
+    if keyword == BREAKPOINTS_TABLE_KEY:
+        update_breakpoint_tables_choices(analysis)
+
     # Compute all combinations of interim/antibiotic and possible result and
     # and generate the result options for this analysis (the "Result" field is
     # never displayed and is only used for reporting)
@@ -173,8 +182,43 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     analysis.reindexObject()
 
 
+def update_breakpoint_tables_choices(analysis, default_table=None):
+    """Updates the choices option for each interim field from the passed-in
+    analysis, that represents an antibiotic, with the list of breakpoints
+    tables that better suit with the microorganism the analysis is associated
+    to and with the antibiotic
+    """
+    default_table = default_table or "0"
+    microorganism = get_microorganism(analysis)
+    interim_fields = analysis.getInterimFields()
+    for interim_field in interim_fields:
+
+        # Get the breakpoint tables for this antibiotic and microorganism
+        uid = interim_field.get("uid")
+        breakpoints = get_breakpoints_tables_for(microorganism, uid)
+        breakpoints_uids = map(api.get_uid, breakpoints)
+
+        # Convert these breakpoints to interim choices and update interim
+        choices = to_interim_choices(breakpoints, empty_value=_("N/S"))
+        interim_field.update({"choices": choices})
+
+        # Set the default breakpoints table, if match
+        value = interim_field.get("value", default_table)
+        if value in breakpoints_uids:
+            interim_field.update({"value": value})
+        else:
+            interim_field.update({"value": default_table})
+
+    analysis.setInterimFields(interim_fields)
+
+    # Set the default result to '-' so user can directly save without the
+    # need of manually confirming each interim field value on result entry
+    analysis.setResult("-")
+
+
 def to_interim(keyword, antibiotic):
-    """Converts a list of antibiotics to a list of interim fields
+    """Returns the interim field settings for the antibiotic and service
+    keyword passed-in
     """
     if isinstance(antibiotic, dict):
         # Already an interim
@@ -193,6 +237,7 @@ def to_interim(keyword, antibiotic):
         "size": properties.get("size", "5"),
         "type": properties.get("type", ""),
         "full_title": api.get_title(obj),
+        "uid": api.get_uid(obj),
     }
 
 
@@ -316,16 +361,17 @@ def get_antibiotics(analyses):
         # Remove duplicates and Nones
         return filter(None, list(set(abx)))
 
-    # Antibiotics are stored as interim fields and keyword is the abbreviation
+    # Antibiotics are stored as interim fields
     analysis = api.get_object(analyses)
     interim_fields = analysis.getInterimFields()
-    abbreviations = map(lambda i: i.get("keyword"), interim_fields)
-    abbreviations = filter(None, abbreviations)
+    uids = map(lambda i: i.get("uid"), interim_fields)
+    uids = filter(None, uids)
+    if not uids:
+        return []
 
-    # Get the antibiotics
-    objects = api.get_setup().antibiotics.objectValues()
-    objects = filter(lambda a: a.abbreviation in abbreviations, objects)
-    return filter(None, objects)
+    query = {"UID": uids, "portal_type": "Antibiotic"}
+    brains = api.search(query, SETUP_CATALOG)
+    return map(api.get_object, brains)
 
 
 def get_microorganisms_from_result(analysis):
@@ -367,3 +413,68 @@ def get_panels_for(microorganisms):
         if any(matches):
             output.append(panel)
     return output
+
+
+def get_breakpoints_tables_for(microorganism, antibiotic):
+    """Returns the list of BreakpointsTable objects registered and active that
+    have an entry for the microorganism and antibiotic passed-in
+    """
+    query = {
+        "portal_type": "BreakpointsTable",
+        "sort_on": "sortable_title",
+        "sort_order": "ascending",
+        "is_active": True,
+    }
+    matches = []
+    for brain in api.search(query, SETUP_CATALOG):
+        obj = api.get_object(brain)
+        breakpoint = get_breakpoint(obj, microorganism, antibiotic)
+        if breakpoint:
+            matches.append(obj)
+
+    return matches
+
+
+def to_interim_choices(objects, empty_value=None):
+    """Returns a string with a suitable format for its use as choices subfield
+    for interim fields
+    """
+    choices = []
+    if empty_value:
+        choices.append("0:{}".format(empty_value))
+
+    for obj in objects:
+        obj = api.get_object(obj)
+        uid = api.get_uid(obj)
+        title = api.get_title(obj)
+        choice = "{}:{}".format(uid, title)
+        choices.append(choice)
+    return "|".join(choices)
+
+
+def get_breakpoint(breakpoints_table, microorganism, antibiotic):
+    """Returns the breakpoint from the breakpoints_table for the antibiotic and
+    microorganism specified if exists. Returns empty dict otherwise
+    """
+    if not all([breakpoints_table, microorganism, antibiotic]):
+        return {}
+
+    if breakpoints_table == "0":
+        # Default N/A breakpoint
+        return {}
+
+    break_obj = api.get_object(breakpoints_table, default=None)
+    if not break_obj:
+        return {}
+
+    antibiotic_uid = api.get_uid(antibiotic)
+    microorganism_uid = api.get_uid(microorganism)
+    for val in break_obj.breakpoints:
+        if val.get("antibiotic") != antibiotic_uid:
+            continue
+        if val.get("microorganism") != microorganism_uid:
+            continue
+
+        return copy.deepcopy(val)
+
+    return {}

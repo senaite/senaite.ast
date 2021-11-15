@@ -17,6 +17,7 @@
   <include package=".adapters" />
   <include package=".behaviors" />
   <include package=".browser"/>
+  <include package=".upgrade"/>
   <include package=".workflow"/>
 
   <!-- Vocabularies -->
@@ -26,6 +27,9 @@
   <utility
       component="senaite.ast.vocabularies.MicroorganismsVocabularyFactory"
       name="senaite.ast.vocabularies.microorganisms" />
+
+  <!-- Datamanagers -->
+  <adapter factory=".datamanagers.ASTAnalysisDataManager" />
 
   <!-- Default profile -->
   <genericsetup:registerProfile

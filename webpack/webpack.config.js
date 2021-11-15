@@ -2,20 +2,34 @@ const path = require("path");
 const webpack = require("webpack");
 const childProcess = require("child_process");
 
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const CleanCSS = require("clean-css");
 const CopyPlugin = require("copy-webpack-plugin");
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const MergeIntoSingleFilePlugin = require("webpack-merge-and-include-globally");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+const uglifyJS = require("uglify-js");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+
 
 const gitCmd = "git rev-list -1 HEAD -- `pwd`";
 let gitHash = childProcess.execSync(gitCmd).toString().substring(0, 7);
 
 const staticPath = path.resolve(__dirname, "../src/senaite/ast/browser/static");
 
-const devMode = process.env.NODE_ENV !== 'production';
+const devMode = process.env.mode == "development";
+const prodMode = process.env.mode == "production";
+const mode = process.env.mode;
+console.log(`RUNNING WEBPACK IN '${mode}' MODE`);
 
 
 module.exports = {
+  // https://webpack.js.org/configuration/devtool
+  devtool: devMode ? "eval" : "source-map",
+  // https://webpack.js.org/configuration/mode/#usage
+  mode: mode,
   context: path.resolve(__dirname, "app"),
   entry: {
     "senaite.ast": [
@@ -24,7 +38,8 @@ module.exports = {
     ],
   },
   output: {
-    filename: gitHash ? `[name]-${gitHash}.js`: "[name].js",
+    // filename: devMode ? "[name].js" : `[name]-${gitHash}.js`,
+    filename: "[name].js",
     path: path.resolve(staticPath, "bundles"),
     publicPath: "/++plone++senaite.ast.static/bundles"
   },
@@ -63,9 +78,6 @@ module.exports = {
           {
             // https://webpack.js.org/plugins/mini-css-extract-plugin/
             loader: MiniCssExtractPlugin.loader,
-            options: {
-              hmr: process.env.NODE_ENV === "development"
-            },
           },
           {
             // https://webpack.js.org/loaders/css-loader/
@@ -92,6 +104,38 @@ module.exports = {
         ]
       }
     ]
+  },
+  optimization: {
+    minimize: prodMode,
+    minimizer: [
+      // https://v4.webpack.js.org/plugins/terser-webpack-plugin/
+      new TerserPlugin({
+        exclude: /\/modules/,
+        terserOptions: {
+          // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
+          sourceMap: false, // Must be set to true if using source-maps in production
+          format: {
+            comments: false
+          },
+          compress: {
+            drop_console: true,
+            passes: 2,
+          },
+	      }
+      }),
+      // https://webpack.js.org/plugins/css-minimizer-webpack-plugin/
+      new CssMinimizerPlugin({
+        exclude: /\/modules/,
+        minimizerOptions: {
+          preset: [
+            "default",
+            {
+              discardComments: { removeAll: true },
+            },
+          ],
+        },
+      }),
+    ],
   },
   plugins: [
     // https://github.com/johnagan/clean-webpack-plugin

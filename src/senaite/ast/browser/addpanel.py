@@ -22,9 +22,12 @@ from bika.lims import api
 from plone.memoize import view
 from Products.Five.browser import BrowserView
 from senaite.ast import utils
+from senaite.ast.config import BREAKPOINTS_TABLE_KEY
+from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.config import REPORT_KEY
+from senaite.ast.utils import update_breakpoint_tables_choices
 
 
 class AddPanelView(BrowserView):
@@ -47,6 +50,14 @@ class AddPanelView(BrowserView):
 
         # Create an analysis for each microorganism
         for microorganism in microorganisms:
+
+            # Create/Update the breakpoints table analysis
+            if panel.breakpoints_table:
+                self.add_breakpoints_analysis(panel, microorganism, antibiotics)
+
+            # Create/Update the disk content (potency) analysis
+            if panel.disk_content:
+                self.add_ast_analysis(DISK_CONTENT_KEY, microorganism, antibiotics)
 
             # Create/Update the zone size analysis
             if panel.zone_size:
@@ -88,8 +99,27 @@ class AddPanelView(BrowserView):
         if analysis:
             # Add new antibiotics to this analysis
             utils.update_ast_analysis(analysis, antibiotics)
-            return
+            return analysis
 
         # Create a new analysis
         sample = self.context
-        utils.create_ast_analysis(sample, keyword, microorganism, antibiotics)
+        return utils.create_ast_analysis(sample, keyword, microorganism, antibiotics)
+
+    def add_breakpoints_analysis(self, panel, microorganism, antibiotics):
+        """Updates or creates an analysis for the selection of the clinical
+        breakpoints table to use for the automatic calculation of the
+        sensitivity testing category (I/R/S) based on the zone diameter (mm)
+        submitted by the user
+        """
+        # Create/update the analysis
+        analysis = self.add_ast_analysis(BREAKPOINTS_TABLE_KEY, microorganism,
+                                         antibiotics)
+
+        # Get the panel's default breakpoints table
+        default_table = None
+        if panel.breakpoints_table:
+            default_table = panel.breakpoints_table[0]
+
+        # Update each microorganism-antibiotic with suitable breakpoints table
+        update_breakpoint_tables_choices(analysis, default_table=default_table)
+        return analysis

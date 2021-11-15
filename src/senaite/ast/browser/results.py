@@ -30,6 +30,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.ast.config import RESISTANCE_KEY
 from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
 
 
@@ -57,7 +58,7 @@ class ManageResultsView(AnalysesView):
         self.contentFilter.update({
             "getPointOfCapture": "ast",
             "getAncestorsUIDs": [api.get_uid(context)],
-            "sort_on": "title",
+            "sort_on": "sortable_title",
             "sort_order": "ascending",
         })
 
@@ -112,8 +113,7 @@ class ManageResultsView(AnalysesView):
         item['class']['service'] = 'service_title'
 
         # This is used for sorting
-        service_id = self.get_service_id(obj.getServiceUID)
-        sort_key = "{}:{}".format(item["Microorganism"], service_id)
+        sort_key = "{}:{}".format(item["Microorganism"], format(index, '05d'))
         item["sort_key"] = sort_key
 
         # Append info link before the service

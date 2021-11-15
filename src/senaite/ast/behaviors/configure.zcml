@@ -6,12 +6,21 @@
   <include package="plone.behavior" file="meta.zcml"/>
 
   <plone:behavior
-      name="senaite.ast"
+      name="senaite.ast.panel"
       title="ASTPanel"
       description="Adds AST Panel behavior"
       provides=".astpanel.IASTPanelBehavior"
       factory=".astpanel.ASTPanel"
       for="plone.dexterity.interfaces.IDexterityContent"
       marker="senaite.ast.interfaces.IASTPanel" />
+
+  <plone:behavior
+      name="senaite.ast.behavior.breakpointstable"
+      title="BreakpointsTable"
+      description="Adds AST Breakpoints Table behavior"
+      provides=".breakpointstable.IBreakpointsTableBehavior"
+      factory=".breakpointstable.BreakpointsTable"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      marker="senaite.ast.interfaces.IBreakpointsTable" />
 
 </configure>
