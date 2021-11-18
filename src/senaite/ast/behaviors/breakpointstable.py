@@ -42,8 +42,8 @@ class IBreakpointsTableSchema(Interface):
     )
 
     microorganism = schema.Choice(
-        title=_("Microorganism"),
-        source="senaite.ast.vocabularies.microorganisms",
+        title=_(u"Species"),
+        source="senaite.ast.vocabularies.species",
         required=True,
     )
 
