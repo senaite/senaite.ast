@@ -109,6 +109,11 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     result_options = get_result_options(analysis)
     analysis.setResultOptions(result_options)
 
+    if keyword == BREAKPOINTS_TABLE_KEY:
+        # This is a breakpoints analysis, we need to populate the interim
+        # choices dynamically
+        update_breakpoint_tables_choices(analysis)
+
     # Apply the IASTAnalysis and IInternalUser marker interfaces
     alsoProvides(analysis, IASTAnalysis)
     alsoProvides(analysis, IInternalUse)
@@ -467,14 +472,25 @@ def get_breakpoint(breakpoints_table, microorganism, antibiotic):
     if not break_obj:
         return {}
 
+    # Find out first if the antibiotic is set
     antibiotic_uid = api.get_uid(antibiotic)
-    microorganism_uid = api.get_uid(microorganism)
-    for val in break_obj.breakpoints:
-        if val.get("antibiotic") != antibiotic_uid:
-            continue
-        if val.get("microorganism") != microorganism_uid:
-            continue
+    breakpoints = filter(lambda v: antibiotic_uid == v.get("antibiotic"),
+                         break_obj.breakpoints)
+    if not breakpoints:
+        return {}
 
-        return copy.deepcopy(val)
+    microorganism_uid = api.get_uid(microorganism)
+    for val in breakpoints:
+        if val.get("microorganism") == microorganism_uid:
+            return copy.deepcopy(val)
+
+    # Breakpoints table can either map to microorganism or category, but
+    # breakpoint for microorganism always have priority over the breakpoint set
+    # for the category the microorganism belongs to
+    microorganism = api.get_object(microorganism)
+    category_uid = microorganism.category and microorganism.category[0] or ""
+    for val in break_obj.breakpoints:
+        if val.get("microorganism") == category_uid:
+            return copy.deepcopy(val)
 
     return {}
