@@ -357,22 +357,26 @@ def get_microorganisms(analyses):
     return filter(None, objects)
 
 
-def get_antibiotics(analyses):
+def get_antibiotics(analyses, uids_only=False):
     """Returns the list of antibiotics assigned to the analyses passed-in
     """
     if isinstance(analyses, (list, tuple)):
-        abx = map(get_antibiotics, analyses)
-        abx = list(itertools.chain.from_iterable(abx))
+        uids = map(lambda an: get_antibiotics(an, uids_only=True), analyses)
+        uids = list(itertools.chain.from_iterable(uids))
         # Remove duplicates and Nones
-        return filter(None, list(set(abx)))
+        uids = filter(None, list(set(uids)))
+    else:
+        # Antibiotics are stored as interim fields
+        analysis = api.get_object(analyses)
+        interim_fields = analysis.getInterimFields()
+        uids = map(lambda i: i.get("uid"), interim_fields)
+        uids = filter(None, uids)
 
-    # Antibiotics are stored as interim fields
-    analysis = api.get_object(analyses)
-    interim_fields = analysis.getInterimFields()
-    uids = map(lambda i: i.get("uid"), interim_fields)
-    uids = filter(None, uids)
     if not uids:
         return []
+
+    if uids_only:
+        return uids
 
     query = {"UID": uids, "portal_type": "Antibiotic"}
     brains = api.search(query, SETUP_CATALOG)
