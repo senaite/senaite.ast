@@ -81,8 +81,8 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
 
         # Get the zone size
         zone_size = zone_sizes.get(abx_uid)
-        if not zone_size:
-            # No zone size entered yet
+        if not api.is_floatable(zone_size):
+            # No zone size entered yet or not floatable
             continue
 
         # Get the selected Breakpoints Table for this category
@@ -96,6 +96,7 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
         # Choices for sensitivity category 0:|1:S|2:I|3:R
         diameter_s = api.to_float(breakpoint.get("diameter_s"))
         diameter_r = api.to_float(breakpoint.get("diameter_r"))
+        zone_size = api.to_float(zone_size)
         if zone_size < diameter_r:
             category.update({"value": "3"})
         elif zone_size >= diameter_s:
