@@ -15,6 +15,11 @@ class BaseLayer(PloneSandboxLayer):
         # Load ZCML
         import bika.lims
         import senaite.app.listing
+        import senaite.app.spotlight
+        import senaite.core
+        import senaite.abx
+        import senaite.ast
+        import senaite.impress
         import senaite.microorganism
 
         self.loadZCML(package=bika.lims)
@@ -25,10 +30,9 @@ class BaseLayer(PloneSandboxLayer):
         self.loadZCML(package=senaite.lims)
         self.loadZCML(package=senaite.abx)
         self.loadZCML(package=senaite.microorganism)
-        self.loadZCML(pakcage=senaite.ast)
+        self.loadZCML(package=senaite.ast)
 
         # Install product and call its initialize() function
-        zope.installProduct(app, "Products.TextIndexNG3")
         zope.installProduct(app, "bika.lims")
         zope.installProduct(app, "senaite.core")
         zope.installProduct(app, "senaite.app.listing")
@@ -42,7 +46,7 @@ class BaseLayer(PloneSandboxLayer):
     def setUpPloneSite(self, portal):
         # Install into Plone site using portal_setup
         applyProfile(portal, "senaite.core:default")
-        applyProfile(portal, "senaite.databox:default")
+        applyProfile(portal, "senaite.ast:default")
         transaction.commit()
 
 

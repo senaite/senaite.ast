@@ -30,9 +30,11 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.app.listing.view import ListingView
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
+from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
+from senaite.ast.utils import get_breakpoints_tables_for
 
 
 class ASTPanelView(ListingView):
@@ -129,8 +131,8 @@ class ASTPanelView(ListingView):
         if not analyses:
             if antibiotics:
                 # Create new analyses
-                keywords = [ZONE_SIZE_KEY, RESISTANCE_KEY]
-                utils.create_ast_analyses(self.context, keywords, microorganism,
+                keys = [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY, RESISTANCE_KEY]
+                utils.create_ast_analyses(self.context, keys, microorganism,
                                           antibiotics)
 
         elif not antibiotics:

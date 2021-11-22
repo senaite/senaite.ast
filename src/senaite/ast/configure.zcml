@@ -27,6 +27,9 @@
   <utility
       component="senaite.ast.vocabularies.MicroorganismsVocabularyFactory"
       name="senaite.ast.vocabularies.microorganisms" />
+  <utility
+      component="senaite.ast.vocabularies.SpeciesVocabularyFactory"
+      name="senaite.ast.vocabularies.species" />
 
   <!-- Datamanagers -->
   <adapter factory=".datamanagers.ASTAnalysisDataManager" />
