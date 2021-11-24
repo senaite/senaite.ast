@@ -98,9 +98,14 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
         diameter_r = api.to_float(breakpoint.get("diameter_r"))
         zone_size = api.to_float(zone_size)
         if zone_size < diameter_r:
+            # R: resistant
             category.update({"value": "3"})
         elif zone_size >= diameter_s:
+            # S: sensible
             category.update({"value": "1"})
+        else:
+            # I: susceptible at increased exposure
+            category.update({"value": "2"})
 
     # Assign the updated categories to the resistance analysis
     resistance_analysis.setInterimFields(categories)
