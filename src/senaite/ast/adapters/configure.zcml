@@ -10,4 +10,11 @@
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.ASTPanelViewAdapter" />
 
+  <!-- Guard handler for AnalysisRequest (aka Sample) content type -->
+  <adapter
+      for="bika.lims.interfaces.IAnalysisRequest"
+      provides="bika.lims.interfaces.IGuardAdapter"
+      factory=".guards.SampleGuardAdapter"
+      name="senaite.ast.adapter.guard.sample" />
+
 </configure>
