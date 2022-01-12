@@ -163,7 +163,8 @@ class ManageResultsView(AnalysesView):
                     item[field] = ""
 
         # Add InterimFields keys (Antibiotic abbreviations) to columns
-        interim_keys = sorted(self.interim_columns.keys(), reverse=True)
+        interim_keys = self.interim_columns.keys()
+        interim_keys.reverse()
         for col_id in interim_keys:
             if col_id not in self.columns:
                 self.columns[col_id] = {
