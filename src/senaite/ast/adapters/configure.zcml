@@ -8,7 +8,16 @@
     for="senaite.ast.browser.panel.ASTPanelView
          bika.lims.interfaces.IAnalysisRequest"
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
-    factory=".listing.ASTPanelViewAdapter" />
+    factory=".listing.astpanel.ASTPanelViewAdapter" />
+
+  <!-- Do not display AST-type analyses in Sample's Manage analyses view
+  These type of analyses must only be handled through the Customize... option
+  next to the AST Panel selector, above the results entry listing -->
+  <subscriber
+    for="bika.lims.browser.analysisrequest.manage_analyses.AnalysisRequestAnalysesView
+         bika.lims.interfaces.IAnalysisRequest"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".listing.analysisrequest.ManageAnalysesViewAdapter" />
 
   <!-- Guard handler for AnalysisRequest (aka Sample) content type -->
   <adapter
