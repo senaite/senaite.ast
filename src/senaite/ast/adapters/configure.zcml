@@ -19,6 +19,13 @@
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.analysisrequest.ManageAnalysesViewAdapter" />
 
+  <!-- Do not display AST-type services for selection in Analysis Profile -->
+  <subscriber
+    for="bika.lims.browser.widgets.analysisprofileanalyseswidget.AnalysisProfileAnalysesView
+         bika.lims.interfaces.IAnalysisProfile"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".listing.analysisprofile.ServicesViewAdapter" />
+
   <!-- Guard handler for AnalysisRequest (aka Sample) content type -->
   <adapter
       for="bika.lims.interfaces.IAnalysisRequest"
