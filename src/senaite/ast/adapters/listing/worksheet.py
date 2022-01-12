@@ -27,8 +27,8 @@ from zope.interface import implementer
 
 @adapter(IListingView)
 @implementer(IListingViewAdapter)
-class NonASTServicesViewAdapter(object):
-    """Adapter for services listing that skips AST-like analyses
+class AddAnalysesViewAdapter(object):
+    """Adapter for services listing from Worksheet's Add Analyses view
     """
 
     # Priority order of this adapter over others
@@ -42,7 +42,7 @@ class NonASTServicesViewAdapter(object):
         # Do not display AST services
         pocs = utils.get_non_ast_points_of_capture()
         self.listing.contentFilter.update({
-            "point_of_capture": pocs,
+            "getPointOfCapture": pocs,
         })
 
     def folder_item(self, obj, item, index):  # noqa

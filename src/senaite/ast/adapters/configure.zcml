@@ -19,7 +19,7 @@
       for="bika.lims.browser.widgets.analysisprofileanalyseswidget.AnalysisProfileAnalysesView
          bika.lims.interfaces.IAnalysisProfile"
       provides="senaite.app.listing.interfaces.IListingViewAdapter"
-      factory=".listing.services.ServicesViewAdapter" />
+      factory=".listing.services.NonASTServicesViewAdapter" />
 
   <!-- Do not display AST-type services for selection in Analysis Specs
    Validity ranges (specifications) do not apply to AST-like tests -->
@@ -27,7 +27,7 @@
       for="bika.lims.browser.widgets.analysisspecificationwidget.AnalysisSpecificationView
          bika.lims.interfaces.IAnalysisSpec"
       provides="senaite.app.listing.interfaces.IListingViewAdapter"
-      factory=".listing.services.ServicesViewAdapter" />
+      factory=".listing.services.NonASTServicesViewAdapter" />
 
   <!-- Do not display AST-type analyses in Sample's Manage analyses view
    These type of analyses must only be handled through the Customize... option
@@ -37,6 +37,17 @@
          bika.lims.interfaces.IAnalysisRequest"
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.analysisrequest.ManageAnalysesViewAdapter" />
+
+  <!-- Do not display AST-type analyses for selection in Worksheet's Add
+    Analyses view. Default senaite layout of worksheets does not work for the
+    introduction of AST results for multiple Samples at once. Therefore, the
+    submission of AST analyses must be done individually, sample by sample,
+    unless an AST-type worksheet with a suitable layout is added -->
+  <subscriber
+      for="bika.lims.browser.worksheet.views.AddAnalysesView
+         bika.lims.interfaces.IWorksheet"
+      provides="senaite.app.listing.interfaces.IListingViewAdapter"
+      factory=".listing.worksheet.AddAnalysesViewAdapter" />
 
   <!-- Guard handler for AnalysisRequest (aka Sample) content type -->
   <adapter

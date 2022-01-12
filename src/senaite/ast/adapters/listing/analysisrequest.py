@@ -20,7 +20,7 @@
 
 from senaite.app.listing.interfaces import IListingView
 from senaite.app.listing.interfaces import IListingViewAdapter
-from senaite.ast.adapters.listing.services import ServicesViewAdapter
+from senaite.ast.adapters.listing.services import NonASTServicesViewAdapter
 from senaite.ast.interfaces import IASTAnalysis
 from zope.component import adapter
 from zope.interface import implementer
@@ -28,7 +28,7 @@ from zope.interface import implementer
 
 @adapter(IListingView)
 @implementer(IListingViewAdapter)
-class ManageAnalysesViewAdapter(ServicesViewAdapter):
+class ManageAnalysesViewAdapter(NonASTServicesViewAdapter):
     """Adapter for Manage Analyses (as services) from Sample view
     """
 
