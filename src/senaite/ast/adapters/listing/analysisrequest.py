@@ -20,7 +20,7 @@
 
 from senaite.app.listing.interfaces import IListingView
 from senaite.app.listing.interfaces import IListingViewAdapter
-from senaite.ast import utils
+from senaite.ast.adapters.listing.services import ServicesViewAdapter
 from senaite.ast.interfaces import IASTAnalysis
 from zope.component import adapter
 from zope.interface import implementer
@@ -28,29 +28,16 @@ from zope.interface import implementer
 
 @adapter(IListingView)
 @implementer(IListingViewAdapter)
-class ManageAnalysesViewAdapter(object):
+class ManageAnalysesViewAdapter(ServicesViewAdapter):
     """Adapter for Manage Analyses (as services) from Sample view
     """
 
-    # Priority order of this adapter over others
-    priority_order = 50
-
-    def __init__(self, listing, context):
-        self.listing = listing
-        self.context = context
-
     def before_render(self):
         # Do not display AST services
-        pocs = utils.get_non_ast_points_of_capture()
-        self.listing.contentFilter.update({
-            "point_of_capture": pocs,
-        })
+        super(ManageAnalysesViewAdapter, self).before_render()
 
         # Skip Sample's AST analyses
         is_ast = IASTAnalysis.providedBy
         analyses = self.listing.analyses.items()
         analyses = filter(lambda an: not is_ast(an[1]), analyses)
         self.listing.analyses = dict(analyses)
-
-    def folder_item(self, obj, item, index):  # noqa
-        return item

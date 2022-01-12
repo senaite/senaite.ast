@@ -28,7 +28,7 @@ from zope.interface import implementer
 @adapter(IListingView)
 @implementer(IListingViewAdapter)
 class ServicesViewAdapter(object):
-    """Adapter for services listing from AnalysisProfile
+    """Adapter for services listing that skips AST-like analyses
     """
 
     # Priority order of this adapter over others
