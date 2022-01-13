@@ -201,7 +201,7 @@ class ASTPanelView(ListingView):
         antibiotic and current context
         """
         analyses = self.get_analyses_for(microorganism, antibiotic,
-                                         skip_invalid=False)
+                                         skip_invalid=True)
         analyses = filter(ISubmitted.providedBy, analyses)
         return len(analyses) == 0
 
