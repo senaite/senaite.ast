@@ -498,3 +498,15 @@ def get_breakpoint(breakpoints_table, microorganism, antibiotic):
             return copy.deepcopy(val)
 
     return {}
+
+
+def get_non_ast_points_of_capture():
+    """Extract the points of capture assigned to services registered in the
+    system. If no services registered, returns a list with default poc "lab"
+    """
+    catalog = api.get_tool(SETUP_CATALOG)
+    pocs = catalog.Indexes["point_of_capture"].uniqueValues()
+    pocs = filter(lambda poc: poc != "ast", pocs)
+    if not pocs:
+        pocs = ["lab"]
+    return pocs

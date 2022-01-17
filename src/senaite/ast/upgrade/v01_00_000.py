@@ -30,6 +30,7 @@ from senaite.ast.setuphandlers import setup_ast_services
 from senaite.ast.setuphandlers import setup_navigation_types
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
+from senaite.core.catalog import SETUP_CATALOG
 
 version = "1.0.0"
 
@@ -69,6 +70,10 @@ def upgrade(tool):
 
     # Add 'uid' in interims dict of ast-like analyses
     fix_uid_ast_interims(portal)
+
+    # Remove AST-like services from profiles and templates
+    remove_ast_from_profiles(portal)
+    remove_ast_from_templates(portal)
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True
@@ -115,3 +120,51 @@ def get_antibiotic(abbreviation):
     if objects:
         return objects[0]
     return None
+
+
+def get_ast_services_uids(portal):
+    """Returns the list of AST-like services
+    """
+    query = {"portal_type": "AnalysisService",
+             "point_of_capture": "ast"}
+    brains = api.search(query, SETUP_CATALOG)
+    return map(api.get_uid, brains)
+
+
+def remove_ast_from_profiles(portal):
+    """Removes AST analyses assigned to Analysis Profiles
+    """
+    logger.info("Removing AST-like analyses from profiles ...")
+    ast_uids = get_ast_services_uids(portal)
+    query = {
+        "portal_type": "AnalysisProfile"
+    }
+    brains = api.search(query, SETUP_CATALOG)
+    for brain in brains:
+        obj = api.get_object(brain)
+        services = obj.getRawService() or []
+        services = filter(lambda s: s not in ast_uids, services)
+        obj.setService(services)
+    logger.info("Removing AST-like analyses from profiles [DONE]")
+
+
+def remove_ast_from_templates(portal):
+    """Remove AST analyses assigned to AR Templates
+    """
+    logger.info("Removing AST-like analyses from templates ...")
+    ast_uids = get_ast_services_uids(portal)
+    query = {
+        "portal_type": "ARTemplate"
+    }
+    brains = api.search(query, SETUP_CATALOG)
+    for brain in brains:
+        obj = api.get_object(brain)
+        ans = obj.getAnalyses()
+        ans = filter(lambda an: an.get("service_uid") not in ast_uids, ans)
+        obj.setAnalyses(ans)
+
+        settings = obj.getAnalysisServicesSettings()
+        settings = filter(lambda an: an.get("uid") not in ast_uids, settings)
+        obj.setAnalysisServicesSettings(settings)
+
+    logger.info("Removing AST-like analyses from templates [DONE]")
