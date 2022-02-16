@@ -3,50 +3,53 @@
   i18n:domain="senaite.ast">
 
   <!-- Form for the assignment of an AST panel -->
-  <div class="row mt-3 mb-3"
-       tal:condition="python: view.can_add_analyses()">
-    <div class="col-sm-12">
-      <form id="add_ast_panel_form"
-            class="form form-inline"
-            method="post"
-            tal:attributes="action here/absolute_url">
+  <div class="row col-sm-12" tal:condition="python: view.can_add_analyses()">
+    <form id="add_ast_panel_form"
+          class="form"
+          method="post"
+          tal:attributes="action here/absolute_url">
 
-        <input type="hidden" name="submitted" value="1"/>
-        <input tal:replace="structure context/@@authenticator/authenticator"/>
+      <input type="hidden" name="submitted" value="1"/>
+      <input tal:replace="structure context/@@authenticator/authenticator"/>
 
-        <!-- ASP Panels selector -->
-        <div class="form-group">
+      <!-- ASP Panels selector -->
+      <div class="input-group input-group-sm flex-nowrap d-inline-flex w-auto mb-3 astpanel-selector">
+        <div class="input-group-prepend">
           <label for="ast_panel_selector"
-                 class="field mr-2"
-                 i18n:translate="">Panels</label>
+                 class="input-group-text"
+                 i18n:translate="">Panel</label>
+        </div>
 
-          <select id="ast_panel_selector"
-                  name="ast_panel_selector"
-                  class="field form-control mr-2">
-                  <option value="" i18n:translate="">Select panel</option>
-                  <option tal:repeat="panel python:view.get_panels()"
-                          tal:attributes="value panel/uid"
-                          tal:content="panel/title" />
-          </select>
+        <select id="ast_panel_selector"
+                name="ast_panel_selector"
+                class="custom-select">
+          <option value="" i18n:translate="">Select panel</option>
+          <option tal:repeat="panel python:view.get_panels()"
+                  tal:attributes="value panel/uid"
+                  tal:content="panel/title" />
+        </select>
 
+        <!-- AST Panel add button -->
+        <div class="input-group-append">
           <button id="astpanel_add"
                   name="astpanel_add"
                   type="submit"
-                  class="btn btn-outline-primary btn-sm mr-2"
-                  i18n:translate="">Add</button>
-
+                  class="btn btn-outline-primary btn-sm"
+                  i18n:translate="">Add panel</button>
+        </div>
+        <div class="input-group-append">
           <a id="astpanel_custom"
-             class="btn btn-outline-primary btn-sm mr-2"
+             class="btn btn-outline-primary btn-sm"
              tal:attributes="href python:context.absolute_url() + '/ast_panel'"
-             i18n:translate="">Custom ...</a>
-
-          <a class="btn btn-outline-secondary btn-sm mr-2"
+             i18n:translate="">Customize</a>
+        </div>
+        <div class="input-group-append">
+          <a class="btn btn-outline-secondary btn-sm"
              tal:attributes="href python:context.absolute_url() + '/ast_reporting'"
              i18n:translate="">Selective reporting</a>
-
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 
   <!-- Results entry listing -->
