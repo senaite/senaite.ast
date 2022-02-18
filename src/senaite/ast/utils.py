@@ -638,3 +638,12 @@ def get_interim_text(interim, default=_marker):
         return default
 
     return text
+
+
+def is_interim_verified(interim):
+    """Returns whether the interim field has been verified
+    """
+    verified = interim.get("verified", False)
+    if verified:
+        return True
+    return False

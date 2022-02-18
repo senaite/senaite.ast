@@ -142,8 +142,26 @@ class ManageResultsView(AnalysesView):
         self._folder_item_report_visibility(obj, item)
         # Renders remarks toggle button
         self._folder_item_remarks(obj, item)
+        # Render the interim fields (readonly, editable)
+        self.folder_interim_fields(obj, item)
 
         return item
+
+    def folder_interim_fields(self, obj, item):
+        analysis_obj = self.get_object(obj)
+        for interim_field in analysis_obj.getInterimFields():
+            if not utils.is_interim_verified(interim_field):
+                # Interim has not been verified yet, assume is editable
+                continue
+
+            # Remove this interim field from editable fields
+            keyword = interim_field["keyword"]
+            editable = filter(lambda it: it != keyword, item["allow_edit"])
+            item["allow_edit"] = editable
+
+            # This interim will be displayed as readonly mode, display text
+            text = utils.get_interim_text(interim_field, default="")
+            item["replace"][keyword] = text or "&nbsp;"
 
     def folderitems(self):
         # This shouldn't be required here, but there are some views that calls
