@@ -27,6 +27,8 @@ from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.utils import get_breakpoint
 from senaite.ast.utils import get_microorganism
+from senaite.ast.utils import get_sensitivity_category
+from senaite.ast.utils import get_sensitivity_category_value
 
 
 def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
@@ -90,22 +92,15 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
 
         # Get the breakpoint for this microorganism and antibiotic
         breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
-        if not breakpoint:
+
+        # Get the sensitivity category (S|I|R) and choice value
+        key = get_sensitivity_category(zone_size, breakpoint, default="")
+        value = get_sensitivity_category_value(key, default=None)
+        if not category:
             continue
 
-        # Choices for sensitivity category 0:|1:S|2:I|3:R
-        diameter_s = api.to_float(breakpoint.get("diameter_s"))
-        diameter_r = api.to_float(breakpoint.get("diameter_r"))
-        zone_size = api.to_float(zone_size)
-        if zone_size < diameter_r:
-            # R: resistant
-            category.update({"value": "3"})
-        elif zone_size >= diameter_s:
-            # S: sensible
-            category.update({"value": "1"})
-        else:
-            # I: susceptible at increased exposure
-            category.update({"value": "2"})
+        # Update the sensitivity category
+        category.update({"value": value})
 
     # Assign the updated categories to the resistance analysis
     resistance_analysis.setInterimFields(categories)

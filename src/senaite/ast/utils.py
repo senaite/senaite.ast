@@ -34,10 +34,10 @@ from senaite.ast import logger
 from senaite.ast import messageFactory as _
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
 from zope.interface import alsoProvides
-
 
 _marker = object()
 
@@ -510,3 +510,50 @@ def get_non_ast_points_of_capture():
     if not pocs:
         pocs = ["lab"]
     return pocs
+
+
+def get_sensitivity_category(zone_size, breakpoint, default=_marker):
+    """Returns the sensitivity category inferred from the zone_size and
+    breakpoint passed-in. Returns default value if zone size is negative and/or
+    breakpoint is None
+    """
+    if not breakpoint:
+        if default is _marker:
+            raise ValueError("Breakpoint is missing")
+        return default
+
+    zone_size = api.to_float(zone_size, -1)
+    if zone_size < 0:
+        # zero and non-positive zone_sizes are not possible
+        if default is _marker:
+            raise ValueError("Zone size is not valid")
+        return default
+
+    diameter_r = api.to_float(breakpoint.get("diameter_r"))
+    if zone_size < diameter_r:
+        # R: resistant
+        return "R"
+
+    diameter_s = api.to_float(breakpoint.get("diameter_s"))
+    if zone_size >= diameter_s:
+        # S: sensible
+        return "S"
+
+    # I: Susceptible at increased exposure
+    return "I"
+
+
+def get_sensitivity_category_value(text, default=_marker):
+    """Returns the choice value defined in the Sensitivity Category service for
+    the option text passed-in
+    """
+    # Resistance test (category) pre-defined choices
+    choices = SERVICES_SETTINGS[RESISTANCE_KEY]["choices"]
+    choices = map(lambda choice: choice.split(":"), choices.split("|"))
+    choices = dict(map(lambda choice: (choice[1], choice[0]), choices))
+    value = choices.get(text, None)
+    if value is None:
+        if default is _marker:
+            raise ValueError("Sensitivity category is not valid")
+        return default
+    return value
