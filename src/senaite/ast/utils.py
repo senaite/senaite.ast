@@ -549,8 +549,7 @@ def get_sensitivity_category_value(text, default=_marker):
     the option text passed-in
     """
     # Resistance test (category) pre-defined choices
-    choices = SERVICES_SETTINGS[RESISTANCE_KEY]["choices"]
-    choices = map(lambda choice: choice.split(":"), choices.split("|"))
+    choices = get_choices(SERVICES_SETTINGS[RESISTANCE_KEY])
     choices = dict(map(lambda choice: (choice[1], choice[0]), choices))
     value = choices.get(text, None)
     if value is None:
@@ -563,20 +562,8 @@ def get_sensitivity_category_value(text, default=_marker):
 def is_interim_empty(interim):
     """Returns whether an interim is empty or its value is considered empty
     """
-    value = interim.get("value", None)
-    if not value:
-        return True
-
-    choices = interim.get("choices", None)
-    if choices:
-        # Find out if the selected choice leads to empty
-        choices = map(lambda choice: choice.split(":"), choices.split("|"))
-        choices = dict(map(lambda choice: (choice[0], choice[1]), choices))
-        value = choices.get(value, None)
-        if not value:
-            return True
-
-    return False
+    text = get_interim_text(interim, default=None)
+    return not text
 
 
 def is_ast_analysis(analysis):
@@ -584,3 +571,37 @@ def is_ast_analysis(analysis):
     representing antibiotics and the analysis' ShortName a microorganism
     """
     return analysis.getPointOfCapture() == AST_POINT_OF_CAPTURE
+
+
+def get_choices(interim):
+    """Returns a list of tuples made of (value, text) that represent the
+    choices set for the given interim
+    """
+    choices = interim.get("choices", "")
+    choices = map(lambda choice: choice.split(":"), choices.split("|"))
+    return map(lambda choice: (choice[0], choice[1]), choices)
+
+
+def get_interim_text(interim, default=_marker):
+    """Returns the text displayed for this interim field. Typically, the raw
+    value when interim has no choices set and the choice text otherwise
+    """
+    value = interim.get("value", None)
+    if value is None:
+        if default is _marker:
+            raise ValueError("Interim without value")
+        return default
+
+    choices = interim.get("choices", None)
+    if not choices:
+        # Value is the text
+        return value
+
+    choices = dict(get_choices(interim))
+    text = choices.get(value, None)
+    if text is None:
+        if default is _marker:
+            raise ValueError("No choice for '{}'".format(repr(value)))
+        return default
+
+    return text
