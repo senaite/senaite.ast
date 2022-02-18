@@ -517,6 +517,14 @@ def get_sensitivity_category(zone_size, breakpoint, default=_marker):
     """Returns the sensitivity category inferred from the zone_size and
     breakpoint passed-in. Returns default value if zone size is negative and/or
     breakpoint is None
+
+    :param zone_size: size in mm of the antibiotic inhibition zone
+    :type zone_size: string, float, int
+    :param breakpoint: breakpoint that defines the sensitivity categories
+        depending on the microorganism, antibiotic, potency and zone size
+    :type zone_size: dict
+    :returns: the standard EUCAST sensitivity category (R, S or I)
+    :rtype: string
     """
     if not breakpoint:
         if default is _marker:
@@ -547,6 +555,11 @@ def get_sensitivity_category(zone_size, breakpoint, default=_marker):
 def get_sensitivity_category_value(text, default=_marker):
     """Returns the choice value defined in the Sensitivity Category service for
     the option text passed-in
+
+    :param text: text to look for its value counterpart in AST categories
+    :type text: string
+    :returns: the choices value for this AST category used in interims
+    :rtype: string
     """
     # Resistance test (category) pre-defined choices
     choices = get_choices(SERVICES_SETTINGS[RESISTANCE_KEY])
@@ -559,16 +572,14 @@ def get_sensitivity_category_value(text, default=_marker):
     return value
 
 
-def is_interim_empty(interim):
-    """Returns whether an interim is empty or its value is considered empty
-    """
-    text = get_interim_text(interim, default=None)
-    return not text
-
-
 def is_ast_analysis(analysis):
     """Returns whether the analysis is an AST-type of analysis, with interims
     representing antibiotics and the analysis' ShortName a microorganism
+
+    :param analysis: Analysis object
+    :type analysis: IAnalysis
+    :returns: True if is an analysis of AST type
+    :rtype: bool
     """
     return analysis.getPointOfCapture() == AST_POINT_OF_CAPTURE
 
@@ -576,15 +587,37 @@ def is_ast_analysis(analysis):
 def get_choices(interim):
     """Returns a list of tuples made of (value, text) that represent the
     choices set for the given interim
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: A list of tuples (value, text)
+    :rtype: list
     """
     choices = interim.get("choices", "")
     choices = map(lambda choice: choice.split(":"), choices.split("|"))
     return map(lambda choice: (choice[0], choice[1]), choices)
 
 
+def is_interim_empty(interim):
+    """Returns whether an interim is empty or its value is considered empty
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: True if the value or text representation of this interim is empty
+    :rtype: bool
+    """
+    text = get_interim_text(interim, default=None)
+    return not text
+
+
 def get_interim_text(interim, default=_marker):
     """Returns the text displayed for this interim field. Typically, the raw
     value when interim has no choices set and the choice text otherwise
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: The text representation of the value of this interim
+    :rtype: string
     """
     value = interim.get("value", None)
     if value is None:
