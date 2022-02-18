@@ -32,12 +32,13 @@ from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
 from senaite.ast import messageFactory as _
+from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
 from zope.interface import alsoProvides
-
 
 _marker = object()
 
@@ -297,7 +298,7 @@ def get_ast_analyses(sample, short_title=None, skip_invalid=True):
     """Returns the ast analyses assigned to the sample passed in and for the
     microorganism name specified, if any
     """
-    analyses = sample.getAnalyses(getPointOfCapture="ast")
+    analyses = sample.getAnalyses(getPointOfCapture=AST_POINT_OF_CAPTURE)
     analyses = map(api.get_object, analyses)
 
     if short_title:
@@ -506,7 +507,134 @@ def get_non_ast_points_of_capture():
     """
     catalog = api.get_tool(SETUP_CATALOG)
     pocs = catalog.Indexes["point_of_capture"].uniqueValues()
-    pocs = filter(lambda poc: poc != "ast", pocs)
+    pocs = filter(lambda poc: poc != AST_POINT_OF_CAPTURE, pocs)
     if not pocs:
         pocs = ["lab"]
     return pocs
+
+
+def get_sensitivity_category(zone_size, breakpoint, default=_marker):
+    """Returns the sensitivity category inferred from the zone_size and
+    breakpoint passed-in. Returns default value if zone size is negative and/or
+    breakpoint is None
+
+    :param zone_size: size in mm of the antibiotic inhibition zone
+    :type zone_size: string, float, int
+    :param breakpoint: breakpoint that defines the sensitivity categories
+        depending on the microorganism, antibiotic, potency and zone size
+    :type zone_size: dict
+    :returns: the standard EUCAST sensitivity category (R, S or I)
+    :rtype: string
+    """
+    if not breakpoint:
+        if default is _marker:
+            raise ValueError("Breakpoint is missing")
+        return default
+
+    zone_size = api.to_float(zone_size, -1)
+    if zone_size < 0:
+        # zero and non-positive zone_sizes are not possible
+        if default is _marker:
+            raise ValueError("Zone size is not valid")
+        return default
+
+    diameter_r = api.to_float(breakpoint.get("diameter_r"))
+    if zone_size < diameter_r:
+        # R: resistant
+        return "R"
+
+    diameter_s = api.to_float(breakpoint.get("diameter_s"))
+    if zone_size >= diameter_s:
+        # S: sensible
+        return "S"
+
+    # I: Susceptible at increased exposure
+    return "I"
+
+
+def get_sensitivity_category_value(text, default=_marker):
+    """Returns the choice value defined in the Sensitivity Category service for
+    the option text passed-in
+
+    :param text: text to look for its value counterpart in AST categories
+    :type text: string
+    :returns: the choices value for this AST category used in interims
+    :rtype: string
+    """
+    # Resistance test (category) pre-defined choices
+    choices = get_choices(SERVICES_SETTINGS[RESISTANCE_KEY])
+    choices = dict(map(lambda choice: (choice[1], choice[0]), choices))
+    value = choices.get(text, None)
+    if value is None:
+        if default is _marker:
+            raise ValueError("Sensitivity category is not valid")
+        return default
+    return value
+
+
+def is_ast_analysis(analysis):
+    """Returns whether the analysis is an AST-type of analysis, with interims
+    representing antibiotics and the analysis' ShortName a microorganism
+
+    :param analysis: Analysis object
+    :type analysis: IAnalysis
+    :returns: True if is an analysis of AST type
+    :rtype: bool
+    """
+    return analysis.getPointOfCapture() == AST_POINT_OF_CAPTURE
+
+
+def get_choices(interim):
+    """Returns a list of tuples made of (value, text) that represent the
+    choices set for the given interim
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: A list of tuples (value, text)
+    :rtype: list
+    """
+    choices = interim.get("choices", "")
+    choices = map(lambda choice: choice.split(":"), choices.split("|"))
+    return map(lambda choice: (choice[0], choice[1]), choices)
+
+
+def is_interim_empty(interim):
+    """Returns whether an interim is empty or its value is considered empty
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: True if the value or text representation of this interim is empty
+    :rtype: bool
+    """
+    text = get_interim_text(interim, default=None)
+    return not text
+
+
+def get_interim_text(interim, default=_marker):
+    """Returns the text displayed for this interim field. Typically, the raw
+    value when interim has no choices set and the choice text otherwise
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: The text representation of the value of this interim
+    :rtype: string
+    """
+    value = interim.get("value", None)
+    if value is None:
+        if default is _marker:
+            raise ValueError("Interim without value")
+        return default
+
+    choices = interim.get("choices", None)
+    if not choices:
+        # Value is the text
+        return value
+
+    choices = dict(get_choices(interim))
+    text = choices.get(value, None)
+    if text is None:
+        if default is _marker:
+            raise ValueError("No choice for '{}'".format(repr(value)))
+        return default
+
+    return text

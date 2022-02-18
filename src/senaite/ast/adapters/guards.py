@@ -18,10 +18,13 @@
 # Copyright 2020-2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims import api
 from bika.lims.interfaces import IGuardAdapter
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
 from senaite.ast import utils
+from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
 
 
@@ -71,3 +74,33 @@ class SampleGuardAdapter(BaseGuardAdapter):
             return True
 
         return False
+
+
+@implementer(IGuardAdapter)
+class AnalysisGuardAdapter(BaseGuardAdapter):
+    """Guard for objects from IAnalysis type
+    """
+
+    def guard_submit(self):
+        """AST-like analyses have antibiotics as interim fields. Do not allow
+        the submission unless all interim field values are non-empty
+        """
+        if not utils.is_ast_analysis(self.context):
+            # Not an AST analysis
+            return True
+
+        # Check that all interim fields have non-empty values
+        keyword = self.context.getKeyword()
+        for interim in self.context.getInterimFields():
+            if utils.is_interim_empty(interim):
+                return False
+
+            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
+                # Negative values are not permitted
+                value = interim.get("value")
+                value = api.to_float(value, default=-1)
+                if value < 0:
+                    return False
+
+        # No empties
+        return True
