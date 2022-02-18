@@ -63,4 +63,11 @@
     factory=".guards.SampleGuardAdapter"
     name="senaite.ast.adapter.guard.sample" />
 
+  <!-- Guard handler for Analysis content type -->
+  <adapter
+      for="bika.lims.interfaces.IAnalysis"
+      provides="bika.lims.interfaces.IGuardAdapter"
+      factory=".guards.AnalysisGuardAdapter"
+      name="senaite.ast.adapter.guard.analysis" />
+
 </configure>

@@ -557,3 +557,25 @@ def get_sensitivity_category_value(text, default=_marker):
             raise ValueError("Sensitivity category is not valid")
         return default
     return value
+
+
+def is_interim_empty(interim):
+    """Returns whether an interim is empty or its value is considered empty
+    """
+    if not interim:
+        return True
+
+    value = interim.get("value", None)
+    if not value:
+        return True
+
+    choices = interim.get("choices", None)
+    if choices:
+        # Find out if the selected choice leads to empty
+        choices = map(lambda choice: choice.split(":"), choices.split("|"))
+        choices = dict(map(lambda choice: (choice[0], choice[1]), choices))
+        value = choices.get(value, None)
+        if not value:
+            return True
+
+    return False

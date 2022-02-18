@@ -95,9 +95,7 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
 
         # Get the sensitivity category (S|I|R) and choice value
         key = get_sensitivity_category(zone_size, breakpoint, default="")
-        value = get_sensitivity_category_value(key, default=None)
-        if not category:
-            continue
+        value = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category
         category.update({"value": value})
@@ -111,6 +109,8 @@ def calc_sensitivity_category(analysis_brain_uid, default_return='-'):
         # Let's set the result as '-' so user can directly submit the whole
         # analysis without the need of confirming every single one
         resistance_analysis.setResult("-")
+    else:
+        resistance_analysis.setResult("")
 
     # Update disk dosage / concentration
     disk_dosages_analysis = get_by_keyword(analyses, DISK_CONTENT_KEY)
