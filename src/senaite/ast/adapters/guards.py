@@ -85,8 +85,8 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
         """AST-like analyses have antibiotics as interim fields. Do not allow
         the submission unless all interim field values are non-empty
         """
-        if self.context.getPointOfCapture() != "ast":
-            # This is not an AST-like analysis
+        if not utils.is_ast_analysis(self.context):
+            # Not an AST analysis
             return True
 
         # Check that all interim fields have non-empty values

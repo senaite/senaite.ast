@@ -32,6 +32,7 @@ from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
 from senaite.ast import messageFactory as _
+from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import RESISTANCE_KEY
@@ -297,7 +298,7 @@ def get_ast_analyses(sample, short_title=None, skip_invalid=True):
     """Returns the ast analyses assigned to the sample passed in and for the
     microorganism name specified, if any
     """
-    analyses = sample.getAnalyses(getPointOfCapture="ast")
+    analyses = sample.getAnalyses(getPointOfCapture=AST_POINT_OF_CAPTURE)
     analyses = map(api.get_object, analyses)
 
     if short_title:
@@ -506,7 +507,7 @@ def get_non_ast_points_of_capture():
     """
     catalog = api.get_tool(SETUP_CATALOG)
     pocs = catalog.Indexes["point_of_capture"].uniqueValues()
-    pocs = filter(lambda poc: poc != "ast", pocs)
+    pocs = filter(lambda poc: poc != AST_POINT_OF_CAPTURE, pocs)
     if not pocs:
         pocs = ["lab"]
     return pocs
@@ -579,3 +580,10 @@ def is_interim_empty(interim):
             return True
 
     return False
+
+
+def is_ast_analysis(analysis):
+    """Returns whether the analysis is an AST-type of analysis, with interims
+    representing antibiotics and the analysis' ShortName a microorganism
+    """
+    return analysis.getPointOfCapture() == AST_POINT_OF_CAPTURE

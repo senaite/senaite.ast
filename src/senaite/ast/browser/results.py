@@ -30,7 +30,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
-from senaite.ast.config import RESISTANCE_KEY
+from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
 
 
@@ -39,7 +39,7 @@ class ASTAnalysesViewlet(LabAnalysesViewlet):
     """
     title = _("Antibiotic Sensitivities")
     icon_name = "ast_panel"
-    capture = "ast"
+    capture = AST_POINT_OF_CAPTURE
 
     def available(self):
         """Returns true if senaite.ast is installed
@@ -56,7 +56,7 @@ class ManageResultsView(AnalysesView):
         super(ManageResultsView, self).__init__(context, request)
 
         self.contentFilter.update({
-            "getPointOfCapture": "ast",
+            "getPointOfCapture": AST_POINT_OF_CAPTURE,
             "getAncestorsUIDs": [api.get_uid(context)],
             "sort_on": "sortable_title",
             "sort_order": "ascending",

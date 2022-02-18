@@ -23,6 +23,7 @@ from bika.lims.catalog import CATALOG_ANALYSIS_LISTING
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
+from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.setuphandlers import add_setup_folders
 from senaite.ast.setuphandlers import setup_ast_calculation
 from senaite.ast.setuphandlers import setup_ast_category
@@ -85,7 +86,7 @@ def fix_uid_ast_interims(portal):
     """
     logger.info("Fixing antibiotic UIDs in interims ...")
     query = {
-        "getPointOfCapture": "ast",
+        "getPointOfCapture": AST_POINT_OF_CAPTURE,
         "sort_on": "sortable_title",
         "sort_order": "ascending",
     }
@@ -126,7 +127,7 @@ def get_ast_services_uids(portal):
     """Returns the list of AST-like services
     """
     query = {"portal_type": "AnalysisService",
-             "point_of_capture": "ast"}
+             "point_of_capture": AST_POINT_OF_CAPTURE}
     brains = api.search(query, SETUP_CATALOG)
     return map(api.get_uid, brains)
 
