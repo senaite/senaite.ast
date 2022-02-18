@@ -563,9 +563,6 @@ def get_sensitivity_category_value(text, default=_marker):
 def is_interim_empty(interim):
     """Returns whether an interim is empty or its value is considered empty
     """
-    if not interim:
-        return True
-
     value = interim.get("value", None)
     if not value:
         return True
