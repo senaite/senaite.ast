@@ -70,4 +70,13 @@
       factory=".guards.AnalysisGuardAdapter"
       name="senaite.ast.adapter.guard.analysis" />
 
+  <!-- Workflow action "verify" -->
+  <adapter
+      name="workflow_action_verify"
+      for="*
+           senaite.ast.interfaces.ISenaiteASTLayer"
+      factory=".actions.WorkflowActionVerifyAdapter"
+      provides="bika.lims.interfaces.IWorkflowActionAdapter"
+      permission="zope.Public" />
+
 </configure>
