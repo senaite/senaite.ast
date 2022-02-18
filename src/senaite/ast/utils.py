@@ -185,6 +185,11 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     # Apply the IASTAnalysis marker interface (just in case)
     alsoProvides(analysis, IASTAnalysis)
 
+    # If the sample is in to_be_verified status, try to rollback
+    sample = analysis.getRequest()
+    doActionFor(sample, "rollback")
+
+    # Reindex the object
     analysis.reindexObject()
 
 
