@@ -24,6 +24,7 @@ from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
+from bika.lims.utils import changeWorkflowState
 from bika.lims.utils import get_link_for
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -31,10 +32,10 @@ from senaite.app.listing.view import ListingView
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
-from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
-from senaite.ast.utils import get_breakpoints_tables_for
+from senaite.core.workflow import ANALYSIS_WORKFLOW
+from zope.interface import noLongerProvides
 
 
 class ASTPanelView(ListingView):
@@ -125,9 +126,6 @@ class ASTPanelView(ListingView):
     def update_analyses(self, microorganism, antibiotics):
         analyses = self.get_analyses_for(microorganism)
 
-        # Filter those that are not yet submitted
-        analyses = filter(lambda a: not ISubmitted.providedBy(a), analyses)
-
         if not analyses:
             if antibiotics:
                 # Create new analyses
@@ -136,15 +134,50 @@ class ASTPanelView(ListingView):
                                           antibiotics)
 
         elif not antibiotics:
-            # Remove analyses
+            # Remove analyses that can be deleted
+            analyses = filter(self.can_delete, analyses)
             analyses_ids = map(api.get_id, analyses)
             map(self.context._delObject, analyses_ids)  # noqa
 
         else:
             # Update analyses
-            map(lambda a:
-                utils.update_ast_analysis(a, antibiotics, remove=True),
-                analyses)
+            for analysis in analyses:
+                self.update_analysis(analysis, antibiotics)
+
+    def can_delete(self, analysis):
+        """Returns whether the analysis can be removed or not
+        """
+        if ISubmitted.providedBy(analysis):
+            return False
+
+        if IVerified.providedBy(analysis):
+            return False
+
+        for interim in analysis.getInterimFields():
+            if not utils.is_interim_editable(interim):
+                return False
+
+        return True
+
+    def update_analysis(self, analysis, antibiotics):
+        """Updates the analysis with the antibiotics
+        """
+        remove = True
+        if ISubmitted.providedBy(analysis):
+            noLongerProvides(analysis, ISubmitted)
+            remove = False
+
+        if IVerified.providedBy(analysis):
+            noLongerProvides(analysis, IVerified)
+            remove = False
+
+        # Rollback to assigned/unassigned status
+        skip = ["verified", "to_be_verified"]
+        prev_status = api.get_previous_worfklow_status_of(analysis, skip=skip)
+        changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
+
+        # Update the analysis with the antibiotics
+        utils.update_ast_analysis(analysis, antibiotics, remove=remove)
 
     def redirect(self, message=None, level="info"):
         """Redirect with a message
