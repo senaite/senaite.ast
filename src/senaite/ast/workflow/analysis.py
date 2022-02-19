@@ -142,6 +142,20 @@ def after_submit(analysis):
     alsoProvides(resistance, IAuditable)
 
 
+def after_verify(analysis):
+    """Event fired when an analysis is verified
+    """
+    if not IASTAnalysis.providedBy(analysis):
+        return
+
+    # Update interim fields with status information. This makes a "simulated"
+    # partial entry of results possible: if user adds new antibiotics, the
+    # analysis will rollback to its previous status and new antibiotics will
+    # be added as new interim fields, but existing ones, with an status
+    # attribute, will be rendered in read-only mode
+    update_interim_status(analysis)
+
+
 def after_retest(analysis):
     """Event fired when an analysis is retested
     """
