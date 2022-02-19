@@ -4,6 +4,7 @@ Changelog
 1.0.0 (unreleased)
 ------------------
 
+- #13 Allow addition of new antibiotics to submitted/verified AST analyses
 - #12 Negative values for diameter and zone size tests not permitted
 - #12 Do not allow to submit AST analyses with empties
 - #11 Better styling of AST Panel selector in Sample view
