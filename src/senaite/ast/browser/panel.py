@@ -104,7 +104,7 @@ class ASTPanelView(ListingView):
 
         # Key uids are antibiotics (columns)
         uids = filter(api.is_uid, form.keys())
-        antibiotics = map(api.get_object_by_uid, uids)
+        antibiotics = map(self.get_object, uids)
 
         # Generate a transposed dict microorganism->antibiotics
         # Add all microorganisms, so analyses without any antibiotic selected
@@ -125,6 +125,12 @@ class ASTPanelView(ListingView):
 
     def update_analyses(self, microorganism, antibiotics):
         analyses = self.get_analyses_for(microorganism)
+
+        # AST-analyses are inter-dependent, so a given antibiotic cannot be
+        # removed unless none of the analyses have a submitted result for it
+        required = self.get_required_antibiotics(microorganism)
+        selected = filter(lambda ab: ab not in required, antibiotics)
+        antibiotics = required + selected
 
         if not analyses:
             if antibiotics:
@@ -162,22 +168,21 @@ class ASTPanelView(ListingView):
     def update_analysis(self, analysis, antibiotics):
         """Updates the analysis with the antibiotics
         """
-        remove = True
         if ISubmitted.providedBy(analysis):
             noLongerProvides(analysis, ISubmitted)
-            remove = False
 
         if IVerified.providedBy(analysis):
             noLongerProvides(analysis, IVerified)
-            remove = False
 
         # Rollback to assigned/unassigned status
-        skip = ["verified", "to_be_verified"]
-        prev_status = api.get_previous_worfklow_status_of(analysis, skip=skip)
-        changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
+        to_rollback = ["verified", "to_be_verified"]
+        if api.get_review_status(analysis) in to_rollback:
+            get_prev_status = api.get_previous_worfklow_status_of
+            prev_status = get_prev_status(analysis, skip=to_rollback)
+            changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
 
         # Update the analysis with the antibiotics
-        utils.update_ast_analysis(analysis, antibiotics, remove=remove)
+        utils.update_ast_analysis(analysis, antibiotics, remove=True)
 
     def redirect(self, message=None, level="info"):
         """Redirect with a message
@@ -263,6 +268,17 @@ class ASTPanelView(ListingView):
             ans = filter(lambda a: self.has_antibiotic(a, antibiotic), ans)
 
         return ans
+
+    def get_required_antibiotics(self, microorganism):
+        """Returns the list of antibiotics that cannot be removed from analyses
+        for the given microorganism because there is at least one AST analysis
+        with a result set for them
+        """
+        def is_required(interim):
+            return not utils.is_interim_editable(interim)
+
+        analyses = self.get_analyses_for(microorganism=microorganism)
+        return utils.get_antibiotics(analyses, filter_criteria=is_required)
 
     def has_antibiotic(self, analysis, antibiotic):
         """Returns whether the analysis has the specified antibiotic assigned

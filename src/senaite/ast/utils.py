@@ -33,6 +33,7 @@ from senaite.ast import messageFactory as _
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
@@ -353,8 +354,17 @@ def get_microorganisms(analyses):
     return filter(None, objects)
 
 
-def get_antibiotics(analyses, uids_only=False):
+def get_antibiotics(analyses, uids_only=False, filter_criteria=None):
     """Returns the list of antibiotics assigned to the analyses passed-in
+
+    :param analyses: analysis or analyses to look assigned antibiotics
+    :type analyses: list of or single analysis brain, uid or object
+    :param uids_only: whether if only uids have to be returned
+    :type uids_only: bool
+    :param filter_criteria: function to filter analysis interims by
+    :type filter_criteria: function that accepts a dict as a parameter
+    :returns: list of antibiotic uids or objects
+    :rtype: list
     """
     if isinstance(analyses, (list, tuple)):
         uids = map(lambda an: get_antibiotics(an, uids_only=True), analyses)
@@ -364,8 +374,14 @@ def get_antibiotics(analyses, uids_only=False):
     else:
         # Antibiotics are stored as interim fields
         analysis = api.get_object(analyses)
-        interim_fields = analysis.getInterimFields()
-        uids = map(lambda i: i.get("uid"), interim_fields)
+        uids = []
+        for interim in analysis.getInterimFields():
+            abx_uid = interim.get("uid")
+            if filter_criteria and callable(filter_criteria):
+                if not filter_criteria(interim):
+                    continue
+            uids.append(abx_uid)
+
         uids = filter(None, uids)
 
     if not uids:
