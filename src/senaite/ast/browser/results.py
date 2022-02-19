@@ -150,8 +150,7 @@ class ManageResultsView(AnalysesView):
     def folder_interim_fields(self, obj, item):
         analysis_obj = self.get_object(obj)
         for interim_field in analysis_obj.getInterimFields():
-            if not utils.is_interim_verified(interim_field):
-                # Interim has not been verified yet, assume is editable
+            if utils.is_interim_editable(interim_field):
                 continue
 
             # Remove this interim field from editable fields

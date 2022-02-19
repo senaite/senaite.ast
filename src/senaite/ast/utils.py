@@ -23,10 +23,8 @@ import itertools
 import json
 
 from bika.lims import api
-from bika.lims import workflow as wf
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import IInternalUse
-from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
@@ -160,14 +158,6 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
         sample = analysis.getRequest()
         sample._delObject(api.get_id(analysis))
         return
-
-    if ISubmitted.providedBy(analysis):
-        # Analysis has been submitted already, retract
-        succeed, message = wf.doActionFor(analysis, "retract")
-        if not succeed:
-            path = api.get_path(analysis)
-            logger.error("Cannot retract analysis '{}'".format(path))
-            return
 
     # Assign the antibiotics
     analysis.setInterimFields(an_interims)
@@ -645,10 +635,21 @@ def get_interim_text(interim, default=_marker):
     return text
 
 
-def is_interim_verified(interim):
-    """Returns whether the interim field has been verified
+def is_interim_editable(interim):
+    """Returns whether the interim is editable or not
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: True if user can edit this interim
+    :rtype: bool
     """
-    verified = interim.get("verified", False)
-    if verified:
+    if is_interim_empty(interim):
         return True
-    return False
+
+    statuses = ["to_be_verified", "verified"]
+    for status in statuses:
+        status_id = "status_{}".format(status)
+        if interim.get(status_id, False):
+            return False
+
+    return True
