@@ -171,11 +171,20 @@ def after_retract(analysis):
     copy_interims(analysis, retest)
 
 
-def copy_interims(source, destination):
+def copy_interims(source, destination, keep_status=False):
     """Copies the interims from the source analysis to destination analysis
     """
     interim_fields = copy.deepcopy(source.getInterimFields())
-    map(lambda interim: interim.update({"value": ""}), interim_fields)
+    for interim in interim_fields:
+        # Reset value
+        interim.update({"value": ""})
+
+        if not keep_status:
+            # Remove status attributes from interim fields
+            skip = filter(lambda k: k.startswith("status_"), interim.keys())
+            map(lambda key: interim.pop(key), skip)
+
+    # Set interims fields to destination
     destination.setInterimFields(interim_fields)
 
 
@@ -183,12 +192,13 @@ def update_interim_status(analysis):
     """Updates interim fields with the analysis status information
     """
     status = api.get_review_status(analysis)
-    status_by = "{}_by".format(status)
+    status_id = "status_{}".format(status)
+    status_by = "status_{}_by".format(status)
     status_date = dt.to_iso_format(datetime.now())
     user_id = api.get_current_user().id
     interim_fields = copy.deepcopy(analysis.getInterimFields())
     for interim_field in interim_fields:
         interim_field.update({
-            status: status_date,
+            status_id: status_date,
             status_by: user_id})
     analysis.setInterimFields(interim_fields)
