@@ -235,13 +235,11 @@ class ASTPanelView(ListingView):
                 item.setdefault("disabled", []).append(uid)
 
     def is_editable(self, microorganism, antibiotic):
-        """Returns whether there are submitted analyses for this microorganism,
-        antibiotic and current context
+        """Returns whether all results of AST analyses for the microorganism
+        and antibiotic passed in are editable
         """
-        analyses = self.get_analyses_for(microorganism, antibiotic,
-                                         skip_invalid=True)
-        analyses = filter(ISubmitted.providedBy, analyses)
-        return len(analyses) == 0
+        antibiotics = self.get_required_antibiotics(microorganism)
+        return antibiotic not in antibiotics
 
     def has_analysis_for(self, microorganism, antibiotic):
         """Returns whether there are ast analyses for this microorganism,

@@ -18,6 +18,7 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import collections
 import copy
 import itertools
 import json
@@ -33,7 +34,6 @@ from senaite.ast import messageFactory as _
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
-from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
@@ -367,10 +367,12 @@ def get_antibiotics(analyses, uids_only=False, filter_criteria=None):
     :rtype: list
     """
     if isinstance(analyses, (list, tuple)):
-        uids = map(lambda an: get_antibiotics(an, uids_only=True), analyses)
-        uids = list(itertools.chain.from_iterable(uids))
-        # Remove duplicates and Nones
-        uids = filter(None, list(set(uids)))
+        uids = []
+        for an in analyses:
+            abx = get_antibiotics(an, uids_only=True,
+                                  filter_criteria=filter_criteria)
+            uids.extend(abx)
+        uids = list(collections.OrderedDict.fromkeys(uids))
     else:
         # Antibiotics are stored as interim fields
         analysis = api.get_object(analyses)
