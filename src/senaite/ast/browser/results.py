@@ -120,9 +120,9 @@ class ManageResultsView(AnalysesView):
         # see: bika.lims.site.coffee for the attached event handler
         item["before"]["Service"] = get_link(
             "analysisservice_info?service_uid={}&analysis_uid={}"
-                .format(obj.getServiceUID, obj.UID),
+            .format(obj.getServiceUID, obj.UID),
             value="<i class='fas fa-info-circle'></i>",
-            css_class="service_info", tabindex="-1")
+            css_class="overlay_panel", tabindex="-1")
 
         # Fill item's row class
         self._folder_item_css_class(obj, item)
