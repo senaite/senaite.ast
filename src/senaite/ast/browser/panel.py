@@ -24,6 +24,7 @@ from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
+from bika.lims.utils import changeWorkflowState
 from bika.lims.utils import get_link_for
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -31,10 +32,10 @@ from senaite.app.listing.view import ListingView
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
-from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
-from senaite.ast.utils import get_breakpoints_tables_for
+from senaite.core.workflow import ANALYSIS_WORKFLOW
+from zope.interface import noLongerProvides
 
 
 class ASTPanelView(ListingView):
@@ -103,7 +104,7 @@ class ASTPanelView(ListingView):
 
         # Key uids are antibiotics (columns)
         uids = filter(api.is_uid, form.keys())
-        antibiotics = map(api.get_object_by_uid, uids)
+        antibiotics = map(self.get_object, uids)
 
         # Generate a transposed dict microorganism->antibiotics
         # Add all microorganisms, so analyses without any antibiotic selected
@@ -125,8 +126,11 @@ class ASTPanelView(ListingView):
     def update_analyses(self, microorganism, antibiotics):
         analyses = self.get_analyses_for(microorganism)
 
-        # Filter those that are not yet submitted
-        analyses = filter(lambda a: not ISubmitted.providedBy(a), analyses)
+        # AST-analyses are inter-dependent, so a given antibiotic cannot be
+        # removed unless none of the analyses have a submitted result for it
+        required = self.get_required_antibiotics(microorganism)
+        selected = filter(lambda ab: ab not in required, antibiotics)
+        antibiotics = required + selected
 
         if not analyses:
             if antibiotics:
@@ -136,15 +140,49 @@ class ASTPanelView(ListingView):
                                           antibiotics)
 
         elif not antibiotics:
-            # Remove analyses
+            # Remove analyses that can be deleted
+            analyses = filter(self.can_delete, analyses)
             analyses_ids = map(api.get_id, analyses)
             map(self.context._delObject, analyses_ids)  # noqa
 
         else:
             # Update analyses
-            map(lambda a:
-                utils.update_ast_analysis(a, antibiotics, remove=True),
-                analyses)
+            for analysis in analyses:
+                self.update_analysis(analysis, antibiotics)
+
+    def can_delete(self, analysis):
+        """Returns whether the analysis can be removed or not
+        """
+        if ISubmitted.providedBy(analysis):
+            return False
+
+        if IVerified.providedBy(analysis):
+            return False
+
+        for interim in analysis.getInterimFields():
+            if not utils.is_interim_editable(interim):
+                return False
+
+        return True
+
+    def update_analysis(self, analysis, antibiotics):
+        """Updates the analysis with the antibiotics
+        """
+        if ISubmitted.providedBy(analysis):
+            noLongerProvides(analysis, ISubmitted)
+
+        if IVerified.providedBy(analysis):
+            noLongerProvides(analysis, IVerified)
+
+        # Rollback to assigned/unassigned status
+        to_rollback = ["verified", "to_be_verified"]
+        if api.get_review_status(analysis) in to_rollback:
+            get_prev_status = api.get_previous_worfklow_status_of
+            prev_status = get_prev_status(analysis, skip=to_rollback)
+            changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
+
+        # Update the analysis with the antibiotics
+        utils.update_ast_analysis(analysis, antibiotics, remove=True)
 
     def redirect(self, message=None, level="info"):
         """Redirect with a message
@@ -197,13 +235,11 @@ class ASTPanelView(ListingView):
                 item.setdefault("disabled", []).append(uid)
 
     def is_editable(self, microorganism, antibiotic):
-        """Returns whether there are submitted analyses for this microorganism,
-        antibiotic and current context
+        """Returns whether all results of AST analyses for the microorganism
+        and antibiotic passed in are editable
         """
-        analyses = self.get_analyses_for(microorganism, antibiotic,
-                                         skip_invalid=True)
-        analyses = filter(ISubmitted.providedBy, analyses)
-        return len(analyses) == 0
+        antibiotics = self.get_required_antibiotics(microorganism)
+        return antibiotic not in antibiotics
 
     def has_analysis_for(self, microorganism, antibiotic):
         """Returns whether there are ast analyses for this microorganism,
@@ -230,6 +266,17 @@ class ASTPanelView(ListingView):
             ans = filter(lambda a: self.has_antibiotic(a, antibiotic), ans)
 
         return ans
+
+    def get_required_antibiotics(self, microorganism):
+        """Returns the list of antibiotics that cannot be removed from analyses
+        for the given microorganism because there is at least one AST analysis
+        with a result set for them
+        """
+        def is_required(interim):
+            return not utils.is_interim_editable(interim)
+
+        analyses = self.get_analyses_for(microorganism=microorganism)
+        return utils.get_antibiotics(analyses, filter_criteria=is_required)
 
     def has_antibiotic(self, analysis, antibiotic):
         """Returns whether the analysis has the specified antibiotic assigned

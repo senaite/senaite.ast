@@ -120,9 +120,9 @@ class ManageResultsView(AnalysesView):
         # see: bika.lims.site.coffee for the attached event handler
         item["before"]["Service"] = get_link(
             "analysisservice_info?service_uid={}&analysis_uid={}"
-                .format(obj.getServiceUID, obj.UID),
+            .format(obj.getServiceUID, obj.UID),
             value="<i class='fas fa-info-circle'></i>",
-            css_class="service_info", tabindex="-1")
+            css_class="overlay_panel", tabindex="-1")
 
         # Fill item's row class
         self._folder_item_css_class(obj, item)
@@ -142,8 +142,25 @@ class ManageResultsView(AnalysesView):
         self._folder_item_report_visibility(obj, item)
         # Renders remarks toggle button
         self._folder_item_remarks(obj, item)
+        # Render the interim fields (readonly, editable)
+        self.folder_interim_fields(obj, item)
 
         return item
+
+    def folder_interim_fields(self, obj, item):
+        analysis_obj = self.get_object(obj)
+        for interim_field in analysis_obj.getInterimFields():
+            if utils.is_interim_editable(interim_field):
+                continue
+
+            # Remove this interim field from editable fields
+            keyword = interim_field["keyword"]
+            editable = filter(lambda it: it != keyword, item["allow_edit"])
+            item["allow_edit"] = editable
+
+            # This interim will be displayed as readonly mode, display text
+            text = utils.get_interim_text(interim_field, default="")
+            item["replace"][keyword] = text or "&nbsp;"
 
     def folderitems(self):
         # This shouldn't be required here, but there are some views that calls

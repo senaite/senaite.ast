@@ -18,15 +18,14 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import collections
 import copy
 import itertools
 import json
 
 from bika.lims import api
-from bika.lims import workflow as wf
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import IInternalUse
-from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
@@ -161,14 +160,6 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
         sample._delObject(api.get_id(analysis))
         return
 
-    if ISubmitted.providedBy(analysis):
-        # Analysis has been submitted already, retract
-        succeed, message = wf.doActionFor(analysis, "retract")
-        if not succeed:
-            path = api.get_path(analysis)
-            logger.error("Cannot retract analysis '{}'".format(path))
-            return
-
     # Assign the antibiotics
     analysis.setInterimFields(an_interims)
 
@@ -185,6 +176,11 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     # Apply the IASTAnalysis marker interface (just in case)
     alsoProvides(analysis, IASTAnalysis)
 
+    # If the sample is in to_be_verified status, try to rollback
+    sample = analysis.getRequest()
+    doActionFor(sample, "rollback")
+
+    # Reindex the object
     analysis.reindexObject()
 
 
@@ -358,19 +354,36 @@ def get_microorganisms(analyses):
     return filter(None, objects)
 
 
-def get_antibiotics(analyses, uids_only=False):
+def get_antibiotics(analyses, uids_only=False, filter_criteria=None):
     """Returns the list of antibiotics assigned to the analyses passed-in
+
+    :param analyses: analysis or analyses to look assigned antibiotics
+    :type analyses: list of or single analysis brain, uid or object
+    :param uids_only: whether if only uids have to be returned
+    :type uids_only: bool
+    :param filter_criteria: function to filter analysis interims by
+    :type filter_criteria: function that accepts a dict as a parameter
+    :returns: list of antibiotic uids or objects
+    :rtype: list
     """
     if isinstance(analyses, (list, tuple)):
-        uids = map(lambda an: get_antibiotics(an, uids_only=True), analyses)
-        uids = list(itertools.chain.from_iterable(uids))
-        # Remove duplicates and Nones
-        uids = filter(None, list(set(uids)))
+        uids = []
+        for an in analyses:
+            abx = get_antibiotics(an, uids_only=True,
+                                  filter_criteria=filter_criteria)
+            uids.extend(abx)
+        uids = list(collections.OrderedDict.fromkeys(uids))
     else:
         # Antibiotics are stored as interim fields
         analysis = api.get_object(analyses)
-        interim_fields = analysis.getInterimFields()
-        uids = map(lambda i: i.get("uid"), interim_fields)
+        uids = []
+        for interim in analysis.getInterimFields():
+            abx_uid = interim.get("uid")
+            if filter_criteria and callable(filter_criteria):
+                if not filter_criteria(interim):
+                    continue
+            uids.append(abx_uid)
+
         uids = filter(None, uids)
 
     if not uids:
@@ -638,3 +651,23 @@ def get_interim_text(interim, default=_marker):
         return default
 
     return text
+
+
+def is_interim_editable(interim):
+    """Returns whether the interim is editable or not
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: True if user can edit this interim
+    :rtype: bool
+    """
+    if is_interim_empty(interim):
+        return True
+
+    statuses = ["to_be_verified", "verified"]
+    for status in statuses:
+        status_id = "status_{}".format(status)
+        if interim.get(status_id, False):
+            return False
+
+    return True

@@ -19,6 +19,7 @@
 # Some rights reserved, see README and LICENSE.
 
 import copy
+from datetime import datetime
 
 from bika.lims import api
 from bika.lims.interfaces import IAuditable
@@ -30,6 +31,7 @@ from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.interfaces import IASTAnalysis
+from senaite.core.api import dtime as dt
 from senaite.core.catalog import SETUP_CATALOG
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
@@ -67,6 +69,13 @@ def after_submit(analysis):
     values = map(lambda interim: interim.get("value"), interim_fields)
     if not all(values):
         return
+
+    # Update interim fields with status information. This makes a "simulated"
+    # partial entry of results possible: if user adds new antibiotics, the
+    # analysis will rollback to its previous status and new antibiotics will
+    # be added as new interim fields, but existing ones, with an status
+    # attribute, will be rendered in read-only mode
+    update_interim_status(analysis)
 
     # All siblings for same microorganism and sample have to be submitted
     siblings = utils.get_ast_siblings(analysis)
@@ -133,6 +142,20 @@ def after_submit(analysis):
     alsoProvides(resistance, IAuditable)
 
 
+def after_verify(analysis):
+    """Event fired when an analysis is verified
+    """
+    if not IASTAnalysis.providedBy(analysis):
+        return
+
+    # Update interim fields with status information. This makes a "simulated"
+    # partial entry of results possible: if user adds new antibiotics, the
+    # analysis will rollback to its previous status and new antibiotics will
+    # be added as new interim fields, but existing ones, with an status
+    # attribute, will be rendered in read-only mode
+    update_interim_status(analysis)
+
+
 def after_retest(analysis):
     """Event fired when an analysis is retested
     """
@@ -162,9 +185,34 @@ def after_retract(analysis):
     copy_interims(analysis, retest)
 
 
-def copy_interims(source, destination):
+def copy_interims(source, destination, keep_status=False):
     """Copies the interims from the source analysis to destination analysis
     """
     interim_fields = copy.deepcopy(source.getInterimFields())
-    map(lambda interim: interim.update({"value": ""}), interim_fields)
+    for interim in interim_fields:
+        # Reset value
+        interim.update({"value": ""})
+
+        if not keep_status:
+            # Remove status attributes from interim fields
+            skip = filter(lambda k: k.startswith("status_"), interim.keys())
+            map(lambda key: interim.pop(key), skip)
+
+    # Set interims fields to destination
     destination.setInterimFields(interim_fields)
+
+
+def update_interim_status(analysis):
+    """Updates interim fields with the analysis status information
+    """
+    status = api.get_review_status(analysis)
+    status_id = "status_{}".format(status)
+    status_by = "status_{}_by".format(status)
+    status_date = dt.to_iso_format(datetime.now())
+    user_id = api.get_current_user().id
+    interim_fields = copy.deepcopy(analysis.getInterimFields())
+    for interim_field in interim_fields:
+        interim_field.update({
+            status_id: status_date,
+            status_by: user_id})
+    analysis.setInterimFields(interim_fields)
