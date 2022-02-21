@@ -497,17 +497,16 @@ def get_breakpoint(breakpoints_table, microorganism, antibiotic):
     if not breakpoints:
         return {}
 
+    # Look for the breakpoint for this specific microorganism
     microorganism_uid = api.get_uid(microorganism)
     for val in breakpoints:
         if val.get("microorganism") == microorganism_uid:
             return copy.deepcopy(val)
 
-    # Breakpoints table can either map to microorganism or category, but
-    # breakpoint for microorganism always have priority over the breakpoint set
-    # for the category the microorganism belongs to
+    # Look for the breakpoint for the category this microorganism belongs to
     microorganism = api.get_object(microorganism)
     category_uid = microorganism.category and microorganism.category[0] or ""
-    for val in break_obj.breakpoints:
+    for val in breakpoints:
         if val.get("microorganism") == category_uid:
             return copy.deepcopy(val)
 
