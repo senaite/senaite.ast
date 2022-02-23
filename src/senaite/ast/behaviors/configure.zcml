@@ -23,4 +23,12 @@
       for="plone.dexterity.interfaces.IDexterityContent"
       marker="senaite.ast.interfaces.IBreakpointsTable" />
 
+  <plone:behavior
+      name="senaite.ast.behavior.extrapolatedantibiotics"
+      title="ExtrapolatedAntibiotics"
+      description="Adds the ability to assign extrapolated antibiotics"
+      provides=".abx.IExtrapolatedAntibioticsBehavior"
+      factory=".abx.ExtendedAntibiotic"
+      for="senaite.abx.interfaces.IAntibiotic" />
+
 </configure>

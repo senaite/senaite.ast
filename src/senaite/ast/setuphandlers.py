@@ -42,6 +42,9 @@ SETUP_FOLDERS = [
 
 # Tuples of (portal_type, list of behaviors)
 BEHAVIORS = [
+    ("Antibiotic", [
+        "senaite.ast.behaviors.abx.IExtrapolatedAntibioticsBehavior",
+    ])
 ]
 
 
