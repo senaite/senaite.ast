@@ -65,9 +65,8 @@ def after_submit(analysis):
         return
 
     # Check that values for all interim fields are set
-    interim_fields = analysis.getInterimFields()
-    values = map(lambda interim: interim.get("value"), interim_fields)
-    if not all(values):
+    empties = map(utils.is_interim_empty, analysis.getInterimFields())
+    if any(empties):
         return
 
     # Update interim fields with status information. This makes a "simulated"
@@ -85,20 +84,21 @@ def after_submit(analysis):
 
     # Calculate the hidden analyses and results
     analyses = siblings + [analysis]
+    keywords = map(lambda an: an.getKeyword(), analyses)
+    analyses = dict(zip(keywords, analyses))
 
-    # We only do report results from "resistance" analysis
-    resistance = filter(lambda an: an.getKeyword() == RESISTANCE_KEY, analyses)
-    resistance = resistance[0]
+    # We only do report results from "sensitivity category" analysis
+    sensitivity = analyses.get(RESISTANCE_KEY)
 
-    # Results are the values (R/S/+/-) set for resistance' interim fields
-    results = resistance.getInterimFields()
+    # Results are the values (R/I/S) set for resistance' interim fields
+    results = sensitivity.getInterimFields()
 
     # Find out the resistance results to report
-    report_analysis = filter(lambda an: an.getKeyword() == REPORT_KEY, analyses)
-    if report_analysis:
+    report = analyses.get(REPORT_KEY)
+    if report:
         # The results to be reported are defined by the Y/N values set for the
         # interim fields of the "selective reporting" analysis
-        to_report = report_analysis[0].getInterimFields()
+        to_report = report.getInterimFields()
 
         # XXX senaite.app.listing has no support boolean type for interim fields
         to_report = filter(lambda k: k.get("value") == "1", to_report)
@@ -110,7 +110,7 @@ def after_submit(analysis):
         results = filter(lambda r: r.get("keyword") in keywords, results)
 
     # The "selected" result options are those to be reported
-    options = resistance.getResultOptions()
+    options = sensitivity.getResultOptions()
 
     def to_report(option):
         key = option.get("InterimKeyword")
@@ -127,19 +127,19 @@ def after_submit(analysis):
     result = map(lambda o: o.get("ResultValue"), options)
 
     # No need to keep track of this in audit (this is internal)
-    noLongerProvides(resistance, IAuditable)
+    noLongerProvides(sensitivity, IAuditable)
 
     # Set the final result
-    capture_date = resistance.getResultCaptureDate()
-    resistance.setResult(result)
-    resistance.setResultCaptureDate(capture_date)
+    capture_date = sensitivity.getResultCaptureDate()
+    sensitivity.setResult(result)
+    sensitivity.setResultCaptureDate(capture_date)
 
-    # We do want to report this resistance analysis
-    if IInternalUse.providedBy(resistance):
-        noLongerProvides(resistance, IInternalUse)
+    # We do want to report this sensitivity category analysis
+    if IInternalUse.providedBy(sensitivity):
+        noLongerProvides(sensitivity, IInternalUse)
 
     # Re-enable the audit for this analysis
-    alsoProvides(resistance, IAuditable)
+    alsoProvides(sensitivity, IAuditable)
 
 
 def after_verify(analysis):
