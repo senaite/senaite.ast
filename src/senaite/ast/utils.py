@@ -125,7 +125,11 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     return analysis
 
 
-def update_ast_analysis(analysis, antibiotics, remove=False):
+def update_ast_analysis(analysis, antibiotics, purge=False):
+    """Updates the AST-like Analysis with the antibiotics passed-in.
+    Non-specified antibiotics will be purged from the analysis if purge
+    parameter is True
+    """
     # There is nothing to do if the analysis has been verified
     analysis = api.get_object(analysis)
     if IVerified.providedBy(analysis):
@@ -140,7 +144,7 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     an_keys = sorted(map(lambda i: i.get("keyword"), an_interims))
 
     # Remove non-specified antibiotics
-    if remove:
+    if purge:
         in_keys = map(lambda i: i.get("keyword"), interim_fields)
         an_interims = filter(lambda a: a["keyword"] in in_keys, an_interims)
 
@@ -155,7 +159,7 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
         return
 
     # If no antibiotics, remove the analysis
-    if remove and not an_interims:
+    if purge and not an_interims:
         sample = analysis.getRequest()
         sample._delObject(api.get_id(analysis))
         return
