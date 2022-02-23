@@ -87,30 +87,25 @@ def after_submit(analysis):
     keywords = map(lambda an: an.getKeyword(), analyses)
     analyses = dict(zip(keywords, analyses))
 
-    # We only do report results from "sensitivity category" analysis
+    # We only do report results from the analysis (Sensitivity) "Category",
+    # that are stored as values (R/I/S) for interim fields (antibiotics)
     sensitivity = analyses.get(RESISTANCE_KEY)
-
-    # Results are the values (R/I/S) set for resistance' interim fields
     results = sensitivity.getInterimFields()
 
-    # Find out the resistance results to report
+    # The analysis "Report" is used to identify the results from the sensitivity
+    # category analysis that need to be reported
     report = analyses.get(REPORT_KEY)
     if report:
-        # The results to be reported are defined by the Y/N values set for the
-        # interim fields of the "selective reporting" analysis
-        to_report = report.getInterimFields()
-
+        # The results to be reported are defined by the Y/N values
         # XXX senaite.app.listing has no support boolean type for interim fields
+        to_report = report.getInterimFields()
         to_report = filter(lambda k: k.get("value") == "1", to_report)
 
         # Get the abbreviation of microorganisms (keyword)
         keywords = map(lambda k: k.get("keyword"), to_report)
 
-        # Filter the interim fields from resistance
+        # Bail out (Sensitivity) "Category" results to not report
         results = filter(lambda r: r.get("keyword") in keywords, results)
-
-    # The "selected" result options are those to be reported
-    options = sensitivity.getResultOptions()
 
     def to_report(option):
         key = option.get("InterimKeyword")
@@ -121,6 +116,7 @@ def after_submit(analysis):
         return False
 
     # Remove the antibiotics to not report from options
+    options = sensitivity.getResultOptions()
     options = filter(to_report, options)
 
     # The final result is a list with result option values
