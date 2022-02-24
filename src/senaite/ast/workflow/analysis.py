@@ -22,19 +22,11 @@ import copy
 from datetime import datetime
 
 from bika.lims import api
-from bika.lims.interfaces import IAuditable
-from bika.lims.interfaces import IInternalUse
-from bika.lims.interfaces import ISubmitted
 from senaite.ast import messageFactory as _
-from senaite.ast import utils
 from senaite.ast.config import IDENTIFICATION_KEY
-from senaite.ast.config import REPORT_KEY
-from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.interfaces import IASTAnalysis
 from senaite.core.api import dtime as dt
 from senaite.core.catalog import SETUP_CATALOG
-from zope.interface import alsoProvides
-from zope.interface import noLongerProvides
 
 
 def after_initialize(analysis):
@@ -64,78 +56,12 @@ def after_submit(analysis):
     if not IASTAnalysis.providedBy(analysis):
         return
 
-    # Check that values for all interim fields are set
-    empties = map(utils.is_interim_empty, analysis.getInterimFields())
-    if any(empties):
-        return
-
     # Update interim fields with status information. This makes a "simulated"
     # partial entry of results possible: if user adds new antibiotics, the
     # analysis will rollback to its previous status and new antibiotics will
     # be added as new interim fields, but existing ones, with an status
     # attribute, will be rendered in read-only mode
     update_interim_status(analysis)
-
-    # All siblings for same microorganism and sample have to be submitted
-    siblings = utils.get_ast_siblings(analysis)
-    submitted = map(ISubmitted.providedBy, siblings)
-    if not all(submitted):
-        return
-
-    # Calculate the hidden analyses and results
-    analyses = siblings + [analysis]
-    keywords = map(lambda an: an.getKeyword(), analyses)
-    analyses = dict(zip(keywords, analyses))
-
-    # We only do report results from the analysis (Sensitivity) "Category",
-    # that are stored as values (R/I/S) for interim fields (antibiotics)
-    sensitivity = analyses.get(RESISTANCE_KEY)
-    results = sensitivity.getInterimFields()
-
-    # The analysis "Report" is used to identify the results from the sensitivity
-    # category analysis that need to be reported
-    report = analyses.get(REPORT_KEY)
-    if report:
-        # The results to be reported are defined by the Y/N values
-        # XXX senaite.app.listing has no support boolean type for interim fields
-        to_report = report.getInterimFields()
-        to_report = filter(lambda k: k.get("value") == "1", to_report)
-
-        # Get the abbreviation of microorganisms (keyword)
-        keywords = map(lambda k: k.get("keyword"), to_report)
-
-        # Bail out (Sensitivity) "Category" results to not report
-        results = filter(lambda r: r.get("keyword") in keywords, results)
-
-    def to_report(option):
-        key = option.get("InterimKeyword")
-        val = option.get("InterimValue")
-        for target in results:
-            if key == target.get("keyword") and val == target.get("value"):
-                return True
-        return False
-
-    # Remove the antibiotics to not report from options
-    options = sensitivity.getResultOptions()
-    options = filter(to_report, options)
-
-    # The final result is a list with result option values
-    result = map(lambda o: o.get("ResultValue"), options)
-
-    # No need to keep track of this in audit (this is internal)
-    noLongerProvides(sensitivity, IAuditable)
-
-    # Set the final result
-    capture_date = sensitivity.getResultCaptureDate()
-    sensitivity.setResult(result)
-    sensitivity.setResultCaptureDate(capture_date)
-
-    # We do want to report this sensitivity category analysis
-    if IInternalUse.providedBy(sensitivity):
-        noLongerProvides(sensitivity, IInternalUse)
-
-    # Re-enable the audit for this analysis
-    alsoProvides(sensitivity, IAuditable)
 
 
 def after_verify(analysis):
