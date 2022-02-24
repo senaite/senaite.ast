@@ -44,11 +44,11 @@ def calc_ast(analysis_brain_uid, default_return='-'):
     if not is_ast_analysis(analysis):
         return default_return
 
-    # Calculate the sensitivity categories for antibiotics
-    calc_sensitivity_categories(analysis)
-
     # Calculate the disk dosages for antibiotics
     calc_disk_dosages(analysis)
+
+    # Calculate the sensitivity categories for antibiotics
+    calc_sensitivity_categories(analysis)
 
     # Calculate sensitivity categories for extrapolated antibiotics
     update_extrapolated_antibiotics(analysis)
