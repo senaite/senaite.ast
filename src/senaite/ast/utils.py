@@ -87,6 +87,19 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     # Convert antibiotics to interim fields
     interim_fields = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
+    # Extend with extrapolated antibiotics
+    existing_uids = map(api.get_uid, antibiotics)
+    for antibiotic in antibiotics:
+        extrapolated = antibiotic.extrapolated_antibiotics or []
+        for uid in extrapolated:
+            if uid in existing_uids:
+                continue
+
+            # Do not display extrapolated antibiotics in results entry panel
+            interim_field = to_interim(keyword, uid, hidden=True)
+            interim_fields.append(interim_field)
+            existing_uids.append(uid)
+
     # Create a new ID to prevent clashes
     new_id = new_analysis_id(sample, keyword)
 
@@ -116,7 +129,9 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
 
     # Apply the IASTAnalysis and IInternalUser marker interfaces
     alsoProvides(analysis, IASTAnalysis)
-    alsoProvides(analysis, IInternalUse)
+
+    if keyword != RESISTANCE_KEY:
+        alsoProvides(analysis, IInternalUse)
 
     # Initialize the analysis and reindex
     doActionFor(analysis, "initialize")
@@ -222,7 +237,7 @@ def update_breakpoint_tables_choices(analysis, default_table=None):
     analysis.setResult("-")
 
 
-def to_interim(keyword, antibiotic):
+def to_interim(keyword, antibiotic, hidden=False):
     """Returns the interim field settings for the antibiotic and service
     keyword passed-in
     """
@@ -239,7 +254,7 @@ def to_interim(keyword, antibiotic):
         "value": "",
         "unit": "",
         "wide": False,
-        "hidden": False,
+        "hidden": hidden,
         "size": properties.get("size", "5"),
         "type": properties.get("type", ""),
         "full_title": api.get_title(obj),
