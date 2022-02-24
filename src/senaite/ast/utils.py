@@ -34,6 +34,7 @@ from senaite.ast import messageFactory as _
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
@@ -88,17 +89,19 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     interim_fields = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
     # Extend with extrapolated antibiotics
-    existing_uids = map(api.get_uid, antibiotics)
-    for antibiotic in antibiotics:
-        extrapolated = antibiotic.extrapolated_antibiotics or []
-        for uid in extrapolated:
-            if uid in existing_uids:
-                continue
+    if keyword in [RESISTANCE_KEY, REPORT_KEY]:
+        existing_uids = map(api.get_uid, antibiotics)
+        for antibiotic in antibiotics:
+            extrapolated = antibiotic.extrapolated_antibiotics or []
+            for uid in extrapolated:
+                if uid in existing_uids:
+                    continue
 
-            # Do not display extrapolated antibiotics in results entry panel
-            interim_field = to_interim(keyword, uid, hidden=True)
-            interim_fields.append(interim_field)
-            existing_uids.append(uid)
+                # Do not display extrapolated antibiotics in results entry panel
+                interim_field = to_interim(keyword, uid, hidden=True)
+                interim_field.update({"primary": api.get_uid(antibiotic)})
+                interim_fields.append(interim_field)
+                existing_uids.append(uid)
 
     # Create a new ID to prevent clashes
     new_id = new_analysis_id(sample, keyword)

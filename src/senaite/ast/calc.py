@@ -50,6 +50,9 @@ def calc_ast(analysis_brain_uid, default_return='-'):
     # Calculate the disk dosages for antibiotics
     calc_disk_dosages(analysis)
 
+    # Calculate sensitivity categories for extrapolated antibiotics
+    update_extrapolated_antibiotics(analysis)
+
     # Update the sensitivity "final" result (for reporting)
     update_sensitivity_result(analysis)
 
@@ -175,6 +178,45 @@ def calc_disk_dosages(analysis):
 
     # Assign the inferred disk dosages
     disk_dosages_analysis.setInterimFields(disk_dosages)
+
+
+def update_extrapolated_antibiotics(analysis):
+    """Updates the sensitivity categories (R/I/S) and reporting option (Y/N) of
+    extrapolated antibiotics assigned to the analysis passed-in.
+
+    The sensitivity result (category) obtained for a particular antibiotic is
+    extrapolated to extrapolated antibiotics
+    """
+    keyword = analysis.getKeyword()
+    if keyword not in [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY, REPORT_KEY]:
+        return
+
+    def update_extrapolated(target):
+        if ISubmitted.providedBy(target):
+            return
+
+        # Mapping of UID --> interim field
+        interim_fields = target.getInterimFields()
+        uids = dict(map(lambda sen: (sen.get("uid"), sen), interim_fields))
+
+        # Iterate over the interim fields and update extrapolated ones
+        for interim in interim_fields:
+            primary = uids.get(interim.get("primary"))
+            if primary:
+                interim.update({"value": primary.get("value")})
+
+        target.setInterimFields(interim_fields)
+
+    # Get the analysis (keyword: analysis) from same sample and microorganism
+    analyses = utils.get_ast_group(analysis)
+
+    # Update the analysis that stores the sensitivity category
+    sensitivity = analyses.get(RESISTANCE_KEY)
+    update_extrapolated(sensitivity)
+
+    # Update the analysis that stores the reporting criteria (Y/N)
+    reporting = analyses.get(REPORT_KEY)
+    update_extrapolated(reporting)
 
 
 def update_sensitivity_result(analysis):
