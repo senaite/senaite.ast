@@ -44,8 +44,6 @@ def calc_ast(analysis_brain_uid, default_return='-'):
     if not is_ast_analysis(analysis):
         return default_return
 
-    import pdb;pdb.set_trace()
-
     # Calculate the sensitivity categories for antibiotics
     calc_sensitivity_categories(analysis)
 
@@ -67,10 +65,8 @@ def calc_sensitivity_categories(analysis):
     if keyword not in [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY]:
         return
 
-    # Get the AST siblings for same sample and microorganism
-    analyses = utils.get_ast_siblings(analysis) + [analysis]
-    keywords = map(lambda an: an.getKeyword(), analyses)
-    analyses = dict(zip(keywords, analyses))
+    # Get the analysis (keyword: analysis) from same sample and microorganism
+    analyses = utils.get_ast_group(analysis)
 
     # Extract the analysis that stores the sensitivity category
     sensitivity = analyses.get(RESISTANCE_KEY)
@@ -164,34 +160,20 @@ def update_sensitivity_result(analysis):
     as interim values, while the "final" result of the analysis is a list of
     result options, that is only used for reporting purposes.
     """
-    analyses = utils.get_ast_siblings(analysis) + [analysis]
-    keywords = map(lambda an: an.getKeyword(), analyses)
-    analyses = dict(zip(keywords, analyses))
+    # Get the analysis (keyword: analysis) from same sample and microorganism
+    analyses = utils.get_ast_group(analysis)
 
     # We only do report results from the analysis (Sensitivity) "Category",
     # that are stored as values (R/I/S) for interim fields (antibiotics)
     sensitivity = analyses.get(RESISTANCE_KEY)
-    results = sensitivity.getInterimFields()
 
-    # The analysis "Report" is used to identify the results from the sensitivity
-    # category analysis that need to be reported
-    report = analyses.get(REPORT_KEY)
-    if report:
-        # The results to be reported are defined by the Y/N values
-        # XXX senaite.app.listing has no support boolean type for interim fields
-        to_report = report.getInterimFields()
-        to_report = filter(lambda k: k.get("value") == "1", to_report)
-
-        # Get the abbreviation of microorganisms (keyword)
-        keywords = map(lambda k: k.get("keyword"), to_report)
-
-        # Bail out (Sensitivity) "Category" results to not report
-        results = filter(lambda r: r.get("keyword") in keywords, results)
+    # Extract the antibiotics (as interim fields) to be reported
+    reportable = get_reportable_antibiotics(sensitivity)
 
     def to_report(option):
         key = option.get("InterimKeyword")
         val = option.get("InterimValue")
-        for target in results:
+        for target in reportable:
             if key == target.get("keyword") and val == target.get("value"):
                 return True
         return False
@@ -213,3 +195,32 @@ def update_sensitivity_result(analysis):
 
     # Re-enable the audit for this analysis
     alsoProvides(sensitivity, IAuditable)
+
+
+def get_reportable_antibiotics(analysis):
+    """Returns the antibiotics to be reported for the ast analysis passed-in
+    """
+    # Get the analysis (keyword: analysis) from same sample and microorganism
+    analyses = utils.get_ast_group(analysis)
+
+    # We only do report results from the analysis (Sensitivity) "Category",
+    # that are stored as values (R/I/S) for interim fields (antibiotics)
+    sensitivity = analyses.get(RESISTANCE_KEY)
+    results = sensitivity.getInterimFields()
+
+    # The analysis "Report" is used to identify the results from the sensitivity
+    # category analysis that need to be reported
+    report = analyses.get(REPORT_KEY)
+    if report:
+        # The results to be reported are defined by the Y/N values
+        # XXX senaite.app.listing has no support boolean type for interim fields
+        report_values = report.getInterimFields()
+        to_report = filter(lambda k: k.get("value") == "1", report_values)
+
+        # Get the abbreviation of microorganisms (keyword)
+        microorganisms = map(lambda k: k.get("keyword"), to_report)
+
+        # Bail out (Sensitivity) "Category" results to not report
+        results = filter(lambda r: r.get("keyword") in microorganisms, results)
+
+    return results

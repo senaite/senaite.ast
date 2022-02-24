@@ -336,6 +336,16 @@ def get_ast_siblings(analysis):
     return filter(lambda an: an != analysis, analyses)
 
 
+def get_ast_group(analysis):
+    """Returns a dict with the active ast analysis from same sample and
+    for same microorganism as the analysis passed-in. The dict key is the
+    keyword of the analysis and value is the analysis
+    """
+    analyses = get_ast_siblings(analysis) + [analysis]
+    keywords = map(lambda an: an.getKeyword(), analyses)
+    return dict(zip(keywords, analyses))
+
+
 def get_identified_microorganisms(sample):
     """Returns the identified microorganisms from the sample passed-in. It
     resolves the microorganisms by looking to the results of the
