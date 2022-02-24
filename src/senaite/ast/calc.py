@@ -47,6 +47,9 @@ def calc_ast(analysis_brain_uid, default_return='-'):
     # Calculate the sensitivity categories for antibiotics
     calc_sensitivity_categories(analysis)
 
+    # Calculate the disk dosages for antibiotics
+    calc_disk_dosages(analysis)
+
     # Update the sensitivity "final" result (for reporting)
     update_sensitivity_result(analysis)
 
@@ -120,36 +123,58 @@ def calc_sensitivity_categories(analysis):
     # Assign the updated categories to the sensitivity category analysis
     sensitivity.setInterimFields(categories)
 
-    # Update disk dosage / concentration
+
+def calc_disk_dosages(analysis):
+    """Handles the automatic assignment of antibiotic dosage for each antibiotic
+    (interim field) assigned to the analysis passed-in.
+
+    The antibiotic dosage for each diffusion disk is infered from the
+    selected breakpoints table, if any.
+    """
+    keyword = analysis.getKeyword()
+    if keyword not in [BREAKPOINTS_TABLE_KEY]:
+        return
+
+    # Get the analysis (keyword: analysis) from same sample and microorganism
+    analyses = utils.get_ast_group(analysis)
+
+    # Extract the analyses that store the antibiotic dosage and breakpoints
     disk_dosages_analysis = analyses.get(DISK_CONTENT_KEY)
-    if disk_dosages_analysis:
-        disk_dosages = disk_dosages_analysis.getInterimFields()
+    breakpoints_analysis = analyses.get(BREAKPOINTS_TABLE_KEY)
+    if not all([disk_dosages_analysis, breakpoints_analysis]):
+        return None
 
-        for dosage in disk_dosages:
-            abx_uid = dosage["uid"]
+    # Analysis cannot be updated if submitted
+    if ISubmitted.providedBy(disk_dosages_analysis):
+        return
 
-            # Get the selected Breakpoints Table for this category
-            breakpoints_uid = breakpoints.get(abx_uid)
+    # Get the microorganism this analysis is associated to
+    microorganism = get_microorganism(analysis)
 
-            # Get the breakpoint for this microorganism and antibiotic
-            breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
-            if not breakpoint:
-                continue
+    # Get the mapping of Antibiotic -> BreakpointsTable
+    breakpoints = breakpoints_analysis.getInterimFields()
+    breakpoints = dict(map(lambda b: (b['uid'], b['value']), breakpoints))
 
-            # Update the dosage
-            breakpoint_dosage = breakpoint.get("disk_content")
-            if api.to_float(breakpoint_dosage, default=0) > 0:
-                dosage.update({"value": breakpoint_dosage})
+    # Dosages are stored as interim fields
+    disk_dosages = disk_dosages_analysis.getInterimFields()
+    for dosage in disk_dosages:
+        abx_uid = dosage["uid"]
 
-        # Assign the inferred disk dosages
-        disk_dosages_analysis.setInterimFields(disk_dosages)
+        # Get the selected Breakpoints Table for this category
+        breakpoints_uid = breakpoints.get(abx_uid)
 
-        # Validate if all values for dosage interims are set
-        valid = map(lambda cat: cat.get("value"), categories)
-        if all(valid):
-            # Let's set the result as '-' so user can directly submit the whole
-            # analysis without the need of confirming every single one
-            disk_dosages_analysis.setResult("-")
+        # Get the breakpoint for this microorganism and antibiotic
+        breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
+        if not breakpoint:
+            continue
+
+        # Update the dosage
+        breakpoint_dosage = breakpoint.get("disk_content")
+        if api.to_float(breakpoint_dosage, default=0) > 0:
+            dosage.update({"value": breakpoint_dosage})
+
+    # Assign the inferred disk dosages
+    disk_dosages_analysis.setInterimFields(disk_dosages)
 
 
 def update_sensitivity_result(analysis):
