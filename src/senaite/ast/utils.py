@@ -98,6 +98,12 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     analysis.setTitle(title)
     analysis.setShortTitle(short_title)
 
+    # Apply the interface markers
+    alsoProvides(analysis, IASTAnalysis)
+
+    if keyword not in [RESISTANCE_KEY]:
+        alsoProvides(analysis, IInternalUse)
+
     # Delegate the assignment of antibiotics
     update_ast_analysis(analysis, antibiotics)
 
@@ -164,9 +170,6 @@ def update_ast_analysis(analysis, antibiotics, purge=False):
     # never displayed and is only used for reporting)
     result_options = get_result_options(analysis)
     analysis.setResultOptions(result_options)
-
-    # Apply the IASTAnalysis marker interface (just in case)
-    alsoProvides(analysis, IASTAnalysis)
 
     # If the sample is in to_be_verified status, try to rollback
     sample = analysis.getRequest()
