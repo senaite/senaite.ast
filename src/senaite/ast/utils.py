@@ -101,6 +101,7 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     # Apply the interface markers
     alsoProvides(analysis, IASTAnalysis)
 
+    # Don't display AST analyses in report except Sensitivity one
     if keyword not in [RESISTANCE_KEY]:
         alsoProvides(analysis, IInternalUse)
 
