@@ -188,7 +188,7 @@ def update_extrapolated_antibiotics(analysis):
     extrapolated to extrapolated antibiotics
     """
     keyword = analysis.getKeyword()
-    if keyword not in [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY, REPORT_KEY]:
+    if keyword not in [BREAKPOINTS_TABLE_KEY, RESISTANCE_KEY, REPORT_KEY]:
         return
 
     def update_extrapolated(target):
