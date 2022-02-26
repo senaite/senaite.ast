@@ -10,6 +10,13 @@
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.astpanel.ASTPanelViewAdapter" />
 
+  <!-- Antibiotics listing customization -->
+  <subscriber
+    for="senaite.abx.browser.content.antibioticfolder.AntibioticFolderView
+         *"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".listing.antibiotics.AntibioticsListingViewAdapter" />
+
   <!-- Do not display AST-type services for selection in Analysis Profile
    AST analyses should never be available for selection in Analyses Profiles,
    because identified organisms from a sample are not known beforehand. Thus,

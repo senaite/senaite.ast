@@ -28,10 +28,11 @@ from senaite.ast.setuphandlers import add_setup_folders
 from senaite.ast.setuphandlers import setup_ast_calculation
 from senaite.ast.setuphandlers import setup_ast_category
 from senaite.ast.setuphandlers import setup_ast_services
+from senaite.ast.setuphandlers import setup_behaviors
 from senaite.ast.setuphandlers import setup_navigation_types
+from senaite.core.catalog import SETUP_CATALOG
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
-from senaite.core.catalog import SETUP_CATALOG
 
 version = "1.0.0"
 
@@ -75,6 +76,9 @@ def upgrade(tool):
     # Remove AST-like services from profiles and templates
     remove_ast_from_profiles(portal)
     remove_ast_from_templates(portal)
+
+    # Setup additional behaviors to existing content types
+    setup_behaviors(portal)
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True

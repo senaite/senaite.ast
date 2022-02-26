@@ -182,7 +182,7 @@ class ASTPanelView(ListingView):
             changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
 
         # Update the analysis with the antibiotics
-        utils.update_ast_analysis(analysis, antibiotics, remove=True)
+        utils.update_ast_analysis(analysis, antibiotics, purge=True)
 
     def redirect(self, message=None, level="info"):
         """Redirect with a message

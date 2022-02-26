@@ -34,6 +34,7 @@ from senaite.ast import messageFactory as _
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
@@ -84,9 +85,6 @@ def create_ast_analyses(sample, keywords, microorganism, antibiotics):
 def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     """Creates a new AST analysis
     """
-    # Convert antibiotics to interim fields
-    interim_fields = map(lambda ab: to_interim(keyword, ab), antibiotics)
-
     # Create a new ID to prevent clashes
     new_id = new_analysis_id(sample, keyword)
 
@@ -100,23 +98,15 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     analysis.setTitle(title)
     analysis.setShortTitle(short_title)
 
-    # Assign the antibiotics as interim fields
-    analysis.setInterimFields(interim_fields)
-
-    # Compute all combinations of interim/antibiotic and possible result and
-    # and generate the result options for this analysis (the "Result" field is
-    # never displayed and is only used for reporting)
-    result_options = get_result_options(analysis)
-    analysis.setResultOptions(result_options)
-
-    if keyword == BREAKPOINTS_TABLE_KEY:
-        # This is a breakpoints analysis, we need to populate the interim
-        # choices dynamically
-        update_breakpoint_tables_choices(analysis)
-
-    # Apply the IASTAnalysis and IInternalUser marker interfaces
+    # Apply the interface markers
     alsoProvides(analysis, IASTAnalysis)
-    alsoProvides(analysis, IInternalUse)
+
+    # Don't display AST analyses in report except Sensitivity one
+    if keyword not in [RESISTANCE_KEY]:
+        alsoProvides(analysis, IInternalUse)
+
+    # Delegate the assignment of antibiotics
+    update_ast_analysis(analysis, antibiotics)
 
     # Initialize the analysis and reindex
     doActionFor(analysis, "initialize")
@@ -125,7 +115,11 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     return analysis
 
 
-def update_ast_analysis(analysis, antibiotics, remove=False):
+def update_ast_analysis(analysis, antibiotics, purge=False):
+    """Updates the AST-like Analysis with the antibiotics passed-in.
+    Non-specified antibiotics will be purged from the analysis if purge
+    parameter is True
+    """
     # There is nothing to do if the analysis has been verified
     analysis = api.get_object(analysis)
     if IVerified.providedBy(analysis):
@@ -135,12 +129,17 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     keyword = analysis.getKeyword()
     interim_fields = map(lambda ab: to_interim(keyword, ab), antibiotics)
 
+    # Extend with extrapolated antibiotics
+    if keyword in [RESISTANCE_KEY, REPORT_KEY]:
+        extrapolated = get_extrapolated_interims(antibiotics, keyword)
+        interim_fields.extend(extrapolated)
+
     # Get the analysis interim fields
     an_interims = copy.deepcopy(analysis.getInterimFields()) or []
     an_keys = sorted(map(lambda i: i.get("keyword"), an_interims))
 
     # Remove non-specified antibiotics
-    if remove:
+    if purge:
         in_keys = map(lambda i: i.get("keyword"), interim_fields)
         an_interims = filter(lambda a: a["keyword"] in in_keys, an_interims)
 
@@ -155,7 +154,7 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
         return
 
     # If no antibiotics, remove the analysis
-    if remove and not an_interims:
+    if purge and not an_interims:
         sample = analysis.getRequest()
         sample._delObject(api.get_id(analysis))
         return
@@ -172,9 +171,6 @@ def update_ast_analysis(analysis, antibiotics, remove=False):
     # never displayed and is only used for reporting)
     result_options = get_result_options(analysis)
     analysis.setResultOptions(result_options)
-
-    # Apply the IASTAnalysis marker interface (just in case)
-    alsoProvides(analysis, IASTAnalysis)
 
     # If the sample is in to_be_verified status, try to rollback
     sample = analysis.getRequest()
@@ -218,7 +214,7 @@ def update_breakpoint_tables_choices(analysis, default_table=None):
     analysis.setResult("-")
 
 
-def to_interim(keyword, antibiotic):
+def to_interim(keyword, antibiotic, **kwargs):
     """Returns the interim field settings for the antibiotic and service
     keyword passed-in
     """
@@ -228,7 +224,7 @@ def to_interim(keyword, antibiotic):
 
     properties = SERVICES_SETTINGS[keyword]
     obj = api.get_object(antibiotic)
-    return {
+    interim_field = {
         "keyword": obj.abbreviation,
         "title": obj.abbreviation,
         "choices": properties.get("choices", ""),
@@ -241,6 +237,8 @@ def to_interim(keyword, antibiotic):
         "full_title": api.get_title(obj),
         "uid": api.get_uid(obj),
     }
+    interim_field.update(kwargs)
+    return interim_field
 
 
 def get_result_options(analysis):
@@ -315,6 +313,16 @@ def get_ast_siblings(analysis):
     microorganism = analysis.getShortTitle()
     analyses = get_ast_analyses(sample, short_title=microorganism)
     return filter(lambda an: an != analysis, analyses)
+
+
+def get_ast_group(analysis):
+    """Returns a dict with the active ast analysis from same sample and
+    for same microorganism as the analysis passed-in. The dict key is the
+    keyword of the analysis and value is the analysis
+    """
+    analyses = get_ast_siblings(analysis) + [analysis]
+    keywords = map(lambda an: an.getKeyword(), analyses)
+    return dict(zip(keywords, analyses))
 
 
 def get_identified_microorganisms(sample):
@@ -670,3 +678,67 @@ def is_interim_editable(interim):
             return False
 
     return True
+
+
+def get_extrapolated_antibiotics(antibiotics, uids=False):
+    """Returns the list of antibiotics extrapolated from the antibiotics
+    passed-in, without duplicates. Only extrapolated antibiotics that are not
+    present in the list of representatives passed-in are returned
+
+    :param antibiotics: representative antibiotics that have extrapolated
+        antibiotics assigned
+    :type: list of IAntibiotic
+    :param uids: if true, returns UIDs. Returns Antibiotic objects otherwise
+    :returns: the extrapolated list of antibiotics, without duplicates
+    :rtype: list of UIDs or Antibiotic objects
+    """
+    # Extract extrapolated antibiotics from representative antibiotics
+    extrapolated = map(lambda an: an.extrapolated_antibiotics, antibiotics)
+    extrapolated = filter(None, extrapolated)
+
+    # Flatten the list
+    extrapolated = list(itertools.chain.from_iterable(extrapolated))
+    extrapolated = filter(api.is_uid, extrapolated)
+
+    # Remove existing antibiotics
+    existing_uids = map(api.get_uid, antibiotics)
+    extrapolated = filter(lambda uid: uid not in existing_uids, extrapolated)
+
+    # Remove duplicates while keeping the order
+    extrapolated = list(collections.OrderedDict.fromkeys(extrapolated))
+    if uids:
+        return extrapolated
+
+    return map(api.get_object, extrapolated)
+
+
+def get_extrapolated_interims(antibiotics, keyword):
+    """Returns a list of interim fields that represent the antibiotics
+    extrapolated from the antibiotics passed-in, without duplicates.
+    Only extrapolated antibiotics that are not present in the list of
+    representatives are returned
+
+    :param antibiotics: representative antibiotics that have extrapolated
+        antibiotics assigned
+    :type: list of IAntibiotic
+    :param keyword: keyword of the analysis service to extract the properties
+        of a default interim field
+    :type: str
+    :returns: the extrapolated antibiotics as interim fields
+    :rtype: list of dicts
+    """
+    interim_fields = []
+    existing_uids = map(api.get_uid, antibiotics)
+    for antibiotic in antibiotics:
+        extrapolated = antibiotic.extrapolated_antibiotics or []
+        for uid in extrapolated:
+            if uid in existing_uids:
+                continue
+
+            # Do not display extrapolated antibiotics in results entry panel
+            interim_field = to_interim(keyword, uid, hidden=True)
+            interim_field.update({"primary": api.get_uid(antibiotic)})
+            interim_fields.append(interim_field)
+            existing_uids.append(uid)
+
+    return interim_fields
