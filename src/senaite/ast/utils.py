@@ -254,13 +254,15 @@ def get_result_options(analysis):
         full_name = interim_field.get("full_title")
 
         text = interim_choice.split(":")
-        if len(text) > 1:
-            result_text = "{}: {}".format(full_name, text[1].strip())
+        if len(text) > 0:
+            interim_value = text[0]
+            result_text = len(text) > 1 and text[1].strip() or ""
+            result_text = "{}: {}".format(full_name, result_text)
             value = {
                 "ResultText": result_text,
                 "ResultValue": result_value,
                 "InterimKeyword": abbreviation,
-                "InterimValue": text[0],
+                "InterimValue": interim_value,
             }
         return value
 
