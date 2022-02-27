@@ -23,6 +23,7 @@ from bika.lims.catalog import CATALOG_ANALYSIS_LISTING
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast import PROFILE_ID
+from senaite.ast.calc import update_sensitivity_result
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.setuphandlers import add_setup_folders
 from senaite.ast.setuphandlers import setup_ast_calculation
@@ -30,6 +31,7 @@ from senaite.ast.setuphandlers import setup_ast_category
 from senaite.ast.setuphandlers import setup_ast_services
 from senaite.ast.setuphandlers import setup_behaviors
 from senaite.ast.setuphandlers import setup_navigation_types
+from senaite.ast.utils import get_result_options
 from senaite.core.catalog import SETUP_CATALOG
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
@@ -79,6 +81,9 @@ def upgrade(tool):
 
     # Setup additional behaviors to existing content types
     setup_behaviors(portal)
+
+    # Fix results options
+    fix_results_options(portal)
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True
@@ -173,3 +178,35 @@ def remove_ast_from_templates(portal):
         obj.setAnalysisServicesSettings(settings)
 
     logger.info("Removing AST-like analyses from templates [DONE]")
+
+
+def fix_results_options(portal):
+    """Fix result options from sensitivity results
+    """
+    logger.info("Fix result options from AST analyses ...")
+    query = {
+        "portal_type": "Analysis",
+        "getPointOfCapture": AST_POINT_OF_CAPTURE,
+        "review_state": [
+            "registered",
+            "unassigned",
+            "assigned",
+            "to_be_verified",
+        ]
+    }
+    analyses = api.search(query, CATALOG_ANALYSIS_LISTING)
+    total = len(analyses)
+    for num, analysis in enumerate(analyses):
+        if num % 100 == 0:
+            logger.info("Fixing result options from AST analyses: {0}/{1}"
+                        .format(num, total))
+
+        analysis = api.get_object(analysis)
+        result_options = get_result_options(analysis)
+        analysis.setResultOptions(result_options)
+        update_sensitivity_result(analysis)
+
+        # Reindex the object
+        analysis.reindexObject()
+
+    logger.info("Fix result options from AST analyses [DONE]")

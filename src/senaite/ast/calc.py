@@ -212,11 +212,13 @@ def update_extrapolated_antibiotics(analysis):
 
     # Update the analysis that stores the sensitivity category
     sensitivity = analyses.get(RESISTANCE_KEY)
-    update_extrapolated(sensitivity)
+    if sensitivity:
+        update_extrapolated(sensitivity)
 
     # Update the analysis that stores the reporting criteria (Y/N)
     reporting = analyses.get(REPORT_KEY)
-    update_extrapolated(reporting)
+    if reporting:
+        update_extrapolated(reporting)
 
 
 def update_sensitivity_result(analysis):
@@ -233,6 +235,8 @@ def update_sensitivity_result(analysis):
     # We only do report results from the analysis (Sensitivity) "Category",
     # that are stored as values (R/I/S) for interim fields (antibiotics)
     sensitivity = analyses.get(RESISTANCE_KEY)
+    if not sensitivity:
+        return
 
     # Extract the antibiotics (as interim fields) to be reported
     reportable = get_reportable_antibiotics(sensitivity)
