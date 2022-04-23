@@ -63,6 +63,10 @@ REPORT_KEY = "senaite_ast_report"
 # is not present, the system assign all microorganisms from the panel
 IDENTIFICATION_KEY = "senaite_ast_identification"
 
+# Keyword of the Analysis Service used to choose the extrapolated antibiotics
+# to be reported in results report
+REPORT_EXTRAPOLATED_KEY = "senaite_ast_report_extrapolated"
+
 # Title for the AST calculation object. This calculation allows AST machinery
 # to assign a final result by its own, without prompting the user
 AST_CALCULATION_TITLE = "senaite_ast_calc"
@@ -84,6 +88,9 @@ SERVICES_SETTINGS = {
               u"(Susceptible, increased exposure) and R (Resistant)"),
         "choices": "0:|1:S|2:I|3:R",
         "sort_key": 530,
+        "string_result": True,
+        "point_of_capture": AST_POINT_OF_CAPTURE,
+        "calculation": AST_CALCULATION_TITLE,
     },
 
     BREAKPOINTS_TABLE_KEY: {
@@ -96,6 +103,9 @@ SERVICES_SETTINGS = {
         # XXX This is a choices field, but choices are populated on creation
         "choices": "",
         "sort_key": 505,
+        "string_result": True,
+        "point_of_capture": AST_POINT_OF_CAPTURE,
+        "calculation": AST_CALCULATION_TITLE,
     },
 
     DISK_CONTENT_KEY: {
@@ -108,12 +118,18 @@ SERVICES_SETTINGS = {
               u"charge."),
         "size": "1",
         "sort_key": 510,
+        "string_result": True,
+        "point_of_capture": AST_POINT_OF_CAPTURE,
+        "calculation": AST_CALCULATION_TITLE,
     },
 
     ZONE_SIZE_KEY: {
         "title": "{} - " + _(u"Zone diameter (mm)"),
         "size": "1",
         "sort_key": 520,
+        "string_result": True,
+        "point_of_capture": AST_POINT_OF_CAPTURE,
+        "calculation": AST_CALCULATION_TITLE,
     },
 
     REPORT_KEY: {
@@ -122,11 +138,38 @@ SERVICES_SETTINGS = {
         # XXX senaite.app.listing has no support for boolean types (interim)
         "type": "boolean",
         "sort_key": 540,
+        "string_result": True,
+        "point_of_capture": AST_POINT_OF_CAPTURE,
+        "calculation": AST_CALCULATION_TITLE,
+    },
+
+    REPORT_EXTRAPOLATED_KEY: {
+        "title": "{} - " + _(u"Report extrapolated"),
+        "description":
+            _(u"Selection of the antibiotics to be included in results report "
+              u"that their sensitivity is extrapolated from antibiotic "
+              u"representatives"),
+        # XXX This is a choices field, but choices are populated on creation
+        "choices": "",
+        "type": "boolean",
+        "sort_key": 550,
+        # The options are the list of extrapolated antibiotics and are
+        # added automatically when the analysis is initialized
+        "options_type": "multichoice",
+        "string_result": False,
+        "point_of_capture": AST_POINT_OF_CAPTURE,
+        "calculation": AST_CALCULATION_TITLE,
     },
 
     IDENTIFICATION_KEY: {
         "title": _(u"Microorganism identification"),
         "sort_key": 500,
+        # The options are the list of microorganisms and are automatically
+        # added when the corresponding analysis is initialized
+        "options_type": "multiselect",
+        "string_result": False,
+        "point_of_capture": "lab",
+        "calculation": None,
     }
 
 }

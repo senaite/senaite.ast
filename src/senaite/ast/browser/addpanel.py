@@ -24,10 +24,12 @@ from Products.Five.browser import BrowserView
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.utils import update_breakpoint_tables_choices
+from senaite.ast.utils import update_extrapolated_reporting
 
 
 class AddPanelView(BrowserView):
@@ -49,6 +51,7 @@ class AddPanelView(BrowserView):
         microorganisms = filter(lambda m: m in identified, microorganisms)
 
         # Create an analysis for each microorganism
+        add = self.add_ast_analysis
         for microorganism in microorganisms:
 
             # Create/Update the breakpoints table analysis
@@ -57,18 +60,19 @@ class AddPanelView(BrowserView):
 
             # Create/Update the disk content (potency) analysis
             if panel.disk_content:
-                self.add_ast_analysis(DISK_CONTENT_KEY, microorganism, antibiotics)
+                add(DISK_CONTENT_KEY, microorganism, antibiotics)
 
             # Create/Update the zone size analysis
             if panel.zone_size:
-                self.add_ast_analysis(ZONE_SIZE_KEY, microorganism, antibiotics)
+                add(ZONE_SIZE_KEY, microorganism, antibiotics)
 
             # Create/Update the sensitivity result analysis
             self.add_ast_analysis(RESISTANCE_KEY, microorganism, antibiotics)
 
-            # Create/Update the selective reporting analysis
+            # Create/Update the selective reporting analyses
             if panel.selective_reporting:
-                self.add_ast_analysis(REPORT_KEY, microorganism, antibiotics)
+                add(REPORT_KEY, microorganism, antibiotics)
+                add(REPORT_EXTRAPOLATED_KEY, microorganism, antibiotics)
 
         return "{} objects affected".format(len(panel.microorganisms))
 
