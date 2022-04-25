@@ -252,11 +252,16 @@ def update_extrapolated_reporting(analysis):
 
         interim.update({
             "choices": "|".join(choices),
+            "result_type": "multichoice",
         })
         new_interim_fields.append(interim)
     
     # Re-assign the interim fields
     analysis.setInterimFields(new_interim_fields)
+
+    # Set the default result to '-' so user can directly save without the
+    # need of manually confirming each interim field value on result entry
+    analysis.setResult("-")
 
 
 def to_interim(keyword, antibiotic, **kwargs):
@@ -697,14 +702,19 @@ def get_interim_text(interim, default=_marker):
         # Value is the text
         return value
 
-    choices = dict(get_choices(interim))
-    text = choices.get(value, None)
-    if text is None:
-        if default is _marker:
-            raise ValueError("No choice for '{}'".format(repr(value)))
-        return default
+    try:
+        val = json.loads(value)
+        if isinstance(val, (list, tuple, set)):
+            value = val
+    except:
+        pass
 
-    return text
+    if not isinstance(value, (list, tuple, set)):
+        value = [value]
+
+    choices = dict(get_choices(interim))
+    texts = filter(None, [choices.get(v, None) for v in value])
+    return "<br/>".join(texts)
 
 
 def is_interim_editable(interim):

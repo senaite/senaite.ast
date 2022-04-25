@@ -151,12 +151,9 @@ SERVICES_SETTINGS = {
               u"representatives"),
         # XXX This is a choices field, but choices are populated on creation
         "choices": "",
-        "type": "boolean",
+        "type": "multichoice",
         "sort_key": 550,
-        # The options are the list of extrapolated antibiotics and are
-        # added automatically when the analysis is initialized
-        "options_type": "multichoice",
-        "string_result": False,
+        "string_result": True,
         "point_of_capture": AST_POINT_OF_CAPTURE,
         "calculation": AST_CALCULATION_TITLE,
     },
