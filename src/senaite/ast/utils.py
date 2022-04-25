@@ -18,18 +18,17 @@
 # Copyright 2020 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-import collections
 import copy
+
+import collections
 import itertools
 import json
-
 from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import IInternalUse
 from bika.lims.interfaces import IVerified
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
-from senaite.abx.interfaces import IAntibiotic
 from senaite.ast import logger
 from senaite.ast import messageFactory as _
 from senaite.ast.config import AST_POINT_OF_CAPTURE
@@ -40,7 +39,6 @@ from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
-from six import string_types
 from zope.interface import alsoProvides
 
 _marker = object()
