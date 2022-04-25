@@ -113,6 +113,11 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     doActionFor(analysis, "initialize")
     analysis.reindexObject()
 
+    # Set the default result to '-' so user can directly save without the
+    # need of manually confirming each interim field value on result entry
+    analysis.setResult("-")
+    analysis.setResultCaptureDate(None)
+
     return analysis
 
 
@@ -223,10 +228,6 @@ def update_breakpoint_tables_choices(analysis, default_table=None):
 
     analysis.setInterimFields(interim_fields)
 
-    # Set the default result to '-' so user can directly save without the
-    # need of manually confirming each interim field value on result entry
-    analysis.setResult("-")
-
 
 def update_extrapolated_reporting(analysis):
     """Updates the interim results options of the analysis that stores the
@@ -244,8 +245,8 @@ def update_extrapolated_reporting(analysis):
 
         # Generate the choices list
         choices = []
-        for index, extra in enumerate(extrapolated):
-            choice = "{}:{}".format(str(index), extra.abbreviation)
+        for extra in extrapolated:
+            choice = "{}:{}".format(api.get_uid(extra), extra.abbreviation)
             choices.append(choice)
 
         interim.update({
@@ -256,10 +257,6 @@ def update_extrapolated_reporting(analysis):
     
     # Re-assign the interim fields
     analysis.setInterimFields(new_interim_fields)
-
-    # Set the default result to '-' so user can directly save without the
-    # need of manually confirming each interim field value on result entry
-    analysis.setResult("-")
 
 
 def to_interim(keyword, antibiotic, **kwargs):
@@ -678,6 +675,20 @@ def is_interim_empty(interim):
     """
     text = get_interim_text(interim, default=None)
     return not text
+
+
+def is_extrapolated_interim(interim):
+    """Returns whether the interim represents an extrapolated antibiotic
+
+    :param interim: interim field
+    :type interim:dict
+    :returns: True if the interim represents an extrapolated antibiotic
+    :rtype: bool
+    """
+    primary = interim.get("primary", None)
+    if primary:
+        return True
+    return False
 
 
 def get_interim_text(interim, default=_marker):
