@@ -4,6 +4,7 @@ Changelog
 1.0.0 (unreleased)
 ------------------
 
+- #17 Selective reporting for extrapolated antibiotics
 - #15 Support for extrapolated antibiotics
 - #13 Allow addition of new antibiotics to submitted/verified AST analyses
 - #12 Negative values for diameter and zone size tests not permitted
