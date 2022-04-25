@@ -28,6 +28,7 @@ from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.config import REPORT_KEY
+from senaite.ast.utils import get_extrapolated_antibiotics
 from senaite.ast.utils import update_breakpoint_tables_choices
 from senaite.ast.utils import update_extrapolated_reporting
 
@@ -72,7 +73,12 @@ class AddPanelView(BrowserView):
             # Create/Update the selective reporting analyses
             if panel.selective_reporting:
                 add(REPORT_KEY, microorganism, antibiotics)
-                add(REPORT_EXTRAPOLATED_KEY, microorganism, antibiotics)
+
+                # If there are extrapolated antibiotics defined, add the
+                # analysis for selective reporting of extrapolated
+                extrapolated = get_extrapolated_antibiotics(antibiotics)
+                if extrapolated:
+                    add(REPORT_EXTRAPOLATED_KEY, microorganism, antibiotics)
 
         return "{} objects affected".format(len(panel.microorganisms))
 
