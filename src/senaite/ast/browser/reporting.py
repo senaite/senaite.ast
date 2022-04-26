@@ -25,6 +25,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.browser.panel import ASTPanelView
+from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 
 
@@ -137,6 +138,13 @@ class ASTPanelReportingView(ASTPanelView):
             # Create the selective reporting analysis
             rep_analyses = [utils.create_ast_analysis(self.context, REPORT_KEY,
                                                       microorganism, all_abx)]
+
+            # Create the selective reporting for extrapolated if required
+            extra = utils.get_extrapolated_antibiotics(all_abx, uids=True)
+            if extra:
+                utils.create_ast_analysis(self.context,
+                                          REPORT_EXTRAPOLATED_KEY,
+                                          microorganism, all_abx)
 
         # Reporting is true for the given antibiotics
         selected = map(lambda o: o.abbreviation, antibiotics)

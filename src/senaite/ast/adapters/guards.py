@@ -92,8 +92,10 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
         # Check that all interim fields have non-empty values
         keyword = self.context.getKeyword()
         for interim in self.context.getInterimFields():
-            if utils.is_interim_empty(interim):
-                return False
+
+            if utils.is_extrapolated_interim(interim):
+                # Skip extrapolated interims
+                continue
 
             if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
                 # Negative values are not permitted

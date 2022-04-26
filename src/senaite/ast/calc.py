@@ -18,12 +18,14 @@
 # Copyright 2020-2021 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import json
 from bika.lims import api
 from bika.lims.interfaces import IAuditable
 from bika.lims.interfaces import ISubmitted
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
@@ -102,7 +104,10 @@ def calc_sensitivity_categories(analysis):
 
     # Update sensitivity categories
     for category in categories:
-        abx_uid = category["uid"]
+        # If extrapolated, assume same zone size as representative
+        abx_uid = category.get("primary")
+        if not api.is_uid(abx_uid):
+            abx_uid = category["uid"]
 
         # Get the zone size
         zone_size = zone_sizes.get(abx_uid)
@@ -161,7 +166,10 @@ def calc_disk_dosages(analysis):
     # Dosages are stored as interim fields
     disk_dosages = disk_dosages_analysis.getInterimFields()
     for dosage in disk_dosages:
-        abx_uid = dosage["uid"]
+        # If extrapolated, assume same zone size as representative
+        abx_uid = dosage.get("primary")
+        if not api.is_uid(abx_uid):
+            abx_uid = dosage["uid"]
 
         # Get the selected Breakpoints Table for this category
         breakpoints_uid = breakpoints.get(abx_uid)
@@ -181,14 +189,14 @@ def calc_disk_dosages(analysis):
 
 
 def update_extrapolated_antibiotics(analysis):
-    """Updates the sensitivity categories (R/I/S) and reporting option (Y/N) of
-    extrapolated antibiotics assigned to the analysis passed-in.
+    """Updates the sensitivity categories (R/I/S) of extrapolated antibiotics
+    assigned to the analysis passed-in.
 
     The sensitivity result (category) obtained for a particular antibiotic is
     extrapolated to extrapolated antibiotics
     """
-    keyword = analysis.getKeyword()
-    if keyword not in [BREAKPOINTS_TABLE_KEY, RESISTANCE_KEY, REPORT_KEY]:
+    keys = [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY, RESISTANCE_KEY, REPORT_KEY]
+    if analysis.getKeyword() not in keys:
         return
 
     def update_extrapolated(target):
@@ -209,6 +217,11 @@ def update_extrapolated_antibiotics(analysis):
 
     # Get the analysis (keyword: analysis) from same sample and microorganism
     analyses = utils.get_ast_group(analysis)
+
+    # Update the analysis that stores the zone diameter category
+    zone_diameter = analyses.get(ZONE_SIZE_KEY)
+    if zone_diameter:
+        update_extrapolated(zone_diameter)
 
     # Update the analysis that stores the sensitivity category
     sensitivity = analyses.get(RESISTANCE_KEY)
@@ -261,7 +274,7 @@ def update_sensitivity_result(analysis):
 
     # Set the final result
     capture_date = sensitivity.getResultCaptureDate()
-    sensitivity.setResult(result)
+    sensitivity.setResult(json.dumps(result))
     sensitivity.setResultCaptureDate(capture_date)
 
     # Re-enable the audit for this analysis
@@ -279,6 +292,28 @@ def get_reportable_antibiotics(analysis):
     sensitivity = analyses.get(RESISTANCE_KEY)
     results = sensitivity.getInterimFields()
 
+    # The analysis "Report Extrapolated" is used to identify the antibiotics
+    # their sensitivity category has been extrapolated from representative
+    # antibiotics. Build a mapping with keys as the UIDs of the representatives
+    # and values as the UIDs of the extrapolated antibiotics to report
+    reportable = {}
+    extrapolated = analyses.get(REPORT_EXTRAPOLATED_KEY)
+    if extrapolated:
+        for interim in extrapolated.getInterimFields():
+            try:
+                selected = json.loads(interim.get("value", "[]"))
+            except:
+                selected = []
+            reportable[interim.get("uid")] = selected
+
+    def is_reportable(interim):
+        primary = interim.get("primary", None)
+        if primary:
+            # Check if the primary is reportable
+            uid = interim.get("uid")
+            return uid in reportable.get(primary)
+        return interim.get("value") == "1"
+
     # The analysis "Report" is used to identify the results from the sensitivity
     # category analysis that need to be reported
     report = analyses.get(REPORT_KEY)
@@ -286,12 +321,12 @@ def get_reportable_antibiotics(analysis):
         # The results to be reported are defined by the Y/N values
         # XXX senaite.app.listing has no support boolean type for interim fields
         report_values = report.getInterimFields()
-        to_report = filter(lambda k: k.get("value") == "1", report_values)
+        to_report = filter(is_reportable, report_values)
 
-        # Get the abbreviation of microorganisms (keyword)
-        microorganisms = map(lambda k: k.get("keyword"), to_report)
+        # Get the abbreviation of antibiotics (keyword)
+        antibiotics = map(lambda k: k.get("keyword"), to_report)
 
         # Bail out (Sensitivity) "Category" results to not report
-        results = filter(lambda r: r.get("keyword") in microorganisms, results)
+        results = filter(lambda r: r.get("keyword") in antibiotics, results)
 
     return results
