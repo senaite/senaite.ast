@@ -24,7 +24,6 @@ from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
-from bika.lims.utils import changeWorkflowState
 from bika.lims.utils import get_link_for
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -34,8 +33,6 @@ from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
-from senaite.core.workflow import ANALYSIS_WORKFLOW
-from zope.interface import noLongerProvides
 
 
 class ASTPanelView(ListingView):
