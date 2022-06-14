@@ -102,8 +102,6 @@ class ASTPanelView(ListingView):
         """
         form = self.request.form
 
-        import pdb;pdb.set_trace()
-
         # Key uids are antibiotics (columns)
         uids = filter(api.is_uid, form.keys())
         antibiotics = map(self.get_object, uids)
