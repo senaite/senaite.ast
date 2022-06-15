@@ -39,6 +39,7 @@ from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
+from senaite.core.p3compat import cmp
 from zope.interface import alsoProvides
 
 _marker = object()
@@ -139,7 +140,7 @@ def set_antibiotics(analysis, antibiotics, purge=False):
     # Extract the interim fields (antibiotics) from the analysis
     interim_fields = copy.deepcopy(analysis.getInterimFields()) or []
     if purge:
-        interim_fields = filter(lambda i: i["uid"] not in uids, interim_fields)
+        interim_fields = filter(lambda i: i["uid"] in uids, interim_fields)
 
     # Extend with the antibiotics that are missing
     keyword = analysis.getKeyword()
@@ -159,6 +160,17 @@ def update_ast_analysis(analysis, antibiotics, purge=False):
     analysis = api.get_object(analysis)
     if IVerified.providedBy(analysis):
         return
+
+    # Re-sort antibiotics passed-in to follow same order as the original ones
+    original = get_antibiotics(analysis, uids_only=True)
+
+    def sort_antibiotics(a, b):
+        def get_idx(abx):
+            uid = api.get_uid(abx)
+            return original.index(uid) if uid in original else len(original)
+        return cmp(get_idx(a), get_idx(b))
+
+    antibiotics = sorted(antibiotics, cmp=sort_antibiotics)
 
     # Re-assign the antibiotics
     set_antibiotics(analysis, antibiotics, purge=purge)

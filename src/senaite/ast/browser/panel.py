@@ -279,9 +279,13 @@ class ASTPanelView(ListingView):
         return utils.get_antibiotics(analyses, filter_criteria=is_required)
 
     def has_antibiotic(self, analysis, antibiotic):
-        """Returns whether the analysis has the specified antibiotic assigned
+        """Returns whether the analysis has the specified antibiotic assigned.
+        Extrapolated antibiotics are not considered
         """
         for interim in analysis.getInterimFields():
+            if utils.is_extrapolated_interim(interim):
+                # Skip extrapolated antibiotics
+                continue
             if interim.get("keyword") == antibiotic.abbreviation:
                 return True
         return False
