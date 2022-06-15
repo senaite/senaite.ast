@@ -24,7 +24,6 @@ from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
-from bika.lims.utils import changeWorkflowState
 from bika.lims.utils import get_link_for
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -34,8 +33,6 @@ from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
-from senaite.core.workflow import ANALYSIS_WORKFLOW
-from zope.interface import noLongerProvides
 
 
 class ASTPanelView(ListingView):
@@ -148,7 +145,7 @@ class ASTPanelView(ListingView):
         else:
             # Update analyses
             for analysis in analyses:
-                self.update_analysis(analysis, antibiotics)
+                utils.update_ast_analysis(analysis, antibiotics, purge=True)
 
     def can_delete(self, analysis):
         """Returns whether the analysis can be removed or not
@@ -164,25 +161,6 @@ class ASTPanelView(ListingView):
                 return False
 
         return True
-
-    def update_analysis(self, analysis, antibiotics):
-        """Updates the analysis with the antibiotics
-        """
-        if ISubmitted.providedBy(analysis):
-            noLongerProvides(analysis, ISubmitted)
-
-        if IVerified.providedBy(analysis):
-            noLongerProvides(analysis, IVerified)
-
-        # Rollback to assigned/unassigned status
-        to_rollback = ["verified", "to_be_verified"]
-        if api.get_review_status(analysis) in to_rollback:
-            get_prev_status = api.get_previous_worfklow_status_of
-            prev_status = get_prev_status(analysis, skip=to_rollback)
-            changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
-
-        # Update the analysis with the antibiotics
-        utils.update_ast_analysis(analysis, antibiotics, purge=True)
 
     def redirect(self, message=None, level="info"):
         """Redirect with a message

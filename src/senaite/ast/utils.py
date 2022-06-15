@@ -26,7 +26,9 @@ import json
 from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.interfaces import IInternalUse
+from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
+from bika.lims.utils import changeWorkflowState
 from bika.lims.utils.analysis import create_analysis
 from bika.lims.workflow import doActionFor
 from senaite.ast import logger
@@ -40,7 +42,9 @@ from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.interfaces import IASTAnalysis
 from senaite.core.p3compat import cmp
+from senaite.core.workflow import ANALYSIS_WORKFLOW
 from zope.interface import alsoProvides
+from zope.interface import noLongerProvides
 
 _marker = object()
 
@@ -202,6 +206,17 @@ def update_ast_analysis(analysis, antibiotics, purge=False):
     # never displayed and is only used for reporting)
     result_options = get_result_options(analysis)
     analysis.setResultOptions(result_options)
+
+    # Try to rollback
+    if IVerified.providedBy(analysis):
+        noLongerProvides(analysis, IVerified)
+
+    if ISubmitted.providedBy(analysis):
+        noLongerProvides(analysis, ISubmitted)
+        get_prev_status = api.get_previous_worfklow_status_of
+        to_skip = ["to_be_verified", "verified"]
+        prev_status = get_prev_status(analysis, skip=to_skip)
+        changeWorkflowState(analysis, ANALYSIS_WORKFLOW, prev_status)
 
     # If the sample is in to_be_verified status, try to rollback
     sample = analysis.getRequest()
