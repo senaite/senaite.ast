@@ -32,8 +32,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'senaite.queue'
-copyright = u'2019-2020, Riding Bytes & Naralabs'
+project = u'senaite.ast'
+copyright = u'2020-2022, Riding Bytes & Naralabs'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -229,7 +229,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'senaitequeue', u'senaite.ast Documentation',
+  ('index', 'senaiteast', u'senaite.ast Documentation',
    u'Riding Bytes & Naralabs', 'senaiteast',
    'Antibiotic Sensitivity Testing (AST) for SENAITE',
    'Miscellaneous'),
