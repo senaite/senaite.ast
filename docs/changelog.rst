@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.0.0 (unreleased)
+1.0.0 (2022-06-18)
 ------------------
 
 - #17 Selective reporting for extrapolated antibiotics
