@@ -49,6 +49,31 @@ Besides, this option also allows the user to choose the extrapolated antibotics
 to be reported.
 
 
+.. _AddBreakpointsTable:
+
+Adding a pre-defined Clinical Breakpoints Table
+-----------------------------------------------
+
+To add pre-defined Clinical Breakpoint Tables, click the "gear" icon from top
+right, go to "AST Breakpoints Tables" view.
+
+.. image:: static/ast_breakpoints_tables.png
+  :width: 640
+  :alt: List of pre-defined AST Breakpoints Tables
+
+From this view, you can either create a new AST Breakpoints Table or edit an
+existing one:
+
+.. image:: static/ast_breakpoints_table.png
+  :width: 640
+  :alt: AST Breakpoints Table edition
+
+From this view, you can introduce the inferred sensitivity categories for each
+antibiotic and microorganism (or group of microorganisms) based on the diameter
+size of the inhibition zone in mm. The disk content (potency) for each row can
+also be set in this edit view.
+
+
 .. _MicroorganismIdentificationAnalysis:
 
 Microorganism identification analysis
