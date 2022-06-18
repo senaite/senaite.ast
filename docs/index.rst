@@ -57,5 +57,6 @@ Table of Contents:
 
 .. _SENAITE LIMS: https://www.senaite.com
 .. _senaite.ast: https://pypi.org/project/senaite.ast
+.. _new definitions of susceptibility testing categories by EUCAST 2019: https://www.eucast.org/newsiandr/
 .. _senaite.microorganism: https://pypi.org/project/senaite.microorganism
 .. _senaite.abx: https://pypi.org/project/senaite.abx
