@@ -23,6 +23,7 @@ from copy import copy
 from bika.lims import api
 from plone.autoform import directives
 from plone.autoform.interfaces import IFormFieldProvider
+from plone.behavior.interfaces import IBehavior
 from plone.dexterity.interfaces import IDexterityContent
 from plone.supermodel import model
 from senaite.ast import messageFactory as _
@@ -41,10 +42,10 @@ class IASTPanelBehavior(model.Schema):
     microorganisms = schema.List(
         title=_(u"Microorganisms"),
         description=_(
-            "The names of selected microorganisms are displayed as row headers "
-            "in the sensitivity results entry view. From all microorganisms "
-            "selected here, only those identified in the Sample are added in "
-            "results entry view"
+            u"The names of selected microorganisms are displayed as row "
+            u"headers in the sensitivity results entry view. From all "
+            u"microorganisms selected here, only those identified in the "
+            u"Sample are added in results entry view"
         ),
         required=True,
         value_type=schema.Choice(
@@ -55,8 +56,8 @@ class IASTPanelBehavior(model.Schema):
     antibiotics = schema.List(
         title=_(u"Antibiotics"),
         description=_(
-            "The abbreviations of selected antibiotics are displayed as "
-            "column headers in the sensitivity results entry view"
+            u"The abbreviations of selected antibiotics are displayed as "
+            u"column headers in the sensitivity results entry view"
         ),
         required=True,
         value_type=schema.Choice(
@@ -70,10 +71,7 @@ class IASTPanelBehavior(model.Schema):
             u"Default clinical breakpoints table to use for this panel. If "
             u"set, the system will automatically calculate the susceptibility "
             u"testing category as soon as the zone diameter in mm is submitted "
-            u"by the user. If the 'Include clinical breakpoints selector' is "
-            u"enabled for this panel, users will also be able to overwrite the "
-            u"clinical breakpoints table breakpoints table for each antibiotic-"
-            u"microorganism pair."
+            u"by the user."
         ),
         allowed_types=("BreakpointsTable", ),
         multi_valued=False,
@@ -121,9 +119,9 @@ class IASTPanelBehavior(model.Schema):
     zone_size = schema.Bool(
         title=_(u"Include zone diameter in mm"),
         description=_(
-            "When enabled, an additional row for the introduction of the zone "
-            "diameter (in mm) is displayed in the results entry view, above "
-            "resistance call options"
+            u"When enabled, an additional row for the introduction of the zone "
+            u"diameter (in mm) is displayed in the results entry view, above "
+            u"resistance call options"
         ),
         required=False,
         default=True,
@@ -132,16 +130,16 @@ class IASTPanelBehavior(model.Schema):
     selective_reporting = schema.Bool(
         title=_(u"Selective reporting"),
         description=_(
-            "When enabled, an additional row to indicate whether the "
-            "resistance result for each microorganism-antibiotic tuple has to "
-            "be reported in results report or not"
+            u"When enabled, an additional row to indicate whether the "
+            u"resistance result for each microorganism-antibiotic tuple has to "
+            u"be reported in results report or not"
         ),
         required=False,
         default=False,
     )
 
 
-@implementer(IASTPanelBehavior)
+@implementer(IBehavior, IASTPanelBehavior)
 @adapter(IDexterityContent)
 class ASTPanel(object):
 

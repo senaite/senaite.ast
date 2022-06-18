@@ -1,7 +1,7 @@
 License
 =======
 
-**SENAITE.AST** Copyright (C) 2019-2020 RIDING BYTES & NARALABS
+**SENAITE.AST** Copyright (C) 2020-2022 RIDING BYTES & NARALABS
 
 `SENAITE.AST`_ is available under the terms of the `GNU General Public
 License, version 2`_ as published by the `Free Software Foundation`_.

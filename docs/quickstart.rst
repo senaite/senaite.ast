@@ -27,7 +27,17 @@ From this view, you can choose both the Microorganisms and the Antibiotics.
 Please read the `documentation of senaite.microorganism`_ and the
 `documentation of senaite.abx`_ for further details.
 
-If the option "Include zone size in mm" is checked, besides the qualitative
+If a "Clinical breakpoints table" is selected, the system will automatically use
+this breakpoints table to calculate the susceptibility testing category (S/I/R)
+when the diameter of the inhibition zone is submitted by the user. Still, user
+can change the breakpoints table to use for any given antibiotic and
+microorganism later, on susceptibility testing results introduction.
+
+If the option "Include disk content in ug" is selected, an additional row for
+the introduction of the disk content (potency) in μg is displayed in the results
+entry view, above resistance call options.
+
+If the option "Include zone diameter in mm" is checked, besides the qualitative
 analysis for antibiotic susceptibility, the system will also add analyses for
 the capture of the zone of inhibition in mms automatically when this panel is
 selected.
@@ -35,6 +45,8 @@ selected.
 If the option "Selective reporting" is checked, the system will also add an
 analysis to allow the user to indicate the resistance results to be displayed
 in results report. If unchecked, all resistance results will be rendered.
+Besides, this option also allows the user to choose the extrapolated antibotics
+to be reported.
 
 
 .. _MicroorganismIdentificationAnalysis:

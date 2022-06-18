@@ -13,22 +13,31 @@ means of this identification analysis, the system automatically populates the
 list of available AST Panels for selection with those that fit better with the
 identified microorganism(s).
 
-Resistance analyses are qualitative and the supported results are: [R]esistant,
-[S]ensible, [+] positive and [-] negative. Although user can configure AST
-Panels for the automatic addition of analyses for the capture of diameter of
-the zone of inhibition, the system does not automatically calculate the
-qualitative results based on the diameter of zone and the minimum inhibitory
-concentrations (MICs).
+Resistance analyses are qualitative and the supported results are in accordance
+with the `new definitions of susceptibility testing categories by EUCAST 2019`_:
+
+- S: Susceptible, standard dosing regimen
+- I: Susceptible, increased exposure
+- R: Resistant
+
+Although user can configure AST Panels for the automatic addition of analyses
+for the capture of diameter of the zone of inhibition, the system does not
+automatically calculate the qualitative results based on the diameter of zone
+and the minimum inhibitory concentrations (MICs). However, system can infere
+the susceptibility testing category automatically based on pre-defined
+Breakpoints Tables, along with the diameter of the inhibitory zone.
 
 Once installed, this add-on allows the laboratory to:
 
 * Maintain microorganisms (via `senaite.microorganism`_)
 * Maintain antibiotics and antibiotic classes (via `senaite.abx`_)
 * Maintain pre-defined AST Panels
+* Maintain pre-defined Breakpoints Tables
 * Analysis for the identification of microorganisms
 * Assignment of pre-defined AST Panels to a sample
 * Sample-level customization of AST Panel
 * Selective reporting of resistance results
+* Support for and selective reporting of extrapolated antibiotics
 
 This documentation is divided in different parts. We recommend that you get
 started with :doc:`installation` and then head over to the :doc:`quickstart`.
