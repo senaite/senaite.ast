@@ -4,6 +4,7 @@ Changelog
 1.1.0 (unreleased)
 ------------------
 
+- #20 Compatibility with senaite.app.listing#87
 
 1.0.0 (2022-06-18)
 ------------------
