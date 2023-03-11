@@ -4,6 +4,7 @@ Changelog
 1.1.0 (unreleased)
 ------------------
 
+- #21 Fix AST entry is empty when analyses categorization for sample is checked
 - #20 Compatibility with senaite.app.listing#87
 
 1.0.0 (2022-06-18)
