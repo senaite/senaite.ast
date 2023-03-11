@@ -82,7 +82,7 @@ class ManageResultsView(AnalysesView):
         # Remove the columns we are not interested in from review_states
         hide = ["Method", "Instrument", "Analyst", "DetectionLimitOperand",
                 "Specification", "Uncertainty", "retested", "Attachments",
-                "DueDate", "Result", "Hidden"]
+                "DueDate", "Result", "Hidden", "Unit"]
 
         all_columns = self.columns.keys()
         all_columns = filter(lambda c: c not in hide, all_columns)
