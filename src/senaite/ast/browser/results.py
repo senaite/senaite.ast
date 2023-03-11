@@ -204,7 +204,7 @@ class ManageResultsView(AnalysesView):
             for state in self.review_states:
                 # Resort interim fields
                 columns = state["columns"]
-                position = columns.index("CaptureDate")
+                position = columns.index("Service") + 1
                 for col_id in interim_keys:
                     if col_id not in columns:
                         columns.insert(position, col_id)
