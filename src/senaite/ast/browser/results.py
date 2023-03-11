@@ -94,6 +94,12 @@ class ManageResultsView(AnalysesView):
         obj = api.get_object(service_uid_brain_object)
         return api.get_id(obj)
 
+    def analysis_categories_enabled(self):
+        """Returns false, as analyses for AST results entry cannot be
+        categorized, cause all them are computed
+        """
+        return False
+
     def folderitem(self, obj, item, index):
         keyword = obj.getKeyword
         item["Keyword"] = keyword
