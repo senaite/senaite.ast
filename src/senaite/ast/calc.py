@@ -311,7 +311,7 @@ def get_reportable_antibiotics(analysis):
         if primary:
             # Check if the primary is reportable
             uid = interim.get("uid")
-            return uid in reportable.get(primary)
+            return uid in reportable.get(primary, [])
         return interim.get("value") == "1"
 
     # The analysis "Report" is used to identify the results from the sensitivity

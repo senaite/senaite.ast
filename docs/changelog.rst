@@ -4,6 +4,7 @@ Changelog
 1.1.0 (unreleased)
 ------------------
 
+- #23 Fix AST calculation does not work when extrapolated antibiotics
 - #22 Hide Unit and display Submitter before Captured in AST entry
 - #21 Fix AST entry is empty when analyses categorization for sample is checked
 - #20 Compatibility with senaite.app.listing#87
