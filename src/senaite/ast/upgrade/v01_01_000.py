@@ -62,7 +62,6 @@ def fix_wrong_results_resistance(tool):
         "review_state": "to_be_verified",
         "getKeyword": RESISTANCE_KEY,
     }
-    import pdb;pdb.set_trace()
     brains = api.search(query, ANALYSIS_CATALOG)
 
     total = len(brains)
@@ -83,7 +82,7 @@ def fix_wrong_results_resistance(tool):
             continue
 
         # Update the result
-        logger.info("Updatiing {}".format(repr(obj)))
+        logger.info("Updating {}".format(repr(obj)))
         update_sensitivity_result(obj)
 
         # Flush the object from memory
