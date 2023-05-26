@@ -76,6 +76,7 @@ def fix_wrong_results_resistance(tool):
 
         if not obj:
             uncatalog_brain(brain)
+            continue
 
         if obj.getResult() not in ["-", "NA"]:
             obj._p_deactivate()
