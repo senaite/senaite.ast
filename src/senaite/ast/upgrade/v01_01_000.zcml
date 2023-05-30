@@ -6,7 +6,7 @@
   <genericsetup:upgradeStep
       title="SENAITE AST 1.1.0: Fix wrong 'NA/-' results from resistance tests"
       description="Fix wrong 'NA/-' results from resistance tests"
-      source="1100"
+      source="1.1.0"
       destination="1101"
       handler=".v01_01_000.fix_wrong_results_resistance"
       profile="senaite.ast:default"/>
