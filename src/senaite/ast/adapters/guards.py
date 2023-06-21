@@ -97,6 +97,10 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Skip extrapolated interims
                 continue
 
+            if utils.is_interim_empty(interim):
+                # Cannot submit if empty interim
+                return False
+
             if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
                 # Negative values are not permitted
                 value = interim.get("value")
@@ -104,5 +108,4 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 if value < 0:
                     return False
 
-        # No empties
         return True
