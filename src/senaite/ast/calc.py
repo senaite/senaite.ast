@@ -34,6 +34,7 @@ from senaite.ast.utils import get_microorganism
 from senaite.ast.utils import get_sensitivity_category
 from senaite.ast.utils import get_sensitivity_category_value
 from senaite.ast.utils import is_ast_analysis
+from senaite.ast.utils import is_interim_empty
 from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
@@ -58,7 +59,8 @@ def calc_ast(analysis_brain_uid, default_return='-'):
     # Update the sensitivity "final" result (for reporting)
     update_sensitivity_result(analysis)
 
-    return default_return
+    # The result has been updated already, return it as-it-is
+    return analysis.getResult() or default_return
 
 
 def calc_sensitivity_categories(analysis):
@@ -314,12 +316,12 @@ def get_reportable_antibiotics(analysis):
             return uid in reportable.get(primary, [])
         return interim.get("value") == "1"
 
-    # The analysis "Report" is used to identify the results from the sensitivity
+    # The analysis "Report" is used to identify results from the sensitivity
     # category analysis that need to be reported
     report = analyses.get(REPORT_KEY)
     if report:
         # The results to be reported are defined by the Y/N values
-        # XXX senaite.app.listing has no support boolean type for interim fields
+        # XXX senaite.app.listing has no support bool type for interim fields
         report_values = report.getInterimFields()
         to_report = filter(is_reportable, report_values)
 
@@ -329,4 +331,5 @@ def get_reportable_antibiotics(analysis):
         # Bail out (Sensitivity) "Category" results to not report
         results = filter(lambda r: r.get("keyword") in antibiotics, results)
 
-    return results
+    # Only report those with result set
+    return filter(lambda res: not is_interim_empty(res), results)
