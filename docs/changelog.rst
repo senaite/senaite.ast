@@ -4,6 +4,7 @@ Changelog
 1.1.0 (unreleased)
 ------------------
 
+- #25 Do not allow to "submit" AST analyses with no result save
 - #23 Fix AST calculation does not work when extrapolated antibiotics
 - #22 Hide Unit and display Submitter before Captured in AST entry
 - #21 Fix AST entry is empty when analyses categorization for sample is checked
