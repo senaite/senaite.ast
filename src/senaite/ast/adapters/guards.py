@@ -89,21 +89,24 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
             # Not an AST analysis
             return True
 
-        # Check that all interim fields have non-empty values
-        keyword = self.context.getKeyword()
-        for interim in self.context.getInterimFields():
+        # Get the antibiotics (as interim fields)
+        antibiotics = self.context.getInterimFields()
+        if not antibiotics:
+            return False
 
-            if utils.is_extrapolated_interim(interim):
-                # Skip extrapolated interims
+        keyword = self.context.getKeyword()
+        for antibiotic in antibiotics:
+            if utils.is_extrapolated_interim(antibiotic):
+                # Skip extrapolated antibiotics
                 continue
 
-            if utils.is_interim_empty(interim):
-                # Cannot submit if empty interim
+            if utils.is_interim_empty(antibiotic):
+                # Cannot submit if no result
                 return False
 
             if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
                 # Negative values are not permitted
-                value = interim.get("value")
+                value = antibiotic.get("value")
                 value = api.to_float(value, default=-1)
                 if value < 0:
                     return False
