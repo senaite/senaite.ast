@@ -24,10 +24,12 @@ from bika.lims import _ as _c
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.utils import get_link
 from bika.lims.utils import get_link_for
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.app.listing import ListingView
 from senaite.ast import messageFactory as _
 from bika.lims import api
 from plone.memoize import view
+from senaite.ast.view import DuplicateView
 
 
 class ASTPanelFolderView(ListingView):
@@ -70,6 +72,12 @@ class ASTPanelFolderView(ListingView):
             })
         ))
 
+        copy_transition = {
+            "id": "duplicate",
+            "title": _c("Duplicate"),
+            "url": "{}/copy".format(api.get_url(self.context))
+        }
+
         self.review_states = [
             {
                 "id": "default",
@@ -77,17 +85,20 @@ class ASTPanelFolderView(ListingView):
                 "contentFilter": {"is_active": True},
                 "transitions": [],
                 "columns": self.columns.keys(),
+                "custom_transitions": [copy_transition]
             }, {
                 "id": "inactive",
                 "title": _c("Inactive"),
                 "contentFilter": {'is_active': False},
                 "transitions": [],
                 "columns": self.columns.keys(),
+                "custom_transitions": [copy_transition]
             }, {
                 "id": "all",
                 "title": _c("All"),
                 "contentFilter": {},
                 "columns": self.columns.keys(),
+                "custom_transitions": [copy_transition]
             },
         ]
 
@@ -167,3 +178,10 @@ class ASTPanelFolderView(ListingView):
             "link": get_link(**params),
             "title": title,
         }
+
+
+class ASTPanelsDuplicate(DuplicateView):
+    template = ViewPageTemplateFile("templates/astpaneltables_duplicate.pt")
+
+    def __call__(self):
+        return super(ASTPanelsDuplicate, self).__call__()
