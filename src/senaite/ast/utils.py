@@ -838,11 +838,3 @@ def get_extrapolated_interims(antibiotics, keyword):
             existing_uids.append(uid)
 
     return interim_fields
-
-
-def copy_service(source, title):
-    """Creates a copy of the given object, but with the given title
-    """
-
-    # Create a copy
-    return api.copy_object(source, title=title, ShortTitle="")

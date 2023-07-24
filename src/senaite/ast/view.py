@@ -20,10 +20,11 @@
 
 from bika.lims import _
 from bika.lims import api
-from Products.CMFCore.utils import getToolByName
+from bika.lims.api import get_object
+from bika.lims.api import get_portal_type
+from bika.lims.catalog import SETUP_CATALOG
 from Products.CMFPlone.utils import safe_unicode
 from Products.Five import BrowserView
-from senaite.ast.utils import copy_service
 from transaction import savepoint
 
 
@@ -32,38 +33,59 @@ class DuplicateView(BrowserView):
     """
     created = []
 
+    def copy_object(self, source, title):
+        """Creates a copy of the given object, but with the given title
+        """
+        # Validate the title
+        portal_type = get_portal_type(get_object(source))
+        err_msg = self.check_title(portal_type, title)
+
+        if err_msg:
+            self.context.plone_utils.addPortalMessage(
+                safe_unicode(err_msg), "error")
+            return
+
+        # Create a copy
+        return api.copy_object(source, title=title, ShortTitle="")
+
+    def check_title(self, portal_type, title):
+        """Checks if the given title is valid and unique. Returns an
+        error message if not valid. None otherwise
+        """
+        import pdb;pdb.set_trace()
+        query = {"portal_type": portal_type, "Title": title}
+        brains = api.search(query, SETUP_CATALOG)
+        if brains:
+            return _("Validation failed: title is already in use")
+        return None
+
     def __call__(self):
-        uc = getToolByName(self.context, "uid_catalog")
         if "copy_form_submitted" not in self.request:
             uids = self.request.form.get("uids", [])
-            self.services = []
-            for uid in uids:
-                proxies = uc(UID=uid)
-                if proxies:
-                    self.services.append(proxies[0].getObject())
+            self.objects = map(api.get_object, uids)
             return self.template()
+
+        self.savepoint = savepoint()
+        sources = self.request.form.get("uids", [])
+        titles = self.request.form.get("title", [])
+        self.created = []
+        for i, s in enumerate(sources):
+            if not titles[i]:
+                message = _("Validation failed: title is required")
+                message = safe_unicode(message)
+                self.context.plone_utils.addPortalMessage(message, "info")
+                self.savepoint.rollback()
+                self.created = []
+                break
+            object_copy = self.copy_object(s, titles[i])
+            if object_copy:
+                self.created.append(api.get_title(object_copy))
+        if len(self.created) >= 1:
+            message = _("Successfully created: ${items}.",
+                        mapping={
+                            "items": safe_unicode(
+                                ", ".join(self.created))})
         else:
-            self.savepoint = savepoint()
-            sources = self.request.form.get("uids", [])
-            titles = self.request.form.get("title", [])
-            self.created = []
-            for i, s in enumerate(sources):
-                if not titles[i]:
-                    message = _("Validation failed: title is required")
-                    message = safe_unicode(message)
-                    self.context.plone_utils.addPortalMessage(message, "info")
-                    self.savepoint.rollback()
-                    self.created = []
-                    break
-                service_copy = copy_service(s, titles[i])
-                if service_copy:
-                    self.created.append(api.get_title(service_copy))
-            if len(self.created) >= 1:
-                message = _("Successfully created: ${items}.",
-                            mapping={
-                                "items": safe_unicode(
-                                    ", ".join(self.created))})
-            else:
-                message = _("No new items were created.")
-            self.context.plone_utils.addPortalMessage(message, "info")
-            self.request.response.redirect(self.context.absolute_url())
+            message = _("No new items were created.")
+        self.context.plone_utils.addPortalMessage(message, "info")
+        self.request.response.redirect(self.context.absolute_url())
