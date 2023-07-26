@@ -20,8 +20,6 @@
 
 from bika.lims import _
 from bika.lims import api
-from bika.lims.api import get_object
-from bika.lims.api import get_portal_type
 from bika.lims.catalog import SETUP_CATALOG
 from Products.CMFPlone.utils import safe_unicode
 from Products.Five import BrowserView
@@ -37,7 +35,7 @@ class DuplicateView(BrowserView):
         """Creates a copy of the given object, but with the given title
         """
         # Validate the title
-        portal_type = get_portal_type(get_object(source))
+        portal_type = api.get_portal_type(api.get_object(source))
         err_msg = self.check_title(portal_type, title)
 
         if err_msg:
@@ -46,13 +44,15 @@ class DuplicateView(BrowserView):
             return
 
         # Create a copy
-        return api.copy_object(source, title=title, ShortTitle="")
+        return api.copy_object(source, title=title)
 
     def check_title(self, portal_type, title):
         """Checks if the given title is valid and unique. Returns an
         error message if not valid. None otherwise
         """
-        import pdb;pdb.set_trace()
+        if not title:
+            return _("Validation failed: title is required")
+
         query = {"portal_type": portal_type, "Title": title}
         brains = api.search(query, SETUP_CATALOG)
         if brains:
@@ -66,20 +66,18 @@ class DuplicateView(BrowserView):
             return self.template()
 
         self.savepoint = savepoint()
-        sources = self.request.form.get("uids", [])
+        uids = self.request.form.get("uids", [])
         titles = self.request.form.get("title", [])
         self.created = []
-        for i, s in enumerate(sources):
-            if not titles[i]:
-                message = _("Validation failed: title is required")
-                message = safe_unicode(message)
-                self.context.plone_utils.addPortalMessage(message, "info")
+        for index, uid in enumerate(uids):
+            title = titles[index]
+            object_copy = self.copy_object(uid, title)
+            if not object_copy:
                 self.savepoint.rollback()
                 self.created = []
                 break
-            object_copy = self.copy_object(s, titles[i])
-            if object_copy:
-                self.created.append(api.get_title(object_copy))
+
+            self.created.append(api.get_title(object_copy))
         if len(self.created) >= 1:
             message = _("Successfully created: ${items}.",
                         mapping={
