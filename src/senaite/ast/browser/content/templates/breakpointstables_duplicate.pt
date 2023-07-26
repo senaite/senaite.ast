@@ -19,20 +19,20 @@
         class="text-muted text-secondary"
         i18n:translate=""
         tal:condition="python:view.objects">
-        Enter the details of each of the AST Breakpoint you want to copy.
+        Enter the details for each AST Breakpoints table you want to copy.
       </div>
     </metal:content-description>
 
     <metal:content-core fill-slot="content-core">
       <span class="text-danger" tal:condition="python:not view.objects" i18n:translate="">
-        No AST Breakpoint were selected.
+        No AST Breakpoints tables were selected.
       </span>
       <form id="copy_form"
             tal:condition="python:view.objects">
         <table class="table table-borderless table-hover">
           <tr class="border-bottom">
-            <th>AST Breakpoint</th>
-            <th>Title</th>
+            <th i18n:translate="">AST Breakpoint</th>
+            <th i18n:translate="">Title</th>
           </tr>
           <tal:x repeat="breakpoint view/objects">
             <tr tal:attributes="source breakpoint/Title">

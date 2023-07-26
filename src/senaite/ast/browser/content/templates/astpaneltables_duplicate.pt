@@ -25,14 +25,14 @@
 
     <metal:content-core fill-slot="content-core">
       <span class="text-danger" tal:condition="python:not view.objects" i18n:translate="">
-        No AST Panel were selected.
+        No AST panels were selected.
       </span>
       <form id="copy_form"
             tal:condition="python:view.objects">
         <table class="table table-borderless table-hover">
           <tr class="border-bottom">
-            <th>AST Panel</th>
-            <th>Title</th>
+            <th i18n:translate="">AST Panel</th>
+            <th i18n:translate="">Title</th>
           </tr>
           <tal:x repeat="panel view/objects">
             <tr tal:attributes="source panel/Title">
