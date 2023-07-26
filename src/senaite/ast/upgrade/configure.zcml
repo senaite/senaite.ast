@@ -3,12 +3,8 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="senaite.ast">
 
-  <genericsetup:upgradeStep
-      title="Upgrade to SENAITE AST 1.1.0"
-      source="1.0.0"
-      destination="1.1.0"
-      handler="senaite.ast.upgrade.v01_01_000.upgrade"
-      profile="senaite.ast:default"/>
+  <!-- Include all upgrade steps for 1.1.0 -->
+  <include file="v01_01_000.zcml"/>
 
   <genericsetup:upgradeStep
         title="Upgrade to SENAITE AST 1.0.0"

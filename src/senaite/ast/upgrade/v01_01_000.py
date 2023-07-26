@@ -18,9 +18,14 @@
 # Copyright 2020-2022 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims import api
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
+from senaite.ast.calc import update_sensitivity_result
+from senaite.ast.config import RESISTANCE_KEY
+from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.upgrade import upgradestep
+from senaite.core.upgrade.utils import uncatalog_brain
 from senaite.core.upgrade.utils import UpgradeUtils
 
 version = "1.1.0"
@@ -45,3 +50,43 @@ def upgrade(tool):
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True
+
+
+def fix_wrong_results_resistance(tool):
+    """Walks thorugh "to_be_verified" AST resistance tests and forces the
+    update of the result if it's current result is '-' or 'NA'
+    """
+    logger.info("Fix wrong AST results ...")
+    query = {
+        "portal_type": "Analysis",
+        "review_state": "to_be_verified",
+        "getKeyword": RESISTANCE_KEY,
+    }
+    brains = api.search(query, ANALYSIS_CATALOG)
+
+    total = len(brains)
+    for num, brain in enumerate(brains):
+        if num and num % 100 == 0:
+            logger.info("Processed objects: {}/{}".format(num, total))
+
+        try:
+            obj = api.get_object(brain, default=None)
+        except AttributeError:
+            obj = None
+
+        if not obj:
+            uncatalog_brain(brain)
+            continue
+
+        if obj.getResult() not in ["-", "NA"]:
+            obj._p_deactivate()
+            continue
+
+        # Update the result
+        logger.info("Updating {}".format(repr(obj)))
+        update_sensitivity_result(obj)
+
+        # Flush the object from memory
+        obj._p_deactivate()
+
+    logger.info("Fix wrong AST results [DONE]")
