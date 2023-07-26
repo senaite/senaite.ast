@@ -19,7 +19,7 @@
         class="text-muted text-secondary"
         i18n:translate=""
         tal:condition="python:view.objects">
-        Enter the details of each of the AST Panel you want to copy.
+        Enter the details for each AST Panel you want to copy.
       </div>
     </metal:content-description>
 
