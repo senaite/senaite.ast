@@ -11,11 +11,25 @@
     permission="senaite.core.permissions.ManageBika"
     layer="senaite.ast.interfaces.ISenaiteASTLayer" />
 
+  <browser:page
+      for="senaite.ast.interfaces.IASTPanelFolder"
+      name="copy"
+      class=".astpanelfolder.ASTPanelsDuplicate"
+      permission="senaite.core.permissions.ManageBika"
+      layer="senaite.ast.interfaces.ISenaiteASTLayer" />
+
   <!-- BreakpointsTables folder view -->
   <browser:page
       for="senaite.ast.interfaces.IBreakpointsTables"
       name="view"
       class=".breakpointstables.BreakpointsTablesView"
+      permission="senaite.core.permissions.ManageBika"
+      layer="senaite.ast.interfaces.ISenaiteASTLayer" />
+
+  <browser:page
+      for="senaite.ast.interfaces.IBreakpointsTables"
+      name="copy"
+      class=".breakpointstables.ASTBreakpointsTablesDuplicate"
       permission="senaite.core.permissions.ManageBika"
       layer="senaite.ast.interfaces.ISenaiteASTLayer" />
 

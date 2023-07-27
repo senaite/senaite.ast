@@ -1,0 +1,56 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="here/main_template/macros/master"
+      i18n:domain="senaite.ast">
+  <body>
+
+    <metal:content-title fill-slot="content-title">
+      <h1>
+        <span class="documentFirstHeading" i18n:translate="">
+          Copy AST Breakpoints Tables
+        </span>
+      </h1>
+    </metal:content-title>
+
+    <metal:content-description fill-slot="content-description">
+      <div
+        class="text-muted text-secondary"
+        i18n:translate=""
+        tal:condition="python:view.objects">
+        Enter the details for each AST Breakpoints table you want to copy.
+      </div>
+    </metal:content-description>
+
+    <metal:content-core fill-slot="content-core">
+      <span class="text-danger" tal:condition="python:not view.objects" i18n:translate="">
+        No AST Breakpoints tables were selected.
+      </span>
+      <form id="copy_form"
+            tal:condition="python:view.objects">
+        <table class="table table-borderless table-hover">
+          <tr class="border-bottom">
+            <th i18n:translate="">AST Breakpoint</th>
+            <th i18n:translate="">Title</th>
+          </tr>
+          <tal:x repeat="breakpoint view/objects">
+            <tr tal:attributes="source breakpoint/Title">
+              <td>
+                <input type="hidden" name="uids:list" tal:attributes="value breakpoint/UID"/>
+                <span class="font-weight-bold" tal:content="breakpoint/Title"/>
+              </td>
+              <td>
+                <input type="text" class="form-control" name="title:list"/>
+              </td>
+            </tr>
+          </tal:x>
+        </table>
+        <input type="hidden" name="copy_form_submitted" value="1"/>
+        <input type="submit" value="Copy" class="btn btn-outline-secondary" i18n:attributes="value"/>
+      </form>
+    </metal:content-core>
+
+  </body>
+</html>
+

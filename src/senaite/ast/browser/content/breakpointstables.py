@@ -21,9 +21,12 @@
 import collections
 
 from bika.lims import _ as _c
+from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.utils import get_link_for
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.app.listing import ListingView
+from senaite.ast.browser.duplicateview import DuplicateView
 
 
 class BreakpointsTablesView(ListingView):
@@ -61,6 +64,12 @@ class BreakpointsTablesView(ListingView):
             }),
         ))
 
+        copy_transition = {
+            "id": "duplicate",
+            "title": _c("Duplicate"),
+            "url": "{}/copy".format(api.get_url(self.context))
+        }
+
         self.review_states = [
             {
                 "id": "default",
@@ -68,17 +77,20 @@ class BreakpointsTablesView(ListingView):
                 "contentFilter": {"is_active": True},
                 "transitions": [],
                 "columns": self.columns.keys(),
+                "custom_transitions": [copy_transition]
             }, {
                 "id": "inactive",
                 "title": _c("Inactive"),
                 "contentFilter": {'is_active': False},
                 "transitions": [],
                 "columns": self.columns.keys(),
+                "custom_transitions": [copy_transition]
             }, {
                 "id": "all",
                 "title": _c("All"),
                 "contentFilter": {},
                 "columns": self.columns.keys(),
+                "custom_transitions": [copy_transition]
             },
         ]
 
@@ -102,3 +114,10 @@ class BreakpointsTablesView(ListingView):
         """
         item["replace"]["Title"] = get_link_for(obj)
         return item
+
+
+class ASTBreakpointsTablesDuplicate(DuplicateView):
+    template = ViewPageTemplateFile("templates/breakpointstables_duplicate.pt")
+
+    def __call__(self):
+        return super(ASTBreakpointsTablesDuplicate, self).__call__()
