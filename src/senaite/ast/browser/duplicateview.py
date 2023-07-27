@@ -18,11 +18,11 @@
 # Copyright 2020-2022 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from bika.lims import _
 from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from Products.CMFPlone.utils import safe_unicode
 from Products.Five import BrowserView
+from senaite.ast import messageFactory as _
 from transaction import savepoint
 
 

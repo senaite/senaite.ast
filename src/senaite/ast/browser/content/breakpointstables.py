@@ -26,7 +26,7 @@ from bika.lims.catalog import SETUP_CATALOG
 from bika.lims.utils import get_link_for
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.app.listing import ListingView
-from senaite.ast.view import DuplicateView
+from senaite.ast.browser.duplicateview import DuplicateView
 
 
 class BreakpointsTablesView(ListingView):

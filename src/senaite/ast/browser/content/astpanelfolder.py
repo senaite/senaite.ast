@@ -29,7 +29,7 @@ from senaite.app.listing import ListingView
 from senaite.ast import messageFactory as _
 from bika.lims import api
 from plone.memoize import view
-from senaite.ast.view import DuplicateView
+from senaite.ast.browser.duplicateview import DuplicateView
 
 
 class ASTPanelFolderView(ListingView):
