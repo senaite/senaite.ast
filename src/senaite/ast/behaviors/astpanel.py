@@ -105,6 +105,18 @@ class IASTPanelBehavior(model.Schema):
         limit=15,
     )
 
+    method = schema.Choice(
+        title=_(u"label_astpanel_method", default=u"Method"),
+        description=_(
+            u"description_astpanel_method",
+            default=u"The method to determine microbial susceptibility to "
+                    u"antibiotics"
+        ),
+        default=u"diffusion_disk",
+        source="senaite.ast.vocabularies.ast_methods",
+        required=True,
+    )
+
     disk_content = schema.Bool(
         title=_(u"Include disk content in μg"),
         description=_(

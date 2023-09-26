@@ -30,6 +30,9 @@
   <utility
       component="senaite.ast.vocabularies.SpeciesVocabularyFactory"
       name="senaite.ast.vocabularies.species" />
+  <utility
+      component="senaite.ast.vocabularies.ASTMethodsVocabularyFactory"
+      name="senaite.ast.vocabularies.ast_methods" />
 
   <!-- Datamanagers -->
   <adapter factory=".datamanagers.ASTAnalysisDataManager" />
