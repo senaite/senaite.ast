@@ -112,9 +112,9 @@ class IASTPanelBehavior(model.Schema):
             default=u"The method to determine microbial susceptibility to "
                     u"antibiotics"
         ),
-        default=u"diffusion_disk",
         source="senaite.ast.vocabularies.ast_methods",
         required=True,
+        default="diffusion_disk",
     )
 
     disk_content = schema.Bool(
@@ -217,3 +217,11 @@ class ASTPanel(object):
         return selective_reporting
 
     selective_reporting = property(_get_selective_reporting, _set_selective_reporting)
+
+    def _set_method(self, value):
+        self.context.method = value
+
+    def _get_method(self):
+        return getattr(self.context, "method")
+
+    method = property(_get_method, _set_method)
