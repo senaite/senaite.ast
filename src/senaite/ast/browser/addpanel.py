@@ -24,6 +24,9 @@ from Products.Five.browser import BrowserView
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import METHOD_DIFFUSION_DISK_ID
+from senaite.ast.config import METHOD_MIC_ID
+from senaite.ast.config import MIC_KEY
 from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
@@ -58,13 +61,19 @@ class AddPanelView(BrowserView):
             if panel.breakpoints_table:
                 self.add_breakpoints_analysis(panel, microorganism, antibiotics)
 
-            # Create/Update the disk content (potency) analysis
-            if panel.disk_content:
-                add(DISK_CONTENT_KEY, microorganism, antibiotics)
+            if panel.method == METHOD_DIFFUSION_DISK_ID:
+                # Create/Update the disk content (potency) analysis
+                if panel.disk_content:
+                    add(DISK_CONTENT_KEY, microorganism, antibiotics)
 
-            # Create/Update the zone size analysis
-            if panel.zone_size:
-                add(ZONE_SIZE_KEY, microorganism, antibiotics)
+                # Create/Update the zone size analysis
+                if panel.zone_size:
+                    add(ZONE_SIZE_KEY, microorganism, antibiotics)
+
+            elif panel.method == METHOD_MIC_ID:
+                # Create/Update the minimum inhibitory concentration analysis
+                if panel.mic_value:
+                    add(MIC_KEY, microorganism, antibiotics)
 
             # Create/Update the sensitivity result analysis
             self.add_ast_analysis(RESISTANCE_KEY, microorganism, antibiotics)
