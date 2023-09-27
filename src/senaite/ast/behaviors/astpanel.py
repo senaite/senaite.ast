@@ -251,6 +251,6 @@ class ASTPanel(object):
         self.context.method = value
 
     def _get_mic_value(self):
-        return getattr(self.context, "method")
+        return getattr(self.context, "mic_value")
 
     mic_value = property(_get_mic_value, _set_mic_value)
