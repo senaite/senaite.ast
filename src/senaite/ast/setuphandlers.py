@@ -158,7 +158,7 @@ def setup_ast_calculation(portal):
     logger.info("Setup AST calculation [DONE]")
 
 
-def setup_ast_services(portal):
+def setup_ast_services(portal, update_existing=True):
     """Setup AST services to be used for results entry: zone size, resistance,
     selective reporting
     """
@@ -179,6 +179,9 @@ def setup_ast_services(portal):
         folder = setup.bika_analysisservices
         exists = filter(lambda s: s.getKeyword() == key, folder.objectValues())
         if exists:
+            if not update_existing:
+                logger.warn("{} exists already. [SKIP]".format(key))
+                continue
             service = exists[0]
         else:
             # Create the service
