@@ -24,6 +24,7 @@ from bika.lims.interfaces import ISubmitted
 from bika.lims.interfaces import IVerified
 from senaite.ast import utils
 from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
 
@@ -104,7 +105,7 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Cannot submit if no result
                 return False
 
-            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
+            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY, MIC_KEY]:
                 # Negative values are not permitted
                 value = antibiotic.get("value")
                 value = api.to_float(value, default=-1)
