@@ -129,11 +129,32 @@ class IASTPanelBehavior(model.Schema):
     )
 
     zone_size = schema.Bool(
-        title=_(u"Include zone diameter in mm"),
+        title=_(
+            u"title_astpanel_zone_size",
+            default=u"Include zone diameter in mm"
+        ),
         description=_(
-            u"When enabled, an additional row for the introduction of the zone "
-            u"diameter (in mm) is displayed in the results entry view, above "
-            u"resistance call options"
+            u"description_astpanel_zone_size",
+            default=u"When enabled, an additional row for the introduction of "
+                    u"the diameter of inhibition zone (DIZ) in mm is "
+                    u"displayed in the results entry view, above resistance "
+                    u"call options."
+        ),
+        required=False,
+        default=True,
+    )
+
+    mic_value = schema.Bool(
+        title=_(
+            u"title_astpanel_mic_value",
+            default=u"Include MIC value in μg/mL"
+        ),
+        description=_(
+            u"description_astpanel_mic_value",
+            default=u"When enabled, an additional row for the introduction of "
+                    u"the Minimum Inhibitory Concentration value in μg/mL is "
+                    u"displayed in the results entry view, above resistance "
+                    u"call options."
         ),
         required=False,
         default=True,
@@ -225,3 +246,11 @@ class ASTPanel(object):
         return getattr(self.context, "method")
 
     method = property(_get_method, _set_method)
+
+    def _set_mic_value(self, value):
+        self.context.method = value
+
+    def _get_mic_value(self):
+        return getattr(self.context, "method")
+
+    mic_value = property(_get_mic_value, _set_mic_value)

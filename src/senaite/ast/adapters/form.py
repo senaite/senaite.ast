@@ -18,21 +18,27 @@
 # Copyright 2020-2023 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from senaite.ast.config import METHOD_DIFFUSION_DISK_ID
+from senaite.ast.config import METHOD_MIC_ID
 from senaite.core.browser.form.adapters import EditFormAdapterBase
 
+
 METHOD_FIELDS = (
-    "form.widgets.IASTPanelBehavior.method"
-    "form.widgets.IASTPanelBehavior.method:list"
+    "form.widgets.IASTPanelBehavior.method",
+    "form.widgets.IASTPanelBehavior.method:list",
 )
 
 DIFFUSION_DISK_FIELDS = (
     "form.widgets.IASTPanelBehavior.disk_content",
-    "form.widgets.IASTPanelBehavior.disk_content:list"
+    "form.widgets.IASTPanelBehavior.disk_content:list",
     "form.widgets.IASTPanelBehavior.zone_size",
-    "form.widgets.IASTPanelBehavior.zone_size:list"
+    "form.widgets.IASTPanelBehavior.zone_size:list",
 )
 
-METHOD_DIFFUSION_DISK = "diffusion_disk"
+MIC_FIELDS = (
+    "form.widgets.IASTPanelBehavior.mic_value",
+    "form.widgets.IASTPanelBehavior.mic_value:list",
+)
 
 
 class ASTPanelEditForm(EditFormAdapterBase):
@@ -56,8 +62,15 @@ class ASTPanelEditForm(EditFormAdapterBase):
         """
         if not isinstance(method, list):
             method = [method]
-        if METHOD_DIFFUSION_DISK in method:
+
+        if METHOD_DIFFUSION_DISK_ID in method:
             # Show fields for diffusion disk
             map(self.add_show_field, DIFFUSION_DISK_FIELDS)
-        else:
+            # Hide fields for mic method
+            map(self.add_hide_field, MIC_FIELDS)
+
+        elif METHOD_MIC_ID in method:
+            # Hide fields for diffusion disk
             map(self.add_hide_field, DIFFUSION_DISK_FIELDS)
+            # Show fields for mic method
+            map(self.add_show_field, MIC_FIELDS)
