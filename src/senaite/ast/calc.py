@@ -25,6 +25,7 @@ from bika.lims.interfaces import ISubmitted
 from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import MIC_KEY
 from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
@@ -72,7 +73,7 @@ def calc_sensitivity_categories(analysis):
     microorganism as the analysis passed-in (siblings).
     """
     keyword = analysis.getKeyword()
-    if keyword not in [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY]:
+    if keyword not in [BREAKPOINTS_TABLE_KEY, ZONE_SIZE_KEY, MIC_KEY]:
         return
 
     # Get the analysis (keyword: analysis) from same sample and microorganism
@@ -86,20 +87,20 @@ def calc_sensitivity_categories(analysis):
 
     # Extract the counterpart analyses
     breakpoints_analysis = analyses.get(BREAKPOINTS_TABLE_KEY)
-    zone_sizes_analysis = analyses.get(ZONE_SIZE_KEY)
-    if not all([breakpoints_analysis, zone_sizes_analysis]):
+    target_analysis = analyses.get(ZONE_SIZE_KEY) or analyses.get(MIC_KEY)
+    if not all([breakpoints_analysis, target_analysis]):
         return None
 
     # The result for each antibiotic is stored as an interim field
     breakpoints = breakpoints_analysis.getInterimFields()
-    zone_sizes = zone_sizes_analysis.getInterimFields()
+    values = target_analysis.getInterimFields()
     categories = sensitivity.getInterimFields()
 
     # Get the mapping of Antibiotic -> BreakpointsTable
     breakpoints = dict(map(lambda b: (b['uid'], b['value']), breakpoints))
 
-    # Get the mapping of Antibiotic -> Zone sizes
-    zone_sizes = dict(map(lambda z: (z['uid'], z['value']), zone_sizes))
+    # Get the mapping of Antibiotic -> Zone sizes / Antibiotic -> MIC values
+    values = dict(map(lambda z: (z['uid'], z['value']), values))
 
     # Get the microorganism this analysis is associated to
     microorganism = get_microorganism(analysis)
@@ -111,10 +112,10 @@ def calc_sensitivity_categories(analysis):
         if not api.is_uid(abx_uid):
             abx_uid = category["uid"]
 
-        # Get the zone size
-        zone_size = zone_sizes.get(abx_uid)
-        if not api.is_floatable(zone_size):
-            # No zone size entered yet or not floatable
+        # Get the zone size / MIC value
+        value = values.get(abx_uid)
+        if not api.is_floatable(value):
+            # No value entered yet or not floatable
             continue
 
         # Get the selected Breakpoints Table for this category
@@ -124,11 +125,11 @@ def calc_sensitivity_categories(analysis):
         breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
 
         # Get the sensitivity category (S|I|R) and choice value
-        key = get_sensitivity_category(zone_size, breakpoint, default="")
-        value = get_sensitivity_category_value(key, default="")
+        key = get_sensitivity_category(value, breakpoint, default="")
+        cat = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category
-        category.update({"value": value})
+        category.update({"value": cat})
 
     # Assign the updated categories to the sensitivity category analysis
     sensitivity.setInterimFields(categories)
