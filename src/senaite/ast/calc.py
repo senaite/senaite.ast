@@ -91,6 +91,9 @@ def calc_sensitivity_categories(analysis):
     if not all([breakpoints_analysis, target_analysis]):
         return None
 
+    # Get the method used (MIC or Zone size)
+    ast_method = target_analysis.getKeyword()
+
     # The result for each antibiotic is stored as an interim field
     breakpoints = breakpoints_analysis.getInterimFields()
     values = target_analysis.getInterimFields()
@@ -125,7 +128,8 @@ def calc_sensitivity_categories(analysis):
         breakpoint = get_breakpoint(breakpoints_uid, microorganism, abx_uid)
 
         # Get the sensitivity category (S|I|R) and choice value
-        key = get_sensitivity_category(value, breakpoint, default="")
+        key = get_sensitivity_category(value, breakpoint, method=ast_method,
+                                       default="",)
         cat = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category
