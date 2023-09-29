@@ -129,7 +129,7 @@ def calc_sensitivity_categories(analysis):
 
         # Get the sensitivity category (S|I|R) and choice value
         key = get_sensitivity_category(value, breakpoint, method=ast_method,
-                                       default="",)
+                                       default="")
         cat = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category
