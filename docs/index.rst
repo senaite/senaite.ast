@@ -25,7 +25,8 @@ for the capture of diameter of the zone of inhibition, the system does not
 automatically calculate the qualitative results based on the diameter of zone
 and the minimum inhibitory concentrations (MICs). However, system can infere
 the susceptibility testing category automatically based on pre-defined
-Breakpoints Tables, along with the diameter of the inhibitory zone.
+Breakpoints Tables, along with the diameter of the inhibitory zone or the MIC
+value.
 
 Once installed, this add-on allows the laboratory to:
 
