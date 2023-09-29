@@ -77,4 +77,10 @@
       factory=".guards.AnalysisGuardAdapter"
       name="senaite.ast.adapter.guard.analysis" />
 
+  <!-- Edit form handler for ASTPanel -->
+  <adapter
+      for="senaite.ast.interfaces.IASTPanel
+           senaite.ast.interfaces.ISenaiteASTLayer"
+      factory=".form.ASTPanelEditForm"/>
+
 </configure>

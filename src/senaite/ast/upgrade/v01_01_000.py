@@ -23,6 +23,8 @@ from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast.calc import update_sensitivity_result
 from senaite.ast.config import RESISTANCE_KEY
+from senaite.ast.config import SERVICE_CATEGORY
+from senaite.ast.setuphandlers import setup_ast_services
 from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import uncatalog_brain
@@ -90,3 +92,13 @@ def fix_wrong_results_resistance(tool):
         obj._p_deactivate()
 
     logger.info("Fix wrong AST results [DONE]")
+
+
+def setup_mic_support(tool):
+    """Adds the MIC value service to support Minimum Inhibitory Concentration
+    method to determine microbial susceptibility to antibiotics
+    """
+    logger.info("Setup MIC support ...")
+    portal = tool.aq_inner.aq_parent
+    setup_ast_services(portal, update_existing=False)
+    logger.info("Setup MIC support [DONE]")

@@ -4,6 +4,21 @@
     i18n_domain="senaite.ast">
 
   <genericsetup:upgradeStep
+      title="SENAITE AST 1.1.0: Add support for MIC method"
+      description="
+        Adds support for the Minimum Inhibitory Concentration (MIC) method. An
+        additional field for method selection has been added in AST Panel
+        content type, allowing the user to choose amongst Diffusion Disk
+        and MIC methods. When the former is selected, the options that are
+        specific for diffusion disk are displayed: disk content (potency) and
+        zone diameter (DIZ). Likewise, when MIC method is selected, only the
+        option MIC value is displayed"
+      source="1101"
+      destination="1102"
+      handler=".v01_01_000.setup_mic_support"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="SENAITE AST 1.1.0: Fix wrong 'NA/-' results from resistance tests"
       description="Fix wrong 'NA/-' results from resistance tests"
       source="1.1.0"

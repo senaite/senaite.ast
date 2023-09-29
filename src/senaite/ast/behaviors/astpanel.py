@@ -105,6 +105,18 @@ class IASTPanelBehavior(model.Schema):
         limit=15,
     )
 
+    method = schema.Choice(
+        title=_(u"label_astpanel_method", default=u"Method"),
+        description=_(
+            u"description_astpanel_method",
+            default=u"The method to determine microbial susceptibility to "
+                    u"antibiotics"
+        ),
+        source="senaite.ast.vocabularies.ast_methods",
+        required=True,
+        default="diffusion_disk",
+    )
+
     disk_content = schema.Bool(
         title=_(u"Include disk content in μg"),
         description=_(
@@ -117,11 +129,32 @@ class IASTPanelBehavior(model.Schema):
     )
 
     zone_size = schema.Bool(
-        title=_(u"Include zone diameter in mm"),
+        title=_(
+            u"title_astpanel_zone_size",
+            default=u"Include zone diameter in mm"
+        ),
         description=_(
-            u"When enabled, an additional row for the introduction of the zone "
-            u"diameter (in mm) is displayed in the results entry view, above "
-            u"resistance call options"
+            u"description_astpanel_zone_size",
+            default=u"When enabled, an additional row for the introduction of "
+                    u"the diameter of inhibition zone (DIZ) in mm is "
+                    u"displayed in the results entry view, above resistance "
+                    u"call options."
+        ),
+        required=False,
+        default=True,
+    )
+
+    mic_value = schema.Bool(
+        title=_(
+            u"title_astpanel_mic_value",
+            default=u"Include MIC value in μg/mL"
+        ),
+        description=_(
+            u"description_astpanel_mic_value",
+            default=u"When enabled, an additional row for the introduction of "
+                    u"the Minimum Inhibitory Concentration value in μg/mL is "
+                    u"displayed in the results entry view, above resistance "
+                    u"call options."
         ),
         required=False,
         default=True,
@@ -205,3 +238,19 @@ class ASTPanel(object):
         return selective_reporting
 
     selective_reporting = property(_get_selective_reporting, _set_selective_reporting)
+
+    def _set_method(self, value):
+        self.context.method = value
+
+    def _get_method(self):
+        return getattr(self.context, "method")
+
+    method = property(_get_method, _set_method)
+
+    def _set_mic_value(self, value):
+        self.context.method = value
+
+    def _get_mic_value(self):
+        return getattr(self.context, "mic_value")
+
+    mic_value = property(_get_mic_value, _set_mic_value)

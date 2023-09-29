@@ -36,10 +36,12 @@ from senaite.ast import messageFactory as _
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import MIC_KEY
 from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICES_SETTINGS
+from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.interfaces import IASTAnalysis
 from senaite.core.p3compat import cmp
 from senaite.core.workflow import ANALYSIS_WORKFLOW
@@ -607,16 +609,19 @@ def get_non_ast_points_of_capture():
     return pocs
 
 
-def get_sensitivity_category(zone_size, breakpoint, default=_marker):
-    """Returns the sensitivity category inferred from the zone_size and
-    breakpoint passed-in. Returns default value if zone size is negative and/or
-    breakpoint is None
+def get_sensitivity_category(value, breakpoint, method, default=_marker):
+    """Returns the sensitivity category inferred from the zone_size or MIC
+    value and the breakpoint passed-in. Returns default value if zone size is
+    negative and/or breakpoint is None
 
-    :param zone_size: size in mm of the antibiotic inhibition zone
-    :type zone_size: string, float, int
+    :param value: size in mm of the antibiotic inhibition zone or MIC value
     :param breakpoint: breakpoint that defines the sensitivity categories
         depending on the microorganism, antibiotic, potency and zone size
-    :type zone_size: dict
+    :param method: the id of the method (service keyword) that refers to
+        MIC value or Zone size
+    :type value: string, float, int
+    :type breakpoint: dict
+    :type method: string or analysis
     :returns: the standard EUCAST sensitivity category (R, S or I)
     :rtype: string
     """
@@ -625,25 +630,58 @@ def get_sensitivity_category(zone_size, breakpoint, default=_marker):
             raise ValueError("Breakpoint is missing")
         return default
 
-    zone_size = api.to_float(zone_size, -1)
-    if zone_size < 0:
-        # zero and non-positive zone_sizes are not possible
+    value = api.to_float(value, -1)
+    if value < 0:
+        # zero and negative are not possible
         if default is _marker:
             raise ValueError("Zone size is not valid")
         return default
 
-    diameter_r = api.to_float(breakpoint.get("diameter_r"))
-    if zone_size < diameter_r:
-        # R: resistant
-        return "R"
+    def get_breakpoint_value(key):
+        val = breakpoint.get(key)
+        val = api.to_float(val, default=0)
+        return None if val <= 0 else val
 
-    diameter_s = api.to_float(breakpoint.get("diameter_s"))
-    if zone_size >= diameter_s:
-        # S: sensible
-        return "S"
+    if method == ZONE_SIZE_KEY:
+        diameter_r = get_breakpoint_value("diameter_r")
+        if diameter_r and value < diameter_r:
+            # R: resistant
+            return "R"
 
-    # I: Susceptible at increased exposure
-    return "I"
+        diameter_s = get_breakpoint_value("diameter_s")
+        if diameter_s and value >= diameter_s:
+            # S: sensible
+            return "S"
+
+        if all([diameter_r, diameter_s]):
+            # I: Susceptible at increased exposure
+            return "I"
+
+        # No zone size breakpoints set
+        return ""
+
+    elif method == MIC_KEY:
+
+        mic_r = get_breakpoint_value("mic_r")
+        if mic_r and value > mic_r:
+            # R: resistant
+            return "R"
+
+        mic_s = get_breakpoint_value("mic_s")
+        if mic_s and value <= mic_s:
+            # S: sensible
+            return "S"
+
+        if all([mic_r, mic_s]):
+            # I: Susceptible at increased exposure
+            return "I"
+
+        # No MIC breakpoints set
+        return ""
+
+    else:
+        raise ValueError("Method not supported: {}".format(method))
+
 
 
 def get_sensitivity_category_value(text, default=_marker):

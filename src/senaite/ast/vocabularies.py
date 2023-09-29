@@ -21,6 +21,7 @@
 from bika.lims import api
 from bika.lims.catalog import SETUP_CATALOG
 from senaite.ast import messageFactory as _
+from senaite.ast.config import AST_METHODS
 from zope.interface import implementer
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleTerm
@@ -124,6 +125,18 @@ class SpeciesVocabulary(object):
         return self._microorganisms
 
 
+@implementer(IVocabularyFactory)
+class ASTMethodsVocabulary(object):
+    """Returns a SimpleVocabulary with the methods available to determine the
+    microbial susceptibility to antibiotics
+    """
+
+    def __call__(self, context):
+        vocab = [SimpleTerm(val, val, title) for val, title in AST_METHODS]
+        return SimpleVocabulary(vocab)
+
+
 AntibioticsVocabularyFactory = AntibioticsVocabulary()
 MicroorganismsVocabularyFactory = MicroorganismsVocabulary()
 SpeciesVocabularyFactory = SpeciesVocabulary()
+ASTMethodsVocabularyFactory = ASTMethodsVocabulary()
