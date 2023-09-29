@@ -36,34 +36,85 @@ from zope.interface import provider
 class IBreakpointsTableSchema(Interface):
 
     antibiotic = schema.Choice(
-        title=_("Antibiotic"),
+        title=_(
+            u"label_breakpoint_antibiotic",
+            default=u"Antibiotic"
+        ),
         source="senaite.ast.vocabularies.antibiotics",
         required=True,
     )
 
     microorganism = schema.Choice(
-        title=_(u"Species"),
+        title=_(
+            u"label_breakpoint_microorganism",
+            default=u"Species"
+        ),
         source="senaite.ast.vocabularies.species",
         required=True,
     )
 
+    mic_s = schema.Float(
+        title=_(
+            u"label_breakpoint_mic_s",
+            default=u"S ≤ (μg/mL)"
+        ),
+        description=_(
+            u"description_breakpoint_mic_s",
+            default=u"MIC breakpoint",
+        ),
+        min=0.0,
+        default=0.0,
+        required=True,
+    )
+
+    mic_r = schema.Float(
+        title=_(
+            u"label_breakpoint_mic_r",
+            default=u"R > (μg/mL)"
+        ),
+        description=_(
+            u"description_breakpoint_mic_r",
+            default=u"MIC breakpoint",
+        ),
+        min=0.0,
+        default=0.0,
+        required=True,
+    )
+
     disk_content = schema.Int(
-        title=_(u"Disk content (μg)"),
+        title=_(
+            u"label_breakpoint_disk_content",
+            default=u"Disk content (μg)"
+        ),
         min=0,
         required=True,
     )
 
     diameter_s = schema.Int(
-        title=_(u"S ≥ (mm)"),
-        description=_(u"Susceptible"),
+        title=_(
+            u"label_breakpoint_diameter_s",
+            default=u"S ≥ (mm)"
+        ),
+        description=_(
+            u"description_breakpoint_diameter_s",
+            default=u"Zone diameter breakpoint",
+        ),
         min=0,
+        default=0,
         required=True,
     )
 
     diameter_r = schema.Int(
-        title=_(u"R < (mm)"),
-        description=_(u"Resistant"),
+        title=_(
+            u"label_breakpoint_diameter_r",
+            default=u"R < (mm)"
+        ),
+        description=_(
+            u"description_breakpoint_diameter_r",
+            default=u"Zone diameter breakpoint",
+        ),
         min=0,
+        default=0,
         required=True,
     )
 
@@ -72,14 +123,19 @@ class IBreakpointsTableSchema(Interface):
 class IBreakpointsTableBehavior(model.Schema):
 
     breakpoints = DataGridField(
-        title=_(u"Clinical Breakpoints"),
+        title=_(
+            u"label_breakpointstable",
+            default=u"Clinical Breakpoints"
+        ),
         description=_(
-            u"List of susceptibility testing categories breakpoints for this "
-            u"antimicrobial agent depending on the concentration added to the "
-            u"filter paper (disk content or potency) expressed in μg and the "
-            u"microorganism to test. These zone diameter breakpoints are used "
-            u"on AST results entry view to automatically calculate the "
-            u"susceptibility testing category."
+            u"description_breakpointstable",
+            default=u"List of susceptibility testing categories breakpoints "
+                    u"for this antimicrobial agent depending on the "
+                    u"concentration added to the filter paper (disk content "
+                    u"or potency) expressed in μg and the microorganism to "
+                    u"test. These MIC and zone diameter breakpoints are used "
+                    u"on AST results entry view to automatically calculate "
+                    u"the susceptibility testing category."
         ),
         value_type=DataGridRow(
             title=u"Breakpoint",
