@@ -18,6 +18,8 @@
 # Copyright 2020-2023 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+import re
+
 from bika.lims import api
 from bika.lims.interfaces import IGuardAdapter
 from bika.lims.interfaces import ISubmitted
@@ -27,6 +29,8 @@ from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
+
+DL_RX = re.compile(r'^(<|>|<=|>=)?\s?\d+\.?\d*$')
 
 
 class BaseGuardAdapter(object):
@@ -113,10 +117,12 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                     return False
 
             if keyword in [MIC_KEY]:
-                # Negative values are not permitted, but '<' is allowed
+                # operators '>', '>=', '<' and '<=' are permitted
                 value = antibiotic.get("value")
-                if value[0] in ["<", ">"]:
-                    value = value[1:]
+                if not re.match(DL_RX, value):
+                    return False
+
+                # negative values are not permitted
                 value = api.to_float(value, default=-1)
                 if value < 0:
                     return False

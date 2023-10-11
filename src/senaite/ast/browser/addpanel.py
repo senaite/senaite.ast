@@ -145,7 +145,7 @@ class AddPanelView(BrowserView):
     def add_mic_analysis(self, microorganism, antibiotics):
         """Updates or creates an analysis for the selection of the Minimum
         Inhibitory Concentration (MIC) value, that allows the introduction of
-        less than '<' characters
+        '<', '>', '>=' and '<=' operators
         """
         mic = self.add_ast_analysis(MIC_KEY, microorganism, antibiotics)
         interim_fields = mic.getInterimFields()
