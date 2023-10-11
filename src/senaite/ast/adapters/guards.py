@@ -105,9 +105,18 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Cannot submit if no result
                 return False
 
-            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY, MIC_KEY]:
+            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
                 # Negative values are not permitted
                 value = antibiotic.get("value")
+                value = api.to_float(value, default=-1)
+                if value < 0:
+                    return False
+
+            if keyword in [MIC_KEY]:
+                # Negative values are not permitted, but '<' is allowed
+                value = antibiotic.get("value")
+                if value[0] in ["<", ">"]:
+                    value = value[1:]
                 value = api.to_float(value, default=-1)
                 if value < 0:
                     return False
