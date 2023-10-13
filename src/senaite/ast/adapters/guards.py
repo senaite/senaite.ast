@@ -30,7 +30,7 @@ from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
 
-DL_RX = re.compile(r'^(<|>|<=|>=)?\s?\d+\.?\d*$')
+DL_RX = re.compile(r'^(<|>|<=|>=)?\s?\d+(\.\d+)?\s*$')
 
 
 class BaseGuardAdapter(object):
