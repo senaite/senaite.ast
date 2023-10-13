@@ -119,8 +119,13 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
             if keyword in [MIC_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
                 value = antibiotic.get("value")
-                if not re.match(DL_RX, value):
+                matches = re.match(DL_RX, value)
+                if not matches:
                     return False
+
+                # first match is always the operator or None
+                operator = matches.groups()[0] or ""
+                value = value.replace(operator, "")
 
                 # negative values are not permitted
                 value = api.to_float(value, default=-1)
