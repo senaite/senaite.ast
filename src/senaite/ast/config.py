@@ -139,7 +139,7 @@ SERVICES_SETTINGS = {
               u"testing results following a standardised disk diffusion "
               u"method equivalent to disk load, disk mass, disk strength, and "
               u"disk charge."),
-        "size": "1",
+        "size": "3",
         "sort_key": 510,
         "string_result": True,
         "point_of_capture": AST_POINT_OF_CAPTURE,
@@ -155,7 +155,7 @@ SERVICES_SETTINGS = {
               u"potent is the antimicrobial. It is used to determine whether "
               u"a bacteria is resistant, intermediately sensitive or "
               u"susceptible to an antibiotic."),
-        "size": "1",
+        "size": "3",
         "sort_key": 520,
         "string_result": True,
         "point_of_capture": AST_POINT_OF_CAPTURE,
@@ -171,7 +171,7 @@ SERVICES_SETTINGS = {
               u"potent the antimicrobial. It is used to determine whether a "
               u"bacteria is resistant, intermediately sensitive or "
               u"susceptible to an antibiotic."),
-        "size": "1",
+        "size": "3",
         "sort_key": 520,
         "string_result": True,
         "point_of_capture": AST_POINT_OF_CAPTURE,

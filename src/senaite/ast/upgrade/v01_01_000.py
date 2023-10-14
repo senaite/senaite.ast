@@ -22,8 +22,12 @@ from bika.lims import api
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast.calc import update_sensitivity_result
+from senaite.ast.config import DISK_CONTENT_KEY
+from senaite.ast.config import MIC_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import SERVICE_CATEGORY
+from senaite.ast.config import SERVICES_SETTINGS
+from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.setuphandlers import setup_ast_services
 from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.upgrade import upgradestep
@@ -102,3 +106,35 @@ def setup_mic_support(tool):
     portal = tool.aq_inner.aq_parent
     setup_ast_services(portal, update_existing=False)
     logger.info("Setup MIC support [DONE]")
+
+
+def resize_ast_numeric_fields(tool):
+    """Walks through AST analyses of 'Disk content (μg)', 'Zone diameter (mm)'
+    and 'MIC value (μg/mL)' and resets the size of their input element from '1'
+    to '3', cause they got shrinked with
+    https://github.com/senaite/senaite.app.listing/pull/125
+    """
+    logger.info("Resizing AST numeric fields ...")
+    query = {
+        "portal_type": "Analysis",
+        "getKeyword": [DISK_CONTENT_KEY, ZONE_SIZE_KEY, MIC_KEY],
+    }
+    brains = api.search(query, ANALYSIS_CATALOG)
+    total = len(brains)
+    for num, brain in enumerate(brains):
+        if num and num % 100 == 0:
+            logger.info("Processed objects: {}/{}".format(num, total))
+
+        try:
+            obj = api.get_object(brain, default=None)
+        except AttributeError:
+            obj = None
+
+        # Restore the size of all interim fields to 3
+        interim_fields = obj.getInterimFields()
+        for interim_field in interim_fields:
+            interim_field["size"] = "3"
+        obj.setInterimFields(interim_fields)
+        obj._p_deactivate()
+
+    logger.info("Resizing AST numeric fields ...")
