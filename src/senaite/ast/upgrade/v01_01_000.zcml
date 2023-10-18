@@ -4,6 +4,18 @@
     i18n_domain="senaite.ast">
 
   <genericsetup:upgradeStep
+      title="SENAITE AST 1.1.0: Resize of fields for numeric entry"
+      description="
+        Walks through all AST analyses of 'Disk content(μg)', 'Zone diameter
+        (mm)' and 'MIC value (μg/mL)' and resets the size of their input
+        element from '1' to '3', cause they got shrinked with
+        https://github.com/senaite/senaite.app.listing/pull/125"
+      source="1102"
+      destination="1103"
+      handler=".v01_01_000.resize_ast_numeric_fields"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="SENAITE AST 1.1.0: Add support for MIC method"
       description="
         Adds support for the Minimum Inhibitory Concentration (MIC) method. An
