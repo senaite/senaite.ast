@@ -4,6 +4,7 @@ Changelog
 1.1.0 (unreleased)
 ------------------
 
+- #30 Fix sizes for numeric fields are too small
 - #26 Fix Sensitivity result is not updated when selective reporting is missing
 - #25 Do not allow to "submit" AST analyses with no result save
 - #23 Fix AST calculation does not work when extrapolated antibiotics
