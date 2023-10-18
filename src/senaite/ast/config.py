@@ -171,7 +171,7 @@ SERVICES_SETTINGS = {
               u"potent the antimicrobial. It is used to determine whether a "
               u"bacteria is resistant, intermediately sensitive or "
               u"susceptible to an antibiotic."),
-        "size": "3",
+        "size": "5",
         "sort_key": 520,
         "string_result": True,
         "point_of_capture": AST_POINT_OF_CAPTURE,

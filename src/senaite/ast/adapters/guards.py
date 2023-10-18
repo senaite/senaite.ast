@@ -129,17 +129,20 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 operator = groups[0] or ""
                 value = value.replace(operator, "")
 
-                # third match is always the fraction or None
+                # third match is always the fraction denominator or None
                 # e.g. '23.435/23.56' => (None, '.435', '/23.56', '.56')
                 fraction = groups[2] or ""
 
-                # negative values are not permitted
-                if fraction and api.to_float(fraction[1:], default=-1) < 0:
+                # denominator with 0 or negative values are not permitted
+                if fraction and api.to_float(fraction[1:], default=-1) <= 0:
                     return False
 
+                # numerator of zero or below 0 is not supported
                 value = value.replace(fraction, "")
                 value = api.to_float(value, default=-1)
                 if value < 0:
+                    return False
+                elif fraction and value == 0:
                     return False
 
         return True

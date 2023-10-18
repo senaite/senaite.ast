@@ -25,7 +25,6 @@ from senaite.ast.calc import update_sensitivity_result
 from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import MIC_KEY
 from senaite.ast.config import RESISTANCE_KEY
-from senaite.ast.config import SERVICE_CATEGORY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.setuphandlers import setup_ast_services
@@ -130,10 +129,13 @@ def resize_ast_numeric_fields(tool):
         except AttributeError:
             obj = None
 
+        # get the size of the analysis as defined in config
+        size = SERVICES_SETTINGS[obj.getKeyword()]["size"]
+
         # Restore the size of all interim fields to 3
         interim_fields = obj.getInterimFields()
         for interim_field in interim_fields:
-            interim_field["size"] = "3"
+            interim_field["size"] = size
         obj.setInterimFields(interim_fields)
         obj._p_deactivate()
 

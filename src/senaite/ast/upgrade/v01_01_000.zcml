@@ -8,6 +8,17 @@
       description="
         Walks through all AST analyses of 'Disk content(μg)', 'Zone diameter
         (mm)' and 'MIC value (μg/mL)' and resets the size of their input
+        element to the pre-configured size depending on their keyword"
+      source="1103"
+      destination="1104"
+      handler=".v01_01_000.resize_ast_numeric_fields"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
+      title="SENAITE AST 1.1.0: Resize of fields for numeric entry"
+      description="
+        Walks through all AST analyses of 'Disk content(μg)', 'Zone diameter
+        (mm)' and 'MIC value (μg/mL)' and resets the size of their input
         element from '1' to '3', cause they got shrinked with
         https://github.com/senaite/senaite.app.listing/pull/125"
       source="1102"
