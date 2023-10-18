@@ -30,7 +30,7 @@ from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
 
-DL_RX = re.compile(r'^(<|>|<=|>=)?\s?\d+(\.\d+)?\s*$')
+MIC_VALUE_RX = re.compile(r'^(<|>|<=|>=)?\s?\d+(\.\d+)?(/\d+(\.\d+)?)?\s*$')
 
 
 class BaseGuardAdapter(object):
@@ -119,15 +119,25 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
             if keyword in [MIC_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
                 value = antibiotic.get("value")
-                matches = re.match(DL_RX, value)
+                matches = re.match(MIC_VALUE_RX, value)
                 if not matches:
                     return False
 
                 # first match is always the operator or None
-                operator = matches.groups()[0] or ""
+                # e.g '< 13.54/23.4345' => ('<', '.54', '/23.4345', '.4345')
+                groups = matches.groups()
+                operator = groups[0] or ""
                 value = value.replace(operator, "")
 
+                # third match is always the fraction or None
+                # e.g. '23.435/23.56' => (None, '.435', '/23.56', '.56')
+                fraction = groups[2] or ""
+
                 # negative values are not permitted
+                if fraction and api.to_float(fraction[1:], default=-1) < 0:
+                    return False
+
+                value = value.replace(fraction, "")
                 value = api.to_float(value, default=-1)
                 if value < 0:
                     return False
