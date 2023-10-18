@@ -4,14 +4,13 @@
     i18n_domain="senaite.ast">
 
   <genericsetup:upgradeStep
-      title="SENAITE AST 1.1.0: Resize of fields for numeric entry"
+      title="SENAITE AST 1.1.0: Set fraction result type for MIC analyses"
       description="
-        Walks through all AST analyses of 'Disk content(μg)', 'Zone diameter
-        (mm)' and 'MIC value (μg/mL)' and resets the size of their input
-        element to the pre-configured size depending on their keyword"
+        Walks through all AST analyses of 'MIC value (μg/mL)' and resets their
+        size of their input element to '5' and sets the type to 'fraction'"
       source="1103"
       destination="1104"
-      handler=".v01_01_000.resize_ast_numeric_fields"
+      handler=".v01_01_000.setup_mic_fraction_field"
       profile="senaite.ast:default"/>
 
   <genericsetup:upgradeStep

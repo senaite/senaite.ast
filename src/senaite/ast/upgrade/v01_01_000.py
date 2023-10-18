@@ -107,6 +107,38 @@ def setup_mic_support(tool):
     logger.info("Setup MIC support [DONE]")
 
 
+def setup_mic_fraction_field(tool):
+    """Walks through 'MIC value (μg/mL)' analyses and resets their type from
+    'string' to 'fraction' and sets their size to '5'
+    """
+    logger.info("Setup fraction type for MIC value fields ...")
+    query = {
+        "portal_type": "Analysis",
+        "getKeyword": [MIC_KEY],
+    }
+    brains = api.search(query, ANALYSIS_CATALOG)
+    total = len(brains)
+    for num, brain in enumerate(brains):
+        if num and num % 100 == 0:
+            logger.info("Processed objects: {}/{}".format(num, total))
+
+        try:
+            obj = api.get_object(brain, default=None)
+        except AttributeError:
+            obj = None
+
+        # Restore the size of all interim fields to 3
+        interim_fields = obj.getInterimFields()
+        for interim_field in interim_fields:
+            interim_field["size"] = "5"
+            interim_field["result_type"] = "fraction"
+        obj.setInterimFields(interim_fields)
+        obj._p_deactivate()
+
+    logger.info("Setup fraction type for MIC value fields [DONE]")
+
+
+
 def resize_ast_numeric_fields(tool):
     """Walks through AST analyses of 'Disk content (μg)', 'Zone diameter (mm)'
     and 'MIC value (μg/mL)' and resets the size of their input element from '1'

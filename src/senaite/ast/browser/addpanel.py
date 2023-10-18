@@ -150,6 +150,6 @@ class AddPanelView(BrowserView):
         mic = self.add_ast_analysis(MIC_KEY, microorganism, antibiotics)
         interim_fields = mic.getInterimFields()
         for interim_field in interim_fields:
-            interim_field["result_type"] = "string"
+            interim_field["result_type"] = "fraction"
         mic.setInterimFields(interim_fields)
         return mic
