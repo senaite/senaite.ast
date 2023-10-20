@@ -18,8 +18,6 @@
 # Copyright 2020-2023 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-import re
-
 from bika.lims import api
 from bika.lims.interfaces import IGuardAdapter
 from bika.lims.interfaces import ISubmitted
@@ -30,7 +28,7 @@ from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
 
-MIC_VALUE_RX = re.compile(r'^(<|>|<=|>=)?\s?\d+(\.\d+)?(/\d+(\.\d+)?)?\s*$')
+OPERATORS = ["<=", ">=", "<", ">"]
 
 
 class BaseGuardAdapter(object):
@@ -119,30 +117,21 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
             if keyword in [MIC_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
                 value = antibiotic.get("value")
-                matches = re.match(MIC_VALUE_RX, value)
-                if not matches:
-                    return False
+                operator = filter(lambda p: value.startswith(p), OPERATORS)
+                if operator:
+                    value = value.partition(operator[0])[-1]
 
-                # first match is always the operator or None
-                # e.g '< 13.54/23.4345' => ('<', '.54', '/23.4345', '.4345')
-                groups = matches.groups()
-                operator = groups[0] or ""
-                value = value.replace(operator, "")
-
-                # third match is always the fraction denominator or None
-                # e.g. '23.435/23.56' => (None, '.435', '/23.56', '.56')
-                fraction = groups[2] or ""
+                numerator, slash, denominator = value.partition("/")
 
                 # denominator with 0 or negative values are not permitted
-                if fraction and api.to_float(fraction[1:], default=-1) <= 0:
+                if slash and api.to_float(denominator, default=-1) <= 0:
                     return False
 
                 # numerator of zero or below 0 is not supported
-                value = value.replace(fraction, "")
-                value = api.to_float(value, default=-1)
-                if value < 0:
+                numerator = api.to_float(numerator, default=-1)
+                if numerator < 0:
                     return False
-                elif fraction and value == 0:
+                elif slash and numerator <= 0:
                     return False
 
         return True
