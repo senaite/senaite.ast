@@ -127,6 +127,10 @@ def setup_mic_fraction_field(tool):
         except AttributeError:
             obj = None
 
+        if not obj:
+            uncatalog_brain(brain)
+            continue
+
         # Restore the size of all interim fields to 3
         interim_fields = obj.getInterimFields()
         for interim_field in interim_fields:
@@ -136,7 +140,6 @@ def setup_mic_fraction_field(tool):
         obj._p_deactivate()
 
     logger.info("Setup fraction type for MIC value fields [DONE]")
-
 
 
 def resize_ast_numeric_fields(tool):
@@ -160,6 +163,10 @@ def resize_ast_numeric_fields(tool):
             obj = api.get_object(brain, default=None)
         except AttributeError:
             obj = None
+
+        if not obj:
+            uncatalog_brain(brain)
+            continue
 
         # get the size of the analysis as defined in config
         size = SERVICES_SETTINGS[obj.getKeyword()]["size"]
