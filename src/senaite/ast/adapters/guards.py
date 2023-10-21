@@ -116,10 +116,10 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
 
             if keyword in [MIC_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
-                value = antibiotic.get("value")
+                value = antibiotic.get("value") or ""
                 operator = filter(lambda p: value.startswith(p), OPERATORS)
                 if operator:
-                    value = value.partition(operator[0])[-1]
+                    value = value.replace(operator[0], "")
 
                 numerator, slash, denominator = value.partition("/")
 
