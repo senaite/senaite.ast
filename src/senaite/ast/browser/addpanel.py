@@ -73,7 +73,7 @@ class AddPanelView(BrowserView):
             elif panel.method == METHOD_MIC_ID:
                 # Create/Update the minimum inhibitory concentration analysis
                 if panel.mic_value:
-                    add(MIC_KEY, microorganism, antibiotics)
+                    self.add_mic_analysis(microorganism, antibiotics)
 
             # Create/Update the sensitivity result analysis
             self.add_ast_analysis(RESISTANCE_KEY, microorganism, antibiotics)
@@ -141,3 +141,15 @@ class AddPanelView(BrowserView):
         # Update each microorganism-antibiotic with suitable breakpoints table
         update_breakpoint_tables_choices(analysis, default_table=default_table)
         return analysis
+
+    def add_mic_analysis(self, microorganism, antibiotics):
+        """Updates or creates an analysis for the selection of the Minimum
+        Inhibitory Concentration (MIC) value, that allows the introduction of
+        '<', '>', '>=' and '<=' operators
+        """
+        mic = self.add_ast_analysis(MIC_KEY, microorganism, antibiotics)
+        interim_fields = mic.getInterimFields()
+        for interim_field in interim_fields:
+            interim_field["result_type"] = "fraction"
+        mic.setInterimFields(interim_fields)
+        return mic

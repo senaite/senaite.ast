@@ -28,6 +28,8 @@ from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from zope.interface import implementer
 
+OPERATORS = ["<=", ">=", "<", ">"]
+
 
 class BaseGuardAdapter(object):
 
@@ -105,11 +107,31 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Cannot submit if no result
                 return False
 
-            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY, MIC_KEY]:
+            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
                 # Negative values are not permitted
                 value = antibiotic.get("value")
                 value = api.to_float(value, default=-1)
                 if value < 0:
+                    return False
+
+            if keyword in [MIC_KEY]:
+                # operators '>', '>=', '<' and '<=' are permitted
+                value = antibiotic.get("value") or ""
+                operator = filter(lambda p: value.startswith(p), OPERATORS)
+                if operator:
+                    value = value.replace(operator[0], "")
+
+                numerator, slash, denominator = value.partition("/")
+
+                # denominator with 0 or negative values are not permitted
+                if slash and api.to_float(denominator, default=-1) <= 0:
+                    return False
+
+                # numerator of zero or below 0 is not supported
+                numerator = api.to_float(numerator, default=-1)
+                if numerator < 0:
+                    return False
+                elif slash and numerator <= 0:
                     return False
 
         return True
