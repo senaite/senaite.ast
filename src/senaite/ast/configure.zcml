@@ -17,6 +17,7 @@
   <include package=".adapters" />
   <include package=".behaviors" />
   <include package=".browser"/>
+  <include package=".patches"/>
   <include package=".upgrade"/>
   <include package=".workflow"/>
 
