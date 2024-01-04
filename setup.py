@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-version = "1.1.0"
+version = "1.2.0"
 
 with open("README.rst", "r") as fh:
     long_description = fh.read()
@@ -36,8 +36,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        "senaite.abx>=1.2.0",
-        "senaite.microorganism>=1.1.0"
+        "senaite.abx>=1.3.0",
+        "senaite.microorganism>=1.2.0"
     ],
     extras_require={
         "test": [

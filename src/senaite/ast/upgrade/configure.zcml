@@ -3,7 +3,10 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     i18n_domain="senaite.ast">
 
-  <!-- Include all upgrade steps for 1.1.0 -->
+  <!-- 1.2.0 -->
+  <include file="v01_02_000.zcml"/>
+
+  <!-- 1.1.0 -->
   <include file="v01_01_000.zcml"/>
 
   <genericsetup:upgradeStep
