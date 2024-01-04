@@ -36,9 +36,8 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        "senaite.lims>=2.2.0",
-        "senaite.abx",
-        "senaite.microorganism"
+        "senaite.abx>=1.2.0",
+        "senaite.microorganism>=1.1.0"
     ],
     extras_require={
         "test": [

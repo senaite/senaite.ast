@@ -90,7 +90,7 @@ If you wish to contribute with translations, check the project site on `Transife
 License
 -------
 
-**SENAITE.AST** Copyright (C) 2020-2022 RIDING BYTES & NARALABS
+**SENAITE.AST** Copyright (C) 2020-2024 RIDING BYTES & NARALABS
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the `GNU General Public License version 2`_ as published
