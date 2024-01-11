@@ -1,10 +1,14 @@
 Changelog
 =========
 
-1.1.0 (unreleased)
+1.2.0 (unreleased)
 ------------------
 
-- #31 Support lower than, greather than and fractions for MIC values
+
+1.1.0 (2024-01-04)
+------------------
+
+- #31 Support lower than, greater than and fractions for MIC values
 - #30 Fix sizes for numeric fields are too small
 - #26 Fix Sensitivity result is not updated when selective reporting is missing
 - #25 Do not allow to "submit" AST analyses with no result save

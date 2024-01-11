@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="senaite.ast">
+
+  <genericsetup:upgradeStep
+      title="Upgrade to SENAITE AST 1.2.0"
+      source="1104"
+      destination="1200"
+      handler="senaite.ast.upgrade.v01_02_000.upgrade"
+      profile="senaite.ast:default"/>
+
+</configure>
