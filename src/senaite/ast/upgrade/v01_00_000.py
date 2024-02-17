@@ -152,9 +152,9 @@ def remove_ast_from_profiles(portal):
     brains = api.search(query, SETUP_CATALOG)
     for brain in brains:
         obj = api.get_object(brain)
-        services = obj.getRawService() or []
-        services = filter(lambda s: s not in ast_uids, services)
-        obj.setService(services)
+        services = obj.getRawServices() or []
+        services = filter(lambda s: s.get("uid") not in ast_uids, services)
+        obj.setServices(services)
     logger.info("Removing AST-like analyses from profiles [DONE]")
 
 
