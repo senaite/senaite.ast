@@ -23,8 +23,8 @@
    AST-like analyses are always added manually afterwards, based on the result
    oif the "Microorganism Identification" analysis -->
   <subscriber
-    for="bika.lims.browser.widgets.analysisprofileanalyseswidget.AnalysisProfileAnalysesView
-         bika.lims.interfaces.IAnalysisProfile"
+    for="senaite.core.browser.widgets.analysisprofileswidget.AnalysisProfilesWidget
+         senaite.core.interfaces.IAnalysisProfile"
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.services.NonASTServicesViewAdapter" />
 
