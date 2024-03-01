@@ -4,6 +4,7 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #33 Display the Antibiotic Sensitivity section only when necessary
 - #32 Compatibility with senaite.core#2492 (AnalysisProfile to DX)
 
 1.1.0 (2024-01-04)
