@@ -31,6 +31,9 @@ from senaite.ast import is_installed
 from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.config import AST_POINT_OF_CAPTURE
+from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.utils import get_ast_analyses
+from senaite.ast.utils import get_identified_microorganisms
 from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
 
 
@@ -42,9 +45,24 @@ class ASTAnalysesViewlet(LabAnalysesViewlet):
     capture = AST_POINT_OF_CAPTURE
 
     def available(self):
-        """Returns true if senaite.ast is installed
+        """Returns true if senaite.ast is installed and the sample contains
+        at least one sensitivity testing analysis or the microorganism
+        identification analysis is present
         """
-        return is_installed()
+        if not is_installed():
+            return False
+
+        # does this sample has the identification analysis?
+        analyses = self.context.getAnalyses(getKeyword=IDENTIFICATION_KEY)
+        if analyses:
+            return True
+
+        # does this have sensitivity testing analyses?
+        ast_analyses = get_ast_analyses(self.context)
+        if ast_analyses:
+            return True
+
+        return False
 
 
 class ManageResultsView(AnalysesView):
