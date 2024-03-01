@@ -7,6 +7,7 @@ Changelog
 - #33 Display the Antibiotic Sensitivity section only when necessary
 - #32 Compatibility with senaite.core#2492 (AnalysisProfile to DX)
 
+
 1.1.0 (2024-01-04)
 ------------------
 
@@ -18,6 +19,7 @@ Changelog
 - #22 Hide Unit and display Submitter before Captured in AST entry
 - #21 Fix AST entry is empty when analyses categorization for sample is checked
 - #20 Compatibility with senaite.app.listing#87
+
 
 1.0.0 (2022-06-18)
 ------------------
