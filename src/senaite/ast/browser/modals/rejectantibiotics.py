@@ -19,14 +19,18 @@
 # Some rights reserved, see README and LICENSE.
 
 import itertools
+from datetime import datetime
 
 from bika.lims import api
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from senaite.ast import logger
 from senaite.ast import utils
+from senaite.ast.calc import update_sensitivity_result
 from senaite.ast.config import NOT_TESTED
 from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
+from senaite.ast.config import RESISTANCE_KEY
+from senaite.core.api import dtime as dt
 from senaite.core.browser.modals import Modal
 
 
@@ -92,16 +96,17 @@ class RejectAntibioticsModal(Modal):
         """Flags the antibiotics passed-in for the given analysis as Not tested
         """
         interims = []
-        name = api.get_title(analysis)
         keyword = analysis.getKeyword()
         to_reject = map(api.get_uid, antibiotics)
         for interim in analysis.getInterimFields():
             abx_uid = interim.get("uid")
             if abx_uid in to_reject:
-                logger.info("{}:{} -> rejected".format(name, keyword))
 
                 # set rejected status
-                interim["status_rejected"] = True
+                user_id = api.get_current_user().id
+                timestamp = dt.to_iso_format(datetime.now())
+                interim["status_rejected"] = timestamp
+                interim["status_rejected_by"] = user_id
 
                 # set the result value
                 self.set_not_tested_result(interim)
@@ -110,6 +115,16 @@ class RejectAntibioticsModal(Modal):
 
         # update the interims/antibiotics
         analysis.setInterimFields(interims)
+
+        if keyword == RESISTANCE_KEY:
+            # Compute all combinations of interim/antibiotic and possible
+            # result and generate the result options for this analysis (the
+            # "Result" field is never displayed and is only used for reporting)
+            result_options = utils.get_result_options(analysis)
+            analysis.setResultOptions(result_options)
+
+            # Update the final result to be reported
+            update_sensitivity_result(analysis)
 
     def set_not_tested_result(self, interim):
         """Sets the 'Not tested' result to the interim field. If the interim
