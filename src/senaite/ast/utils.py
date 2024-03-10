@@ -726,6 +726,8 @@ def get_choices(interim):
     :rtype: list
     """
     choices = interim.get("choices", "")
+    if not choices:
+        return []
     choices = map(lambda choice: choice.split(":"), choices.split("|"))
     return map(lambda choice: (choice[0], choice[1]), choices)
 
