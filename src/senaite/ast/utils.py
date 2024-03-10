@@ -802,7 +802,7 @@ def is_interim_editable(interim):
     if is_interim_empty(interim):
         return True
 
-    statuses = ["to_be_verified", "verified"]
+    statuses = ["to_be_verified", "verified", "rejected"]
     for status in statuses:
         status_id = "status_{}".format(status)
         if interim.get(status_id, False):

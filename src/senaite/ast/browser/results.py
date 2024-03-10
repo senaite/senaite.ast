@@ -32,6 +32,7 @@ from senaite.ast import messageFactory as _
 from senaite.ast import utils
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import IDENTIFICATION_KEY
+from senaite.ast.config import NOT_TESTED
 from senaite.ast.utils import get_ast_analyses
 from senaite.ast.utils import get_identified_microorganisms
 from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
@@ -183,7 +184,10 @@ class ManageResultsView(AnalysesView):
             item["allow_edit"] = editable
 
             # This interim will be displayed as readonly mode, display text
-            text = utils.get_interim_text(interim_field, default="")
+            if interim_field.get("status_rejected", False):
+                text = NOT_TESTED
+            else:
+                text = utils.get_interim_text(interim_field, default="")
             item["replace"][keyword] = text or "&nbsp;"
 
     def folderitems(self):
