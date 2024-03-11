@@ -1,0 +1,8 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+  <!-- Transition Permissions -->
+  <permission id="senaite.ast.permissions.TransitionRejectAntibiotics"
+              title="senaite.ast: Transition: Reject Antibiotics"/>
+
+</configure>
