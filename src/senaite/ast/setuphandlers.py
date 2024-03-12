@@ -22,7 +22,6 @@ from bika.lims import api
 from bika.lims.api import security
 from plone.registry.interfaces import IRegistry
 from Products.CMFCore.permissions import ModifyPortalContent
-from Products.DCWorkflow.Guard import Guard
 from senaite.ast import logger
 from senaite.ast import messageFactory as _
 from senaite.ast import PRODUCT_NAME
@@ -34,6 +33,7 @@ from senaite.ast.config import SERVICE_CATEGORY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.permissions import TransitionRejectAntibiotics
 from senaite.core.workflow import ANALYSIS_WORKFLOW
+from senaite.core.workflow import update_workflow
 from zope.component import getUtility
 
 # Tuples of (folder_id, folder_name, type)
@@ -297,141 +297,8 @@ def setup_workflows(portal):
     """
     logger.info("Setup workflows ...")
     for wf_id, settings in WORKFLOWS_TO_UPDATE.items():
-        update_workflow(portal, wf_id, settings)
+        update_workflow(wf_id, **settings)
     logger.info("Setup workflows [DONE]")
-
-
-def update_workflow(portal, workflow_id, settings):
-    """Updates the workflow with workflow_id with the settings passed-in
-    """
-    logger.info("Updating workflow '{}' ...".format(workflow_id))
-    wf_tool = api.get_tool("portal_workflow")
-    workflow = wf_tool.getWorkflowById(workflow_id)
-    if not workflow:
-        logger.warn("Workflow '{}' not found [SKIP]".format(workflow_id))
-
-    # Update states
-    states = settings.get("states", {})
-    for state_id, values in states.items():
-        update_workflow_state(workflow, state_id, values)
-
-    # Update transitions
-    transitions = settings.get("transitions", {})
-    for transition_id, values in transitions.items():
-        update_workflow_transition(workflow, transition_id, values)
-
-
-def update_workflow_state(workflow, status_id, settings):
-    """Updates the status of a workflow in accordance with settings passed-in
-    """
-    logger.info("Updating workflow '{}', status: '{}' ..."
-                .format(workflow.id, status_id))
-
-    # Create the status (if does not exist yet)
-    status = workflow.states.get(status_id)
-    if not status:
-        workflow.states.addState(status_id)
-        status = workflow.states.get(status_id)
-
-    # Set basic info (title, description, etc.)
-    status.title = settings.get("title", status.title)
-    status.description = settings.get("description", status.description)
-
-    # Set transitions
-    trans = settings.get("transitions", []) or []
-    if isinstance(trans, list):
-        trans = set(trans)
-        trans.update(status.transitions)
-        trans = tuple(trans)
-    status.transitions = trans
-
-    # Set permissions
-    update_workflow_state_permissions(workflow, status, settings)
-
-
-def update_workflow_state_permissions(workflow, status, settings):
-    """Updates the permissions of a workflow status in accordance with the
-    settings passed-in
-    """
-    # Copy permissions from another state?
-    permissions_copy_from = settings.get("permissions_copy_from", None)
-    if permissions_copy_from:
-        logger.info("Copying permissions from '{}' to '{}' ..."
-                    .format(permissions_copy_from, status.id))
-        copy_from_state = workflow.states.get(permissions_copy_from)
-        if not copy_from_state:
-            logger.info("State '{}' not found [SKIP]".format(copy_from_state))
-        else:
-            for perm_id in copy_from_state.permissions:
-                perm_info = copy_from_state.getPermissionInfo(perm_id)
-                acquired = perm_info.get("acquired", 1)
-                roles = perm_info.get("roles", acquired and [] or ())
-                logger.info("Setting permission '{}' (acquired={}): '{}'"
-                            .format(perm_id, repr(acquired), ', '.join(roles)))
-                status.setPermission(perm_id, acquired, roles)
-
-    # Override permissions
-    logger.info("Overriding permissions for '{}' ...".format(status.id))
-    state_permissions = settings.get("permissions", {})
-    if not state_permissions:
-        logger.info(
-            "No permissions set for '{}' [SKIP]".format(status.id))
-        return
-
-    for permission_id, roles in state_permissions.items():
-        if isinstance(roles, tuple):
-            acq = 0
-        else:
-            info = status.getPermissionInfo(permission_id) or {}
-            acq = info.get("acquired", 0)
-            roles = set(roles)
-            roles.update(info.get("roles", []))
-            roles = tuple(roles)
-
-        logger.info("Setting permission '{}' (acquired={}): '{}'"
-                    .format(permission_id, repr(acq),
-                            ', '.join(roles)))
-
-        # Check if this permission is defined globally for this workflow
-        if permission_id not in workflow.permissions:
-            workflow.permissions = workflow.permissions + (permission_id,)
-        status.setPermission(permission_id, acq, roles)
-
-
-def update_workflow_transition(workflow, transition_id, settings):
-    """Updates the workflow transition in accordance with settings passed-in
-    """
-    logger.info("Updating workflow '{}', transition: '{}'"
-                .format(workflow.id, transition_id))
-    if transition_id not in workflow.transitions:
-        workflow.transitions.addTransition(transition_id)
-    transition = workflow.transitions.get(transition_id)
-
-    # Guard
-    guard = transition.guard or Guard()
-
-    # Transition properties
-    title = settings.get("title", transition.title)
-    new_state_id = settings.get("new_state", transition.new_state_id)
-    if new_state_id in ["None", None]:
-        new_state_id = ""
-    after_script = settings.get("after_script", transition.after_script_name)
-    if after_script in ["None", None]:
-        after_script = ""
-    action = settings.get("action", title)
-    action_url = settings.get("action_url", "")
-    transition.setProperties(
-        title=title,
-        new_state_id=new_state_id,
-        after_script_name=after_script,
-        actbox_name=action,
-        actbox_url=action_url,
-    )
-
-    if "guard" in settings:
-        guard.changeFromProperties(settings.get("guard"))
-
-    transition.guard = guard
 
 
 def pre_install(portal_setup):
