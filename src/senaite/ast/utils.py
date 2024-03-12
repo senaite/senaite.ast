@@ -744,6 +744,20 @@ def is_interim_empty(interim):
     return not text
 
 
+def is_rejected_interim(interim):
+    """Returns whether the interim represents a rejected antibiotic
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: True if the value or text representation of this interim is empty
+    :rtype: bool
+    """
+    rejected = interim.get("status_rejected", None)
+    if rejected:
+        return True
+    return False
+
+
 def is_extrapolated_interim(interim):
     """Returns whether the interim represents an extrapolated antibiotic
 

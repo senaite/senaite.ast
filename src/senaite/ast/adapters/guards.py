@@ -104,6 +104,10 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Skip extrapolated antibiotics
                 continue
 
+            if utils.is_rejected_interim(antibiotic):
+                # Skip rejected antibiotics
+                continue
+
             if utils.is_interim_empty(antibiotic):
                 # Cannot submit if no result
                 return False
