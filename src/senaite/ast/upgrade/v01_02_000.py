@@ -65,7 +65,7 @@ def setup_reject_antibiotics(tool):
     setup_workflows(portal)
 
     # update role mappings
-    statuses = ["assigned", "unassigned", "to_be_verified", "verified"]
+    statuses = ["assigned", "unassigned"]
     cat = api.get_tool(ANALYSIS_CATALOG)
     brains = cat(portal_type="Analysis", review_state=statuses,
                  getPointOfCapture=AST_POINT_OF_CAPTURE)

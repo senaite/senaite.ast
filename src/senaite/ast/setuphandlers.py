@@ -58,12 +58,6 @@ WORKFLOWS_TO_UPDATE = {
             "unassigned": {
                 "transitions": ["modal_reject_antibiotics"],
             },
-            "to_be_verified": {
-                "transitions": ["modal_reject_antibiotics"],
-            },
-            "verified": {
-                "transitions": ["modal_reject_antibiotics"],
-            }
         },
         "transitions": {
             "modal_reject_antibiotics": {
