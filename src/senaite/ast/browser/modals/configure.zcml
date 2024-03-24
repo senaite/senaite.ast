@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+  <!-- Modal for antibiotic rejection -->
+  <browser:page
+      name="reject_antibiotics"
+      for="*"
+      class=".rejectantibiotics.RejectAntibioticsModal"
+      permission="zope2.View"
+      layer="senaite.ast.interfaces.ISenaiteASTLayer" />
+
+</configure>

@@ -1,7 +1,14 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
-    i18n_domain="senaite.ast">
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
+
+  <genericsetup:upgradeStep
+      title="SENAITE AST 1.2.0: Setup transition for antibiotic rejection"
+      description="Setup transition for antibiotic rejection"
+      source="1200"
+      destination="1201"
+      handler="senaite.ast.upgrade.v01_02_000.setup_reject_antibiotics"
+      profile="senaite.ast:default"/>
 
   <genericsetup:upgradeStep
       title="Upgrade to SENAITE AST 1.2.0"

@@ -18,12 +18,17 @@
 # Copyright 2020-2024 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims import api
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
+from senaite.ast.config import AST_POINT_OF_CAPTURE
+from senaite.ast.setuphandlers import setup_workflows
+from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
 
 version = "1.1.0"
+profile = "profile-{0}:default".format(PRODUCT_NAME)
 
 
 @upgradestep(PRODUCT_NAME, version)
@@ -45,3 +50,38 @@ def upgrade(tool):
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True
+
+
+def setup_reject_antibiotics(tool):
+    logger.info("Setup reject antibiotics transition ...")
+    portal = tool.aq_inner.aq_parent
+
+    # import rolemap and workflow
+    setup = portal.portal_setup
+    setup.runImportStepFromProfile(profile, "rolemap")
+    setup.runImportStepFromProfile(profile, "workflow")
+
+    # setup custom workflow modifs
+    setup_workflows(portal)
+
+    # update role mappings
+    statuses = ["assigned", "unassigned"]
+    cat = api.get_tool(ANALYSIS_CATALOG)
+    brains = cat(portal_type="Analysis", review_state=statuses,
+                 getPointOfCapture=AST_POINT_OF_CAPTURE)
+    map(update_role_mappings_for, brains)
+
+    logger.info("Setup reject antibiotics transition [DONE]")
+
+
+def update_role_mappings_for(object_or_brain):
+    """Update role mappings for the specified object
+    """
+    obj = api.get_object(object_or_brain)
+    path = api.get_path(obj)
+    logger.info("Updating workflow role mappings for {} ...".format(path))
+    tool = api.get_tool("portal_workflow")
+    for wf_id in api.get_workflows_for(obj):
+        wf = tool.getWorkflowById(wf_id)
+        wf.updateRoleMappingsFor(obj)
+        obj.reindexObject(idxs=["allowedRolesAndUsers"])

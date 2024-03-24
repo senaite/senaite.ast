@@ -18,12 +18,15 @@
 # Copyright 2020-2024 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from senaite.ast import logger
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.interfaces import IASTAnalysis
 from senaite.ast.utils import get_ast_siblings
+from senaite.ast.utils import is_ast_analysis
+from senaite.ast.utils import is_interim_editable
 from senaite.core.datamanagers.analysis import RoutineAnalysisDataManager
 from zope.component import adapter
 
@@ -32,6 +35,32 @@ from zope.component import adapter
 class ASTAnalysisDataManager(RoutineAnalysisDataManager):
     """Data Manager for AST-like analyses
     """
+
+    def get_antibiotic_interim(self, keyword, default=None):
+        """Returns the interim that represents the antibiotic with the given
+        keyword, but only if the context is an AST-like analysis
+        """
+        if not is_ast_analysis(self.context):
+            return default
+
+        for interim in self.context.getInterimFields():
+            if interim.get("keyword") == keyword:
+                return interim
+
+        return default
+
+    def set(self, name, value):
+        """Set analysis field/interim value
+        """
+        # Check if an antibiotic/interim of an AST analysis
+        antibiotic = self.get_antibiotic_interim(name)
+        if antibiotic and not is_interim_editable(antibiotic):
+            logger.error("Interim field '{}' not writeable!".format(name))
+            return []
+
+        # rely on the base class
+        base = super(ASTAnalysisDataManager, self)
+        return base.set(name, value)
 
     def recalculate_results(self, obj, recalculated=None):
         recalculated = super(ASTAnalysisDataManager, self).\

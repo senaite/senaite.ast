@@ -24,6 +24,7 @@ from collections import OrderedDict
 from bika.lims import api
 from bika.lims.browser.analyses import AnalysesView
 from bika.lims.interfaces import IVerified
+from bika.lims.utils import get_image
 from bika.lims.utils import get_link
 from plone.memoize import view
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -33,7 +34,7 @@ from senaite.ast import utils
 from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.utils import get_ast_analyses
-from senaite.ast.utils import get_identified_microorganisms
+from senaite.ast.i18n import translate as t
 from senaite.core.browser.viewlets.sampleanalyses import LabAnalysesViewlet
 
 
@@ -184,6 +185,9 @@ class ManageResultsView(AnalysesView):
 
             # This interim will be displayed as readonly mode, display text
             text = utils.get_interim_text(interim_field, default="")
+            if interim_field.get("status_rejected", False):
+                icon = get_image('warning.png', title=t(_("Not tested")))
+                text = "{}{}".format(text, icon)
             item["replace"][keyword] = text or "&nbsp;"
 
     def folderitems(self):

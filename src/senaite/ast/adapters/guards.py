@@ -26,6 +26,7 @@ from senaite.ast import utils
 from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
+from senaite.ast.utils import is_ast_analysis
 from zope.interface import implementer
 
 OPERATORS = ["<=", ">=", "<", ">"]
@@ -103,6 +104,10 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Skip extrapolated antibiotics
                 continue
 
+            if utils.is_rejected_interim(antibiotic):
+                # Skip rejected antibiotics
+                continue
+
             if utils.is_interim_empty(antibiotic):
                 # Cannot submit if no result
                 return False
@@ -135,3 +140,9 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                     return False
 
         return True
+
+    def guard_reject_antibiotics(self):
+        """Rejection of antibiotics is only possible for sensitivity testing
+        (AST) analyses
+        """
+        return is_ast_analysis(self.context)

@@ -1,0 +1,54 @@
+<div class="reject-antibiotics-modal modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" i18n:translate="">Reject antibiotics</h5>
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p i18n:translate="" class="font-weight-bold">
+        The selected antibiotics will be flagged as <i>Not tested</i>.
+      </p>
+      <p i18n:translate="">
+        Although previous captured data will be internally kept for audit and
+        traceability purposes, the results for the selected antibiotics and
+        analyses will be reported as <i>Not tested</i> in both results entry
+        view and in results report.
+      </p>
+      <form name="reject-antibiotics-form"
+            class="form"
+            method="POST"
+            enctype="multipart/form-data"
+            tal:attributes="action string:${here/absolute_url}/reject_antibiotics">
+
+        <div class="form-group">
+          <ul>
+            <li tal:repeat="antibiotic view/antibiotics">
+              <input type="checkbox"
+                     name="antibiotics:list"
+                     tal:attributes="id antibiotic/UID;
+                                     value antibiotic/UID;"/>
+              <span tal:content="antibiotic/Title"/>
+              (<span tal:content="antibiotic/abbreviation"/>)
+            </li>
+          </ul>
+        </div>
+
+        <div class="form-group mt-2">
+          <input class="btn btn-sm btn-primary"
+                type="submit"
+                name="reject_antibiotics"
+                i18n:attributes="value"
+                value="Reject antibiotics" />
+        </div>
+
+        <!-- hidden fields -->
+        <input type="hidden" name="submitted" value="1" />
+        <input tal:replace="structure context/@@authenticator/authenticator"/>
+        <input type="hidden" name="uids" value="" tal:attributes="value request/uids" />
+
+      </form>
+    </div>
+  </div>
+</div>
