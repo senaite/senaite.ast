@@ -28,7 +28,7 @@
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.services.NonASTServicesViewAdapter" />
 
-  <!-- Do not display AST-type services for selection in Analysis Template -->
+  <!-- Do not display AST-type services for selection in Sample Template -->
   <subscriber
     for="senaite.core.browser.widgets.sampletemplate_services_widget.SampleTemplateServicesWidget
          senaite.core.interfaces.ISampleTemplate"
