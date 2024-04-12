@@ -4,6 +4,7 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #35 Compatibility with core#2521 - AT2DX ARTemplate/SampleTemplate
 - #34 Add transition "Reject antibiotics"
 - #33 Display the Antibiotic Sensitivity section only when necessary
 - #32 Compatibility with senaite.core#2492 (AnalysisProfile to DX)

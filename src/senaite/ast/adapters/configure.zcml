@@ -28,10 +28,10 @@
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.services.NonASTServicesViewAdapter" />
 
-  <!-- Do not display AST-type services for selection in Analysis Template -->
+  <!-- Do not display AST-type services for selection in Sample Template -->
   <subscriber
-    for="bika.lims.browser.widgets.artemplateanalyseswidget.ARTemplateAnalysesView
-         bika.lims.interfaces.IARTemplate"
+    for="senaite.core.browser.widgets.sampletemplate_services_widget.SampleTemplateServicesWidget
+         senaite.core.interfaces.ISampleTemplate"
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".listing.services.NonASTServicesViewAdapter" />
 
