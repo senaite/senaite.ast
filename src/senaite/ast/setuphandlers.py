@@ -294,8 +294,6 @@ def revoke_edition_permissions(portal):
         security.revoke_permission_for(obj, ModifyPortalContent, roles)
         obj.reindexObject()
 
-    import pdb;pdb.set_trace()
-
     # analysis services
     query = {
         "portal_type": "AnalysisService",
