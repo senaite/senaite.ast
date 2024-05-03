@@ -3,6 +3,14 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
 
   <genericsetup:upgradeStep
+      title="SENAITE AST 1.2.0: Revoke edit permissions for AST setup objects"
+      description="Revoke edit permissions for AST setup objects"
+      source="1201"
+      destination="1202"
+      handler="senaite.ast.upgrade.v01_02_000.revoke_setup_permissions"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="SENAITE AST 1.2.0: Setup transition for antibiotic rejection"
       description="Setup transition for antibiotic rejection"
       source="1200"

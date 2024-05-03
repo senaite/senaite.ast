@@ -33,6 +33,7 @@ from senaite.ast.config import SERVICE_CATEGORY
 from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.permissions import TransitionRejectAntibiotics
 from senaite.core.api.workflow import update_workflow
+from senaite.core.catalog import SETUP_CATALOG
 from senaite.core.workflow import ANALYSIS_WORKFLOW
 from zope.component import getUtility
 
@@ -102,6 +103,9 @@ def setup_handler(context):
 
     # setup workflows
     setup_workflows(portal)
+
+    # Revoke edit permissions for ast setup objects
+    revoke_edition_permissions(portal)
 
     logger.info("{} setup handler [DONE]".format(PRODUCT_NAME.upper()))
 
@@ -277,6 +281,33 @@ def remove_behaviors(portal):
         fti.behaviors = tuple(orig_behaviors)
 
     logger.info("Removing Behaviors [DONE]")
+
+
+def revoke_edition_permissions(portal):
+    """Revoke the 'Modify portal content' permission to 'ast' services
+    """
+    logger.info("Revoking edition permissions to AST setup objects ...")
+
+    def revoke_permission(obj):
+        obj = api.get_object(obj)
+        roles = security.get_valid_roles_for(obj)
+        security.revoke_permission_for(obj, ModifyPortalContent, roles)
+        obj.reindexObject()
+
+    # analysis services
+    query = {
+        "portal_type": "AnalysisService",
+        "point_of_capture": AST_POINT_OF_CAPTURE
+    }
+    brains = api.search(query, SETUP_CATALOG)
+    map(revoke_permission, brains)
+
+    # calculation
+    query = {"portal_type": "Calculation", "title": AST_CALCULATION_TITLE}
+    brains = api.search(query, SETUP_CATALOG)
+    map(revoke_permission, brains)
+
+    logger.info("Revoking edition permissions to AST setup objects [DONE]")
 
 
 def search_by_title(container, title):

@@ -4,6 +4,7 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #36 Fix user can edit ast built-in services after upgrades
 - #35 Compatibility with core#2521 - AT2DX ARTemplate/SampleTemplate
 - #34 Add transition "Reject antibiotics"
 - #33 Display the Antibiotic Sensitivity section only when necessary

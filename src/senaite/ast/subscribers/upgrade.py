@@ -23,6 +23,7 @@ from bika.lims.api import get_portal
 from senaite.ast import is_installed
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
+from senaite.ast.setuphandlers import revoke_edition_permissions
 from senaite.ast.setuphandlers import setup_behaviors
 from senaite.ast.setuphandlers import setup_navigation_types
 from senaite.ast.setuphandlers import setup_workflows
@@ -51,5 +52,8 @@ def afterUpgradeStepHandler(event):
 
     # Setup workflows
     setup_workflows(portal)
+
+    # Revoke edit permissions for ast setup objects
+    revoke_edition_permissions(portal)
 
     logger.info("Run {}.afterUpgradeStepHandler [DONE]".format(PRODUCT_NAME))

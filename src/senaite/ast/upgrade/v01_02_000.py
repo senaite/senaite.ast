@@ -22,6 +22,7 @@ from bika.lims import api
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast.config import AST_POINT_OF_CAPTURE
+from senaite.ast.setuphandlers import revoke_edition_permissions
 from senaite.ast.setuphandlers import setup_workflows
 from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.upgrade import upgradestep
@@ -85,3 +86,8 @@ def update_role_mappings_for(object_or_brain):
         wf = tool.getWorkflowById(wf_id)
         wf.updateRoleMappingsFor(obj)
         obj.reindexObject(idxs=["allowedRolesAndUsers"])
+
+
+def revoke_setup_permissions(tool):
+    portal = tool.aq_inner.aq_parent
+    revoke_edition_permissions(portal)
