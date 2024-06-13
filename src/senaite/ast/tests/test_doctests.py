@@ -25,7 +25,7 @@ from pkg_resources import resource_listdir
 
 import unittest2 as unittest
 from senaite.ast import PRODUCT_NAME
-from senaite.ast.tests.base import BaseTestCase
+from senaite.ast.tests.base import SimpleTestCase
 from Testing import ZopeTestCase as ztc
 
 # Option flags for doctests
@@ -38,7 +38,7 @@ def test_suite():
         suite.addTests([
             ztc.ZopeDocFileSuite(
                 doctestfile,
-                test_class=BaseTestCase,
+                test_class=SimpleTestCase,
                 optionflags=flags
             )
         ])
