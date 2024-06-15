@@ -45,7 +45,7 @@ We need to create some basic objects for the test:
     >>> sampletype = api.create(setup.bika_sampletypes, "SampleType", title="Blood", Prefix="B")
     >>> labcontact = api.create(setup.bika_labcontacts, "LabContact", Firstname="Lab", Lastname="Manager")
     >>> department = api.create(portal.setup.departments, "Department", title="Microbiology", Manager=labcontact)
-    >>> category = api.create(setup.bika_analysiscategories, "AnalysisCategory", title="Microbiology", Department=department)
+    >>> category = api.create(portal.setup.analysiscategories, "AnalysisCategory", title="Microbiology", Department=department)
     >>> g = api.create(setup.bika_analysisservices, "AnalysisService", title="GRAM Test", Keyword="G", Price="15", Category=category.UID(), Accredited=True)
 
 
