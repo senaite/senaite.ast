@@ -153,9 +153,10 @@ def setup_ast_category(portal):
     """
     name = SERVICE_CATEGORY
     logger.info("Setup category '{}' ...".format(name))
-    folder = api.get_setup().bika_analysiscategories
-    exists = filter(lambda c: api.get_title(c) == name, folder.objectValues())
-    if exists:
+    setup = api.get_senaite_setup()
+    folder = setup.analysiscategories
+    categories = search_by_title(folder, name)
+    if categories:
         logger.info("Category '{}' exists already [SKIP]".format(name))
         return
 
@@ -199,14 +200,14 @@ def setup_ast_services(portal, update_existing=True):
     selective reporting
     """
     logger.info("Setup AST services ...")
+
+    # Get the category to apply to all AST services
+    cats_folder = api.get_senaite_setup().analysiscategories
+    category = search_by_title(cats_folder, SERVICE_CATEGORY)[0]
+
     setup = api.get_setup()
     for key, settings in SERVICES_SETTINGS.items():
         logger.info("Setup template service '{}' ...".format(key))
-
-        # Get the category
-        cat_name = SERVICE_CATEGORY
-        categories = setup.bika_analysiscategories.objectValues()
-        category = filter(lambda c: api.get_title(c) == cat_name, categories)[0]
 
         title = settings["title"]
         if "{}" in title:

@@ -4,6 +4,8 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #37 Compatibility with core#2567 (AnalysisCategory to DX)
+- #37 Compatibility with core#2471 (Department to DX)
 - #36 Fix user can edit ast built-in services after upgrades
 - #35 Compatibility with core#2521 - AT2DX ARTemplate/SampleTemplate
 - #34 Add transition "Reject antibiotics"

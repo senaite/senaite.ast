@@ -4,8 +4,8 @@ Antibiotic Sensitivity Testing (AST) for SENAITE
 .. image:: https://img.shields.io/pypi/v/senaite.ast.svg?style=flat-square
     :target: https://pypi.python.org/pypi/senaite.ast
 
-.. image:: https://img.shields.io/travis/com/senaite/senaite.ast/master.svg?style=flat-square
-    :target: https://app.travis-ci.com/github/senaite/senaite.ast
+.. image:: https://img.shields.io/github/actions/workflow/status/senaite/senaite.ast/build-and-test.yml?branch=2.x
+   :target: https://github.com/senaite/senaite.ast/actions/workflows/build-and-test.yml?query=branch:2.x
 
 .. image:: https://readthedocs.org/projects/pip/badge/
     :target: https://senaiteast.readthedocs.org
