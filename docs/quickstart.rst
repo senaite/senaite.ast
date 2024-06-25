@@ -175,7 +175,30 @@ From this view, user can choose the tuples Microorganism-Antibiotic to be
 reported in results. Once the button "Save" is pressed, the value for analyses
 with name "Report" for all microorganisms are updated accordingly.
 
-.. Links
+
+.. _RejectAntibiotics:
+
+Flag antibiotics as Not Tested
+------------------------------
+
+Quite often, laboratory manager will want to report "Not tested" for some
+antibiotics and microorganisms, while keeping them in the AST panel. This can
+be easily achieved with the transition "Reject antibiotics". This transition is
+available for analyses that are part of a sensitivity testing panel. Once
+clicked, a modal view is displayed, where user can choose the antibiotics to be
+flagged as "Not Tested":
+
+.. image:: static/reject_antibiotics.png
+  :width: 640
+  :alt: Reject antibiotics
+
+Once done, "NT" is displayed as a result for the selected antibiotics, both in
+results entry and in results report:
+
+.. image:: static/not_tested.png
+  :width: 640
+  :alt: Antibiotics flagged as Not Tested
+
 
 .. _SENAITE LIMS: https://www.senaite.com
 .. _senaite.ast: https://pypi.python.org/pypi/senaite.ast

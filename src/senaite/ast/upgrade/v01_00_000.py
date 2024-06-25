@@ -33,6 +33,7 @@ from senaite.ast.setuphandlers import setup_behaviors
 from senaite.ast.setuphandlers import setup_navigation_types
 from senaite.ast.utils import get_result_options
 from senaite.core.catalog import SETUP_CATALOG
+from senaite.core.interfaces import ISampleTemplate
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
 
@@ -146,15 +147,11 @@ def remove_ast_from_profiles(portal):
     """
     logger.info("Removing AST-like analyses from profiles ...")
     ast_uids = get_ast_services_uids(portal)
-    query = {
-        "portal_type": "AnalysisProfile"
-    }
-    brains = api.search(query, SETUP_CATALOG)
-    for brain in brains:
-        obj = api.get_object(brain)
-        services = obj.getRawService() or []
-        services = filter(lambda s: s not in ast_uids, services)
-        obj.setService(services)
+    profiles = portal.setup.analysisprofiles.objectValues()
+    for obj in profiles:
+        services = obj.getRawServices() or []
+        services = filter(lambda s: s.get("uid") not in ast_uids, services)
+        obj.setServices(services)
     logger.info("Removing AST-like analyses from profiles [DONE]")
 
 
@@ -164,11 +161,18 @@ def remove_ast_from_templates(portal):
     logger.info("Removing AST-like analyses from templates ...")
     ast_uids = get_ast_services_uids(portal)
     query = {
-        "portal_type": "ARTemplate"
+        "portal_type": ["ARTemplate", "SampleTemplate"]
     }
     brains = api.search(query, SETUP_CATALOG)
     for brain in brains:
         obj = api.get_object(brain)
+        if ISampleTemplate.providedBy(obj):
+            ans = obj.getRawServices()
+            ans = filter(lambda an: an.get("uid") not in ast_uids, ans)
+            obj.setServices(list(ans))
+            continue
+
+        # Old AT object (https://github.com/senaite/senaite.core/pull/2521)
         ans = obj.getAnalyses()
         ans = filter(lambda an: an.get("service_uid") not in ast_uids, ans)
         obj.setAnalyses(ans)

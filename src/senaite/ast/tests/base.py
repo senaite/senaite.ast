@@ -18,31 +18,45 @@
 # Copyright 2020-2024 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from plone.app.testing import TEST_USER_ID
-from plone.app.testing import setRoles
-from plone.app.testing.bbb_at import PloneTestCase
-from plone.protect.authenticator import createToken
-from senaite.ast.tests.layers import BASE_TESTING
+import transaction
+from plone.app.testing import applyProfile
+from plone.app.testing import FunctionalTesting
+from plone.testing import zope
+from senaite.core.tests.base import BaseTestCase
+from senaite.core.tests.layers import BaseLayer
 
 
-class BaseTestCase(PloneTestCase):
-    """Use for test cases which do not rely on the demo data
+class SimpleTestLayer(BaseLayer):
+
+    def setUpZope(self, app, configurationContext):
+        super(SimpleTestLayer, self).setUpZope(app, configurationContext)
+
+        # Load ZCML
+        import senaite.abx
+        import senaite.microorganism
+        self.loadZCML(package=senaite.abx)
+        self.loadZCML(package=senaite.microorganism)
+        self.loadZCML(package=senaite.ast)
+
+        # Install product and call its initialize() function
+        zope.installProduct(app, "senaite.abx")
+        zope.installProduct(app, "senaite.microorganism")
+        zope.installProduct(app, "senaite.ast")
+
+    def setUpPloneSite(self, portal):
+        super(SimpleTestLayer, self).setUpPloneSite(portal)
+        applyProfile(portal, "senaite.ast:default")
+        transaction.commit()
+
+
+SIMPLE_TEST_LAYER_FIXTURE = SimpleTestLayer()
+SIMPLE_TESTING = FunctionalTesting(
+    bases=(SIMPLE_TEST_LAYER_FIXTURE, ),
+    name="senaite.ast:SimpleTesting"
+)
+
+
+class SimpleTestCase(BaseTestCase):
+    """Use for test cases which do not rely on demo data
     """
-    layer = BASE_TESTING
-
-    def setUp(self):
-        super(BaseTestCase, self).setUp()
-        # Fixing CSRF protection
-        # https://github.com/plone/plone.protect/#fixing-csrf-protection-failures-in-tests
-        self.request = self.layer["request"]
-        # Disable plone.protect for these tests
-        self.request.form["_authenticator"] = createToken()
-        # Eventuelly you find this also useful
-        self.request.environ["REQUEST_METHOD"] = "POST"
-
-        setRoles(self.portal, TEST_USER_ID, ["LabManager", "Manager"])
-
-        # Default skin is set to "Sunburst Theme"!
-        # => This causes an `AttributeError` when we want to access
-        #    e.g. 'guard_handler' FSPythonScript
-        self.portal.changeSkin("Plone Default")
+    layer = SIMPLE_TESTING

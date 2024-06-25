@@ -4,6 +4,14 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #37 Compatibility with core#2567 (AnalysisCategory to DX)
+- #37 Compatibility with core#2471 (Department to DX)
+- #36 Fix user can edit ast built-in services after upgrades
+- #35 Compatibility with core#2521 - AT2DX ARTemplate/SampleTemplate
+- #34 Add transition "Reject antibiotics"
+- #33 Display the Antibiotic Sensitivity section only when necessary
+- #32 Compatibility with senaite.core#2492 (AnalysisProfile to DX)
+
 
 1.1.0 (2024-01-04)
 ------------------
@@ -16,6 +24,7 @@ Changelog
 - #22 Hide Unit and display Submitter before Captured in AST entry
 - #21 Fix AST entry is empty when analyses categorization for sample is checked
 - #20 Compatibility with senaite.app.listing#87
+
 
 1.0.0 (2022-06-18)
 ------------------

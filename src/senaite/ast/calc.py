@@ -97,7 +97,7 @@ def calc_sensitivity_categories(analysis):
     # The result for each antibiotic is stored as an interim field
     breakpoints = breakpoints_analysis.getInterimFields()
     values = target_analysis.getInterimFields()
-    categories = sensitivity.getInterimFields()
+    antibiotics = sensitivity.getInterimFields()
 
     # Get the mapping of Antibiotic -> BreakpointsTable
     breakpoints = dict(map(lambda b: (b['uid'], b['value']), breakpoints))
@@ -108,12 +108,16 @@ def calc_sensitivity_categories(analysis):
     # Get the microorganism this analysis is associated to
     microorganism = get_microorganism(analysis)
 
-    # Update sensitivity categories
-    for category in categories:
+    # Update sensitivity category for each antibiotic
+    for antibiotic in antibiotics:
+        # Skip non-editable antibiotics
+        if not utils.is_interim_editable(antibiotic):
+            continue
+
         # If extrapolated, assume same zone size as representative
-        abx_uid = category.get("primary")
+        abx_uid = antibiotic.get("primary")
         if not api.is_uid(abx_uid):
-            abx_uid = category["uid"]
+            abx_uid = antibiotic["uid"]
 
         # Get the zone size / MIC value
         value = values.get(abx_uid)
@@ -121,7 +125,7 @@ def calc_sensitivity_categories(analysis):
             # No value entered yet or not floatable
             continue
 
-        # Get the selected Breakpoints Table for this category
+        # Get the selected Breakpoints Table for this antibiotic
         breakpoints_uid = breakpoints.get(abx_uid)
 
         # Get the breakpoint for this microorganism and antibiotic
@@ -133,10 +137,10 @@ def calc_sensitivity_categories(analysis):
         cat = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category
-        category.update({"value": cat})
+        antibiotic.update({"value": cat})
 
-    # Assign the updated categories to the sensitivity category analysis
-    sensitivity.setInterimFields(categories)
+    # Assign the antibiotics with the updated sensitivity categories
+    sensitivity.setInterimFields(antibiotics)
 
 
 def calc_disk_dosages(analysis):
@@ -171,12 +175,16 @@ def calc_disk_dosages(analysis):
     breakpoints = dict(map(lambda b: (b['uid'], b['value']), breakpoints))
 
     # Dosages are stored as interim fields
-    disk_dosages = disk_dosages_analysis.getInterimFields()
-    for dosage in disk_dosages:
+    antibiotics = disk_dosages_analysis.getInterimFields()
+    for antibiotic in antibiotics:
+        # Skip non-editable antibiotics
+        if not utils.is_interim_editable(antibiotic):
+            continue
+
         # If extrapolated, assume same zone size as representative
-        abx_uid = dosage.get("primary")
+        abx_uid = antibiotic.get("primary")
         if not api.is_uid(abx_uid):
-            abx_uid = dosage["uid"]
+            abx_uid = antibiotic["uid"]
 
         # Get the selected Breakpoints Table for this category
         breakpoints_uid = breakpoints.get(abx_uid)
@@ -189,10 +197,10 @@ def calc_disk_dosages(analysis):
         # Update the dosage
         breakpoint_dosage = breakpoint.get("disk_content")
         if api.to_float(breakpoint_dosage, default=0) > 0:
-            dosage.update({"value": breakpoint_dosage})
+            antibiotic.update({"value": breakpoint_dosage})
 
     # Assign the inferred disk dosages
-    disk_dosages_analysis.setInterimFields(disk_dosages)
+    disk_dosages_analysis.setInterimFields(antibiotics)
 
 
 def update_extrapolated_antibiotics(analysis):

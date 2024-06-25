@@ -726,6 +726,8 @@ def get_choices(interim):
     :rtype: list
     """
     choices = interim.get("choices", "")
+    if not choices:
+        return []
     choices = map(lambda choice: choice.split(":"), choices.split("|"))
     return map(lambda choice: (choice[0], choice[1]), choices)
 
@@ -740,6 +742,20 @@ def is_interim_empty(interim):
     """
     text = get_interim_text(interim, default=None)
     return not text
+
+
+def is_rejected_interim(interim):
+    """Returns whether the interim represents a rejected antibiotic
+
+    :param interim: interim field
+    :type interim: dict
+    :returns: True if the value or text representation of this interim is empty
+    :rtype: bool
+    """
+    rejected = interim.get("status_rejected", None)
+    if rejected:
+        return True
+    return False
 
 
 def is_extrapolated_interim(interim):
@@ -802,7 +818,7 @@ def is_interim_editable(interim):
     if is_interim_empty(interim):
         return True
 
-    statuses = ["to_be_verified", "verified"]
+    statuses = ["to_be_verified", "verified", "rejected"]
     for status in statuses:
         status_id = "status_{}".format(status)
         if interim.get(status_id, False):
