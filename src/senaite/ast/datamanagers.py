@@ -27,7 +27,7 @@ from senaite.ast.interfaces import IASTAnalysis
 from senaite.ast.utils import get_ast_siblings
 from senaite.ast.utils import is_ast_analysis
 from senaite.ast.utils import is_interim_editable
-from senaite.core.datamanagers.analysis import RoutineAnalysisDataManager
+from senaite.core.datamanagers import RoutineAnalysisDataManager
 from zope.component import adapter
 
 
