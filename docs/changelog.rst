@@ -4,6 +4,7 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #39 Compatibility with core#2584 (SampleType to DX)
 - #38 Compatibility with core#2595 (Move ARAnalysesField logic to data manager)
 - #37 Compatibility with core#2567 (AnalysisCategory to DX)
 - #37 Compatibility with core#2471 (Department to DX)
