@@ -114,7 +114,7 @@ SERVICES_SETTINGS = {
               u"(Susceptible, increased exposure) and R (Resistant)"),
         "choices": "0:|1:S|2:I|3:R",
         "sort_key": 530,
-        "result_type": "string",
+        "result_type": "select",
         "point_of_capture": AST_POINT_OF_CAPTURE,
         "calculation": AST_CALCULATION_TITLE,
     },
@@ -129,7 +129,7 @@ SERVICES_SETTINGS = {
         # XXX This is a choices field, but choices are populated on creation
         "choices": "",
         "sort_key": 505,
-        "result_type": "string",
+        "result_type": "select",
         "point_of_capture": AST_POINT_OF_CAPTURE,
         "calculation": AST_CALCULATION_TITLE,
     },
@@ -187,7 +187,7 @@ SERVICES_SETTINGS = {
         # XXX senaite.app.listing has no support for boolean types (interim)
         "type": "boolean",
         "sort_key": 540,
-        "result_type": "string",
+        "result_type": "select",
         "point_of_capture": AST_POINT_OF_CAPTURE,
         "calculation": AST_CALCULATION_TITLE,
     },
