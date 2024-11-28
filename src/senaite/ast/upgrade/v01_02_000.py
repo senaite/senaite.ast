@@ -22,9 +22,11 @@ from bika.lims import api
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
 from senaite.ast.config import AST_POINT_OF_CAPTURE
+from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.setuphandlers import revoke_edition_permissions
 from senaite.ast.setuphandlers import setup_workflows
 from senaite.core.catalog import ANALYSIS_CATALOG
+from senaite.core.catalog import SETUP_CATALOG
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
 
@@ -91,3 +93,35 @@ def update_role_mappings_for(object_or_brain):
 def revoke_setup_permissions(tool):
     portal = tool.aq_inner.aq_parent
     revoke_edition_permissions(portal)
+
+
+def restore_ast_result_type(tool):
+    """Setup analysis/service result types
+    """
+    logger.info("Restore ResultType from AST-like services ...")
+    # analysis services
+    query = {
+        "portal_type": "AnalysisService",
+        "point_of_capture": AST_POINT_OF_CAPTURE
+    }
+    brains = api.search(query, SETUP_CATALOG)
+    total = len(brains)
+    for num, brain in enumerate(brains):
+
+        if num and num % 1000 == 0:
+            logger.info("Setup result types %s/%s" % (num, total))
+
+        obj = api.get_object(brain)
+        if not obj:
+            continue
+
+        keyword = obj.getKeyword()
+        settings = SERVICES_SETTINGS.get(keyword)
+        if not settings:
+            continue
+
+        result_type = settings.get("result_type")
+        obj.setResultType(result_type)
+        obj._p_deactivate()
+
+    logger.info("Restore ResultType from AST-like services [DONE]")
