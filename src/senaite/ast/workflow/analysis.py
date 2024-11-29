@@ -46,7 +46,7 @@ def after_initialize(analysis):
     options = zip(range(len(names)), names)
     options = map(lambda m: {"ResultValue": m[0], "ResultText": m[1]}, options)
     analysis.setResultOptions(options)
-    analysis.setResultOptionsType("multiselect")
+    analysis.setResultType("multiselect")
     analysis.reindexObject()
 
 
