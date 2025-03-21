@@ -1,0 +1,14 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:monkey="http://namespaces.plone.org/monkey"
+    i18n_domain="senaite.ast">
+
+  <monkey:patch
+      description="Patch `z3c.form.converter.NumberDataConverter` to prevent
+                   the error 'The entered value is not a valid decimal literal`
+                   for small declimal values like '0.0625'"
+      class="z3c.form.converter.NumberDataConverter"
+      original="toFieldValue"
+      replacement=".converter.toFieldValue" />
+
+</configure>

@@ -4,6 +4,7 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #42 Fix cannot enter small decimals in breakpoint table
 - #40 Compatibility with core#2537 (Support multi-text on result entry)
 - #39 Compatibility with core#2584 (SampleType to DX)
 - #38 Compatibility with core#2595 (Move ARAnalysesField logic to data manager)
