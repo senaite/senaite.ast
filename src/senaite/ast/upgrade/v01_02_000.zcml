@@ -3,6 +3,14 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
 
   <genericsetup:upgradeStep
+      title="SENAITE AST 1.2.0: Restore ResultType for AST-like services"
+      description="Restore ResultType for AST-like services"
+      source="1202"
+      destination="1203"
+      handler="senaite.ast.upgrade.v01_02_000.restore_ast_result_type"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="SENAITE AST 1.2.0: Revoke edit permissions for AST setup objects"
       description="Revoke edit permissions for AST setup objects"
       source="1201"
