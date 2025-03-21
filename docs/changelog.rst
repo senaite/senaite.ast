@@ -4,6 +4,7 @@ Changelog
 1.2.0 (unreleased)
 ------------------
 
+- #41 Fix No registry record found for 'sampleview_collapse_ast_analysis_table'
 - #40 Compatibility with core#2537 (Support multi-text on result entry)
 - #39 Compatibility with core#2584 (SampleType to DX)
 - #38 Compatibility with core#2595 (Move ARAnalysesField logic to data manager)
