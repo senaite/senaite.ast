@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2025-04-04 11:57+0000\n"
+"POT-Creation-Date: 2025-04-04 12:25+0000\n"
 "PO-Revision-Date: 2022-06-18 11:17+0000\n"
 "Last-Translator: Ramon Bartl <rb@ridingbytes.com>, 2024\n"
 "Language-Team: German (https://app.transifex.com/senaite/teams/139398/de/)\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Language-Code: en\n"
 "Language-Name: English\n"
 "Preferred-Encodings: utf-8 latin1\n"
-"Domain: senaite.ast\n"
+"Domain: DOMAIN\n"
 "Language: de\n"
 
 #: senaite/ast/browser/content/templates/breakpointstables_duplicate.pt:34
