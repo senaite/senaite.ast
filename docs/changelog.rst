@@ -1,7 +1,7 @@
 Changelog
 =========
 
-1.2.0 (unreleased)
+1.2.0 (2025-04-04)
 ------------------
 
 - #42 Fix cannot enter small decimals in breakpoint table

@@ -72,13 +72,9 @@ DOMAIN=senaite.ast
 echo "Processing Domain $DOMAIN"
 # Flush the english .po files, other .po files won't be synced otherwise
 echo -n "" > $LOCALES/en/LC_MESSAGES/$DOMAIN.po
-# Re-scan the source code for new strings and create a temporary $DOMAIN-tmp.pot
-$I18N rebuild-pot --pot $LOCALES/$DOMAIN-tmp.pot --exclude "$EXCLUDE" --create $DOMAIN $SRC
-# Merge the manual translations of $DOMAIN-manual.pot into the temporary $DOMAIN-tmp.pot
-$I18N merge --pot $LOCALES/$DOMAIN-tmp.pot --merge $LOCALES/$DOMAIN-manual.pot
-# Overwrite the existing $DOMAIN.pot
-mv $LOCALES/$DOMAIN-tmp.pot $LOCALES/$DOMAIN.pot
-# Synchronize all .po files with the new $DOMAIN.pot
+# Scan the source code for new strings and create a .pot file
+$I18N rebuild-pot --pot $LOCALES/$DOMAIN.pot --exclude "build" --create $DOMAIN $SRC
+# Synchronize all .po files with the new .pot file
 $I18N sync --pot $LOCALES/$DOMAIN.pot $LOCALES/*/LC_MESSAGES/$DOMAIN.po
 echo "Processing Domain $DOMAIN [DONE]"
 
