@@ -37,7 +37,6 @@ profile = "profile-{0}:default".format(PRODUCT_NAME)
 @upgradestep(PRODUCT_NAME, version)
 def upgrade(tool):
     portal = tool.aq_inner.aq_parent
-    setup = portal.portal_setup
     ut = UpgradeUtils(portal)
     ver_from = ut.getInstalledVersion(PRODUCT_NAME)
 

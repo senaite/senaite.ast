@@ -283,7 +283,7 @@ def update_extrapolated_reporting(analysis):
             "result_type": "multichoice",
         })
         new_interim_fields.append(interim)
-    
+
     # Re-assign the interim fields
     analysis.setInterimFields(new_interim_fields)
 
@@ -683,7 +683,6 @@ def get_sensitivity_category(value, breakpoint, method, default=_marker):
         raise ValueError("Method not supported: {}".format(method))
 
 
-
 def get_sensitivity_category_value(text, default=_marker):
     """Returns the choice value defined in the Sensitivity Category service for
     the option text passed-in
@@ -792,12 +791,9 @@ def get_interim_text(interim, default=_marker):
         # Value is the text
         return value
 
-    try:
-        val = json.loads(value)
-        if isinstance(val, (list, tuple, set)):
-            value = val
-    except:
-        pass
+    val = api.parse_json(value)
+    if isinstance(val, (list, tuple, set)):
+        value = val
 
     if not isinstance(value, (list, tuple, set)):
         value = [value]

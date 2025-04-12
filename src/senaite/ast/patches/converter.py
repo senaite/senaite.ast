@@ -23,6 +23,7 @@ from z3c.form.converter import FormatterValidationError
 
 DECIMAL_PATTERN = u'#,##0.######;-#,##0.######'
 
+
 def toFieldValue(self, value):
     """See interfaces.IDataConverter"""
     if value == u'':

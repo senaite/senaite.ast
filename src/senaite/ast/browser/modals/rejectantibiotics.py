@@ -23,7 +23,6 @@ from datetime import datetime
 
 from bika.lims import api
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from senaite.ast import logger
 from senaite.ast import utils
 from senaite.ast.calc import update_sensitivity_result
 from senaite.ast.config import NOT_TESTED
