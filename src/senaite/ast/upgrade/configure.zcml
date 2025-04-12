@@ -1,7 +1,9 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
-    i18n_domain="senaite.ast">
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
+
+  <!-- 1.3.0 -->
+  <include file="v01_03_000.zcml"/>
 
   <!-- 1.2.0 -->
   <include file="v01_02_000.zcml"/>
