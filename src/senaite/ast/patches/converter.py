@@ -18,12 +18,16 @@
 # Copyright 2020-2025 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
-from plone.dexterity.content import Container
-from senaite.ast.interfaces import IASTPanelFolder
-from zope.interface import implementer
+import zope.i18n.format
+from z3c.form.converter import FormatterValidationError
 
+DECIMAL_PATTERN = u'#,##0.######;-#,##0.######'
 
-@implementer(IASTPanelFolder)
-class ASTPanelFolder(Container):
-    """AST Panel folder
-    """
+def toFieldValue(self, value):
+    """See interfaces.IDataConverter"""
+    if value == u'':
+        return self.field.missing_value
+    try:
+        return self.formatter.parse(value, pattern=DECIMAL_PATTERN)
+    except zope.i18n.format.NumberParseError:
+        raise FormatterValidationError(self.errorMessage, value)

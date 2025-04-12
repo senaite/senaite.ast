@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 BASE=${buildout:directory}
 I18N=$BASE/bin/i18ndude
-SRC=${buildout:directory}/src/senaite/ast
+SRC=$BASE/src/senaite/ast
 LOCALES=$SRC/locales
-DOMAIN=senaite.ast
+EXCLUDE="build *.html"
 
 function die() {
     echo "ERROR: $1"
@@ -57,19 +57,24 @@ find $LOCALES -name "*.mo" -delete
 # Pull Transifex
 tx_pull
 
+# Remove lines from po files starting with '#.' (Default key)
+# Files pulled from transifex always come with a wrapped value for "Default".
+# However, i18ndude does not wrap the value for "Default" (even using --wrap
+# parameter), which originates stale lines after merge.
+for po_file in $(find $LOCALES -name "*.po")
+do
+    grep -v "#\. " $po_file > $po_file.tmp
+    mv $po_file.tmp $po_file
+done
+
+# Generate the Domain
+DOMAIN=senaite.ast
 echo "Processing Domain $DOMAIN"
-# Flush the english po files
-# If we don't do this, new $DOMAIN-manual.pot translations won't be synced.
+# Flush the english .po files, other .po files won't be synced otherwise
 echo -n "" > $LOCALES/en/LC_MESSAGES/$DOMAIN.po
-# Re-scan the source code for new strings and create a temporary $DOMAIN-tmp.pot
-$I18N rebuild-pot --pot $LOCALES/$DOMAIN-tmp.pot --exclude "build" --create $DOMAIN $SRC
-# Merge the manual translations of $DOMAIN-manual.pot into the temporary $DOMAIN-tmp.pot
-$I18N merge --pot $LOCALES/$DOMAIN-tmp.pot --merge $LOCALES/$DOMAIN-manual.pot
-# Merge the content translations of $DOMAIN-manual.pot into the temporary $DOMAIN-tmp.pot
-# $I18N merge --pot $LOCALES/$DOMAIN-tmp.pot --merge $LOCALES/$DOMAIN-content.pot
-# Overwrite the existing $DOMAIN.pot
-mv $LOCALES/$DOMAIN-tmp.pot $LOCALES/$DOMAIN.pot
-# Synchronize all .po files with the new $DOMAIN.pot
+# Scan the source code for new strings and create a .pot file
+$I18N rebuild-pot --pot $LOCALES/$DOMAIN.pot --exclude "build" --create $DOMAIN $SRC
+# Synchronize all .po files with the new .pot file
 $I18N sync --pot $LOCALES/$DOMAIN.pot $LOCALES/*/LC_MESSAGES/$DOMAIN.po
 echo "Processing Domain $DOMAIN [DONE]"
 
