@@ -4,6 +4,8 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #41 Fix No registry record found for 'sampleview_collapse_ast_analysis_table'
+
 
 1.2.0 (2025-04-04)
 ------------------
