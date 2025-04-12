@@ -59,7 +59,9 @@ class AddPanelView(BrowserView):
 
             # Create/Update the breakpoints table analysis
             if panel.breakpoints_table:
-                self.add_breakpoints_analysis(panel, microorganism, antibiotics)
+                self.add_breakpoints_analysis(
+                    panel, microorganism, antibiotics
+                )
 
             if panel.method == METHOD_DIFFUSION_DISK_ID:
                 # Create/Update the disk content (potency) analysis
@@ -121,7 +123,8 @@ class AddPanelView(BrowserView):
 
         # Create a new analysis
         sample = self.context
-        return utils.create_ast_analysis(sample, keyword, microorganism, antibiotics)
+        return utils.create_ast_analysis(sample, keyword, microorganism,
+                                         antibiotics)
 
     def add_breakpoints_analysis(self, panel, microorganism, antibiotics):
         """Updates or creates an analysis for the selection of the clinical

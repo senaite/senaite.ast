@@ -70,8 +70,8 @@ class IASTPanelBehavior(model.Schema):
         description=_(
             u"Default clinical breakpoints table to use for this panel. If "
             u"set, the system will automatically calculate the susceptibility "
-            u"testing category as soon as the zone diameter in mm is submitted "
-            u"by the user."
+            u"testing category as soon as the zone diameter in mm is "
+            u"submitted by the user."
         ),
         allowed_types=("BreakpointsTable", ),
         multi_valued=False,
@@ -120,9 +120,9 @@ class IASTPanelBehavior(model.Schema):
     disk_content = schema.Bool(
         title=_(u"Include disk content in μg"),
         description=_(
-            u"When enabled, an additional row for the introduction of the disk "
-            u"content (potency) in μg is displayed in the results entry view, "
-            u"above resistance call options"
+            u"When enabled, an additional row for the introduction of the "
+            u"disk content (potency) in μg is displayed in the results entry "
+            u"view, above resistance call options"
         ),
         required=False,
         default=False,
@@ -164,8 +164,8 @@ class IASTPanelBehavior(model.Schema):
         title=_(u"Selective reporting"),
         description=_(
             u"When enabled, an additional row to indicate whether the "
-            u"resistance result for each microorganism-antibiotic tuple has to "
-            u"be reported in results report or not"
+            u"resistance result for each microorganism-antibiotic tuple has "
+            u"to be reported in results report or not"
         ),
         required=False,
         default=False,
@@ -210,7 +210,8 @@ class ASTPanel(object):
         breakpoints_table = getattr(self.context, "breakpoints_table", None)
         return copy(breakpoints_table)
 
-    breakpoints_table = property(_get_breakpoints_table, _set_breakpoints_table)
+    breakpoints_table = property(_get_breakpoints_table,
+                                 _set_breakpoints_table)
 
     def _set_disk_content(self, value):
         self.context.disk_content = value
@@ -234,10 +235,11 @@ class ASTPanel(object):
         self.context.selective_reporting = value
 
     def _get_selective_reporting(self):
-        selective_reporting = getattr(self.context, "selective_reporting", None)
+        selective_reporting = getattr(self.context, "selective_reporting")
         return selective_reporting
 
-    selective_reporting = property(_get_selective_reporting, _set_selective_reporting)
+    selective_reporting = property(_get_selective_reporting,
+                                   _set_selective_reporting)
 
     def _set_method(self, value):
         self.context.method = value

@@ -39,7 +39,6 @@ version = "1.1.0"
 @upgradestep(PRODUCT_NAME, version)
 def upgrade(tool):
     portal = tool.aq_inner.aq_parent
-    setup = portal.portal_setup
     ut = UpgradeUtils(portal)
     ver_from = ut.getInstalledVersion(PRODUCT_NAME)
 

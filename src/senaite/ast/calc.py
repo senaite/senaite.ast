@@ -253,9 +253,9 @@ def update_sensitivity_result(analysis):
     """Updates the sensitivity "final" result of the sensitivity category
     analysis based on the values set to the AST siblings.
 
-    The sensitivity category results for antibiotics of this analysis are stored
-    as interim values, while the "final" result of the analysis is a list of
-    result options, that is only used for reporting purposes.
+    The sensitivity category results for antibiotics of this analysis are
+    stored as interim values, while the "final" result of the analysis is a
+    list of result options, that is only used for reporting purposes.
     """
     # Get the analysis (keyword: analysis) from same sample and microorganism
     analyses = utils.get_ast_group(analysis)
@@ -315,10 +315,7 @@ def get_reportable_antibiotics(analysis):
     extrapolated = analyses.get(REPORT_EXTRAPOLATED_KEY)
     if extrapolated:
         for interim in extrapolated.getInterimFields():
-            try:
-                selected = json.loads(interim.get("value", "[]"))
-            except:
-                selected = []
+            selected = api.parse_json(interim.get("value"), default=[])
             reportable[interim.get("uid")] = selected
 
     def is_reportable(interim):
