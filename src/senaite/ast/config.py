@@ -20,7 +20,7 @@
 
 from senaite.ast import messageFactory as _
 
-# Value for PointOfCapture field for AST-like analyses. This is used to identify
+# Value for PointOfCapture field for AST-like analyses. Used to identify
 # AST-like analyses and also to not display them in the classic results entry
 # view, but in an AST-specific section for results introduction in Sample view
 AST_POINT_OF_CAPTURE = "ast"

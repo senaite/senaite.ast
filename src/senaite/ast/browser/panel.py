@@ -209,7 +209,8 @@ class ASTPanelView(ListingView):
             if not isinstance(disabled, (list, tuple)):
                 item["disabled"] = []
 
-            if has_analysis and not self.is_editable(microorganism, antibiotic):
+            if has_analysis and not self.is_editable(microorganism,
+                                                     antibiotic):
                 item.setdefault("disabled", []).append(uid)
 
     def is_editable(self, microorganism, antibiotic):
