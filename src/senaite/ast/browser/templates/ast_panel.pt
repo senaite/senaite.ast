@@ -22,9 +22,7 @@
             action="ast_panel"
             method="POST">
 
-        <div id="panel_customizer">
-          <div tal:content="structure view/contents_table"></div>
-        </div>
+        <div tal:content="structure view/contents_table"></div>
 
         <div tal:condition="python: view.can_add_analyses()">
             <!-- Hidden Fields -->

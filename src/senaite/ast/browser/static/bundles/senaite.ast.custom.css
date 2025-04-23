@@ -1,4 +1,5 @@
-#panel_customizer table th {
+form[name="ast_panel"] table th,
+#table-ast-analyses table th {
     height: 140px;
     width: 50px;
     position: relative;
@@ -6,11 +7,13 @@
     vertical-align: bottom;
 }
 
-#panel_customizer table th:not(:first-child) {
+form[name="ast_panel"] table th:not(:first-child),
+#table-ast-analyses table th:nth-child(n+4):not(:nth-last-child(-n+3)) {
     overflow: visible; /* make sure rotated content isn't clipped */
 }
 
-#panel_customizer table th:not(:first-child):hover {
+form[name="ast_panel"] table th:not(:first-child):hover,
+#table-ast-analyses table th:nth-child(n+4):not(:nth-last-child(-n+3)):hover {
     background-color: transparent !important;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
@@ -22,7 +25,8 @@ transform: translateX(25%) rotate(310deg);
 or 
  left: 35px;
 */
-#panel_customizer table th:not(:first-child) span {
+form[name="ast_panel"] table th:not(:first-child) span,
+#table-ast-analyses table th:nth-child(n+4):not(:nth-last-child(-n+3)) span {
     display: inline-block;
     transform: rotate(310deg); /* translate(30px, 0px) or translateX(25%) */ 
     transform-origin: bottom left;
@@ -33,4 +37,9 @@ or
     border-bottom: 1px solid gray;
     padding-bottom: 2px; /* optional spacing between text and border */
     width: 140px; /* match visual slant length */
+}
+
+
+#table-ast-analyses table th:nth-child(n+4):not(:nth-last-child(-n+3)) span {
+    transform: translateX(20%) rotate(310deg);
 }
