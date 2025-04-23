@@ -17,13 +17,14 @@
     </metal:title>
 
     <metal:core fill-slot="content-core">
-
       <form class="form"
             name="ast_panel"
             action="ast_panel"
             method="POST">
 
-        <div tal:content="structure view/contents_table"></div>
+        <div id="panel_customizer">
+          <div tal:content="structure view/contents_table"></div>
+        </div>
 
         <div tal:condition="python: view.can_add_analyses()">
             <!-- Hidden Fields -->
