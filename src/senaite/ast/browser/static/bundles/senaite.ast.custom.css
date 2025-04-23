@@ -15,14 +15,21 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+/* to correclly align the text  use
+transform: translate(30px, 0px) rotate(310deg);
+or 
+transform: translateX(25%) rotate(310deg);
+or 
+ left: 35px;
+*/
 #panel_customizer table th:not(:first-child) span {
     display: inline-block;
-    transform: translateX(50%) rotate(310deg); /* translate(0px, 0px) */
+    transform: rotate(310deg); /* translate(30px, 0px) or translateX(25%) */ 
     transform-origin: bottom left;
     white-space: nowrap;
     position: absolute;
     bottom: 0;
-    left: 0;
+    left: 35px; /* 35px to position the text */
     border-bottom: 1px solid gray;
     padding-bottom: 2px; /* optional spacing between text and border */
     width: 140px; /* match visual slant length */
