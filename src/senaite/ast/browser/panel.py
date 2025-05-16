@@ -177,7 +177,7 @@ class ASTPanelView(ListingView):
         for antibiotic in self.get_antibiotics():
             uid = api.get_uid(antibiotic)
             self.columns[uid] = {
-                "title": antibiotic.abbreviation,
+                "title": antibiotic.title,
                 "type": "boolean",
             }
         self.review_states[0]["columns"] = self.columns.keys()
