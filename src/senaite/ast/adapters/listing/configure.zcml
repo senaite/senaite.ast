@@ -61,4 +61,11 @@
     provides="senaite.app.listing.interfaces.IListingViewAdapter"
     factory=".worksheet.AddAnalysesViewAdapter" />
 
+  <!-- Analyses listing adapter -->
+  <subscriber
+    for="bika.lims.browser.analyses.view.AnalysesView
+         bika.lims.interfaces.IAnalysisRequest"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".analyses.AnalysesViewAdapter" />
+
 </configure>
