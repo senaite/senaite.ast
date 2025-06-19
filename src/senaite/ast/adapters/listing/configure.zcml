@@ -1,0 +1,64 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+
+  <!-- AST Panel listing customization form in Sample view. Adds the filter
+   button Identified microorganisms and makes it the default filter -->
+  <subscriber
+    for="senaite.ast.browser.panel.ASTPanelView
+         bika.lims.interfaces.IAnalysisRequest"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".astpanel.ASTPanelViewAdapter" />
+
+  <!-- Antibiotics listing customization -->
+  <subscriber
+    for="senaite.abx.browser.content.antibioticfolder.AntibioticFolderView
+         *"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".antibiotics.AntibioticsListingViewAdapter" />
+
+  <!-- Do not display AST-type services for selection in Analysis Profile
+   AST analyses should never be available for selection in Analyses Profiles,
+   because identified organisms from a sample are not known beforehand. Thus,
+   AST-like analyses are always added manually afterwards, based on the result
+   oif the "Microorganism Identification" analysis -->
+  <subscriber
+    for="senaite.core.browser.widgets.analysisprofileswidget.AnalysisProfilesWidget
+         senaite.core.interfaces.IAnalysisProfile"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".services.NonASTServicesViewAdapter" />
+
+  <!-- Do not display AST-type services for selection in Sample Template -->
+  <subscriber
+    for="senaite.core.browser.widgets.sampletemplate_services_widget.SampleTemplateServicesWidget
+         senaite.core.interfaces.ISampleTemplate"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".services.NonASTServicesViewAdapter" />
+
+  <!-- Do not display AST-type services for selection in Analysis Specs
+   Validity ranges (specifications) do not apply to AST-like tests -->
+  <subscriber
+    for="bika.lims.browser.widgets.analysisspecificationwidget.AnalysisSpecificationView
+         bika.lims.interfaces.IAnalysisSpec"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".services.NonASTServicesViewAdapter" />
+
+  <!-- Do not display AST-type analyses in Sample's Manage analyses view
+   These type of analyses must only be handled through the Customize... option
+   next to the AST Panel selector, above the results entry listing -->
+  <subscriber
+    for="bika.lims.browser.analysisrequest.manage_analyses.AnalysisRequestAnalysesView
+         bika.lims.interfaces.IAnalysisRequest"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".analysisrequest.ManageAnalysesViewAdapter" />
+
+  <!-- Do not display AST-type analyses for selection in Worksheet's Add
+    Analyses view. Default senaite layout of worksheets does not work for the
+    introduction of AST results for multiple Samples at once. Therefore, the
+    submission of AST analyses must be done individually, sample by sample,
+    unless an AST-type worksheet with a suitable layout is added -->
+  <subscriber
+    for="bika.lims.browser.worksheet.views.AddAnalysesView
+         bika.lims.interfaces.IWorksheet"
+    provides="senaite.app.listing.interfaces.IListingViewAdapter"
+    factory=".worksheet.AddAnalysesViewAdapter" />
+
+</configure>
