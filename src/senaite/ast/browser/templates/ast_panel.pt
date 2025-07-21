@@ -17,7 +17,6 @@
     </metal:title>
 
     <metal:core fill-slot="content-core">
-
       <form class="form"
             name="ast_panel"
             action="ast_panel"
