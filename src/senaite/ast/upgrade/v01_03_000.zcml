@@ -3,6 +3,13 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
 
   <genericsetup:upgradeStep
+      title="Setup indexes for breakpoints table"
+      source="1300"
+      destination="1301"
+      handler="senaite.ast.upgrade.v01_03_000.upgrade"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="Upgrade to SENAITE AST 1.3.0"
       source="1203"
       destination="1300"

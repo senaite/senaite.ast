@@ -62,6 +62,10 @@ class BreakpointsTablesView(ListingView):
                 "title": _c("Description"),
                 "index": "Description"
             }),
+            ("Guideline", {
+                "title": _c("Guideline"),
+                "index": "guideline"
+            }),
         ))
 
         copy_transition = {
