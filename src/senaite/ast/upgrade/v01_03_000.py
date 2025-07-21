@@ -39,10 +39,10 @@ def upgrade(tool):
     ut = UpgradeUtils(portal)
     ver_from = ut.getInstalledVersion(PRODUCT_NAME)
 
-    # if ut.isOlderVersion(PRODUCT_NAME, version):
-    #     logger.info("Skipping upgrade of {0}: {1} > {2}".format(
-    #         PRODUCT_NAME, ver_from, version))
-    #     return True
+    if ut.isOlderVersion(PRODUCT_NAME, version):
+        logger.info("Skipping upgrade of {0}: {1} > {2}".format(
+            PRODUCT_NAME, ver_from, version))
+        return True
 
     logger.info("Upgrading {0}: {1} -> {2}".format(PRODUCT_NAME, ver_from,
                                                    version))
