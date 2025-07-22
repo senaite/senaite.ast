@@ -574,6 +574,9 @@ def get_breakpoint(breakpoints_table, microorganism, antibiotic):
     if not break_obj:
         return {}
 
+    # Get the table-level guideline
+    table_guideline = getattr(break_obj, 'guideline', 'EUCAST')
+
     # Find out first if the antibiotic is set
     antibiotic_uid = api.get_uid(antibiotic)
     breakpoints = filter(lambda v: antibiotic_uid == v.get("antibiotic"),
@@ -585,14 +588,20 @@ def get_breakpoint(breakpoints_table, microorganism, antibiotic):
     microorganism_uid = api.get_uid(microorganism)
     for val in breakpoints:
         if val.get("microorganism") == microorganism_uid:
-            return copy.deepcopy(val)
+            breakpoint = copy.deepcopy(val)
+            # Add table-level guideline to the breakpoint
+            breakpoint["guideline"] = table_guideline
+            return breakpoint
 
     # Look for the breakpoint for the category this microorganism belongs to
     microorganism = api.get_object(microorganism)
     category_uid = microorganism.category and microorganism.category[0] or ""
     for val in breakpoints:
         if val.get("microorganism") == category_uid:
-            return copy.deepcopy(val)
+            breakpoint = copy.deepcopy(val)
+            # Add table-level guideline to the breakpoint
+            breakpoint["guideline"] = table_guideline
+            return breakpoint
 
     return {}
 
@@ -622,7 +631,7 @@ def get_sensitivity_category(value, breakpoint, method, default=_marker):
     :type value: string, float, int
     :type breakpoint: dict
     :type method: string or analysis
-    :returns: the standard EUCAST sensitivity category (R, S or I)
+    :returns: the sensitivity category (R, S or I) based on guideline standard
     :rtype: string
     """
     if not breakpoint:
@@ -637,6 +646,9 @@ def get_sensitivity_category(value, breakpoint, method, default=_marker):
             raise ValueError("Zone size is not valid")
         return default
 
+    # Get the guideline (EUCAST or CLSI)
+    guideline = breakpoint.get("guideline", "EUCAST")
+
     def get_breakpoint_value(key):
         val = breakpoint.get(key)
         val = api.to_float(val, default=0)
@@ -644,37 +656,48 @@ def get_sensitivity_category(value, breakpoint, method, default=_marker):
 
     if method == ZONE_SIZE_KEY:
         diameter_r = get_breakpoint_value("diameter_r")
-        if diameter_r and value < diameter_r:
-            # R: resistant
-            return "R"
-
         diameter_s = get_breakpoint_value("diameter_s")
-        if diameter_s and value >= diameter_s:
-            # S: sensible
-            return "S"
 
-        if all([diameter_r, diameter_s]):
-            # I: Susceptible at increased exposure
-            return "I"
+        if guideline == "CLSI":
+            # CLSI boundaries: S >= diameter_s, R <= diameter_r, I in between
+            if diameter_s and value >= diameter_s:
+                return "S"
+            if diameter_r and value <= diameter_r:
+                return "R"
+            if all([diameter_r, diameter_s]):
+                return "I"
+        else:
+            # EUCAST boundaries: S >= diameter_s, R < diameter_r, I in between
+            if diameter_r and value < diameter_r:
+                return "R"
+            if diameter_s and value >= diameter_s:
+                return "S"
+            if all([diameter_r, diameter_s]):
+                return "I"
 
         # No zone size breakpoints set
         return ""
 
     elif method == MIC_KEY:
-
         mic_r = get_breakpoint_value("mic_r")
-        if mic_r and value > mic_r:
-            # R: resistant
-            return "R"
-
         mic_s = get_breakpoint_value("mic_s")
-        if mic_s and value <= mic_s:
-            # S: sensible
-            return "S"
 
-        if all([mic_r, mic_s]):
-            # I: Susceptible at increased exposure
-            return "I"
+        if guideline == "CLSI":
+            # CLSI boundaries: S <= mic_s, R >= mic_r, I in between
+            if mic_s and value <= mic_s:
+                return "S"
+            if mic_r and value >= mic_r:
+                return "R"
+            if all([mic_r, mic_s]):
+                return "I"
+        else:
+            # EUCAST boundaries: S <= mic_s, R > mic_r, I in between
+            if mic_r and value > mic_r:
+                return "R"
+            if mic_s and value <= mic_s:
+                return "S"
+            if all([mic_r, mic_s]):
+                return "I"
 
         # No MIC breakpoints set
         return ""
