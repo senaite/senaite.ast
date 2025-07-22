@@ -34,7 +34,6 @@ from senaite.ast.config import SERVICES_SETTINGS
 from senaite.ast.permissions import TransitionRejectAntibiotics
 from senaite.core.api.workflow import update_workflow
 from senaite.core.catalog import SETUP_CATALOG
-from senaite.core.setuphandlers import setup_other_catalogs
 from senaite.core.workflow import ANALYSIS_WORKFLOW
 from zope.component import getUtility
 
@@ -44,15 +43,6 @@ SETUP_FOLDERS = [
     ("astbreakpoints", "AST Breakpoints Tables", "BreakpointsTables"),
 ]
 
-# Tuples of (catalog, index_name, indexed_attribute, index_type)
-INDEXES = [
-    (SETUP_CATALOG, "guideline", "", "FieldIndex"),
-]
-
-# Tuples of (catalog, column_name)
-COLUMNS = [
-    (SETUP_CATALOG, "guideline"),
-]
 
 # Tuples of (portal_type, list of behaviors)
 BEHAVIORS = [
@@ -100,9 +90,6 @@ def setup_handler(context):
 
     # Setup folders
     add_setup_folders(portal)
-
-    # Setup catalogs
-    setup_catalogs(portal)
 
     # Configure visible navigation items
     setup_navigation_types(portal)
@@ -160,14 +147,6 @@ def setup_navigation_types(portal):
     new_display_types.update(to_display)
     registry[key] = tuple(new_display_types)
     logger.info("Setup navigation types [DONE]")
-
-
-def setup_catalogs(portal):
-    """Setup Plone catalogs
-    """
-    logger.info("Setup Catalogs ...")
-    setup_other_catalogs(portal, indexes=INDEXES, columns=COLUMNS)
-    logger.info("Setup Catalogs [DONE]")
 
 
 def setup_ast_category(portal):
