@@ -60,7 +60,7 @@ class IBreakpointsTableSchema(Interface):
         ),
         description=_(
             u"description_breakpoint_mic_s",
-            default=u"MIC S (EUCAST: S ≤, CLSI: S ≤)",
+            default=u"MIC S",
         ),
         min=0.0,
         default=0.0,
@@ -97,7 +97,7 @@ class IBreakpointsTableSchema(Interface):
         ),
         description=_(
             u"description_breakpoint_diameter_s",
-            default=u"Zone diameter S (EUCAST: S ≥, CLSI: S ≥)",
+            default=u"Zone diameter S",
         ),
         min=0,
         default=0,
@@ -107,7 +107,7 @@ class IBreakpointsTableSchema(Interface):
     diameter_r = schema.Int(
         title=_(
             u"label_breakpoint_diameter_r",
-            default=u"R <≤ (mm)"
+            default=u"R </≤ (mm)"
         ),
         description=_(
             u"description_breakpoint_diameter_r",
