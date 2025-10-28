@@ -24,6 +24,7 @@ from senaite.ast.config import IDENTIFICATION_KEY
 from zope.component import adapter
 from zope.interface import implementer
 
+
 @implementer(IListingViewAdapter)
 @adapter(IListingView)
 class AnalysesViewAdapter(object):
