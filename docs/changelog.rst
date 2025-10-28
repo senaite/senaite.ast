@@ -4,6 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #49 Default all antibiotics to reportable when selective reporting is enabled
 
 1.2.0 (2025-04-04)
 ------------------
