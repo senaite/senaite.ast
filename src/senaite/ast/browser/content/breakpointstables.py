@@ -62,6 +62,9 @@ class BreakpointsTablesView(ListingView):
                 "title": _c("Description"),
                 "index": "Description"
             }),
+            ("Guideline", {
+                "title": _c("Guideline"),
+            }),
         ))
 
         copy_transition = {
@@ -113,6 +116,8 @@ class BreakpointsTablesView(ListingView):
         :index: current index of the item
         """
         item["replace"]["Title"] = get_link_for(obj)
+        obj = api.get_object(obj)
+        item["replace"]["Guideline"] = getattr(obj, 'guideline', 'EUCAST')
         return item
 
 

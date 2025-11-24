@@ -23,6 +23,7 @@ from senaite.ast import PRODUCT_NAME
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
 
+
 version = "1.3.0"
 profile = "profile-{0}:default".format(PRODUCT_NAME)
 
