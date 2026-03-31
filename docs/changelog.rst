@@ -4,6 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #51 Allow to submit Zone diameter value with operators
 - #50 Compatibility with senaite.core#2600 (Calculations to DX)
 - #49 Default all antibiotics to reportable when selective reporting is enabled
 
