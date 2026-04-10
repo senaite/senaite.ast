@@ -14,7 +14,10 @@
 
     <!-- Description -->
     <metal:content-description fill-slot="content-description">
-      <div class="visualClear"></div>
+      <p class="description discreet" i18n:translate="">
+        Export verified and published AST results to a CSV file compatible
+        with WHONET software through the BacLink data import module.
+      </p>
     </metal:content-description>
 
     <!-- Content -->
