@@ -8,6 +8,7 @@ from plone.memoize.view import memoize
 from Products.CMFPlone.utils import safe_unicode
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from senaite.ast.config import MIC_KEY
 from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.utils import get_antibiotics
@@ -98,7 +99,7 @@ class WHONETExportView(BrowserView):
         See png#127 png#133
         """
         def is_ast_keyword(keyword):
-            if keyword == ZONE_SIZE_KEY:
+            if keyword in (ZONE_SIZE_KEY, MIC_KEY):
                 return True
             return self.is_culture_interpretation(keyword)
 
@@ -209,6 +210,7 @@ class WHONETExportView(BrowserView):
             "Relevant clinical information",
             "Current antibiotics",
             "Microorganism",
+            "Method",
         ]
 
         # Add paired columns per antibiotic: measurement + interpretation
@@ -253,12 +255,14 @@ class WHONETExportView(BrowserView):
                 sample_info["antibiotics"],
             ])
 
-            # Default values for when analysis is not a zone-size
+            # Default values for when analysis is not a zone/MIC analysis
             microorganism = "no growth"
+            method = ""
             results = [""] * len(antibiotics) * 2
             if analysis.getKeyword() not in skip:
                 # Append the microorganism name (is the ShortTitle)
                 microorganism = analysis.getShortTitle()
+                method = self.get_method(analysis)
 
                 # Get the resistance sibling for S/I/R interpretation
                 ast_group = get_ast_group(analysis)
@@ -273,6 +277,7 @@ class WHONETExportView(BrowserView):
                     results.append(interp)
 
             data_line.append(microorganism)
+            data_line.append(method)
             map(data_line.append, results)
 
             # Wrap values in double-quotes
@@ -308,6 +313,17 @@ class WHONETExportView(BrowserView):
         for interim in analysis.getInterimFields():
             if interim.get("uid") == antibiotic_uid:
                 return get_interim_text(interim, default="")
+        return ""
+
+    def get_method(self, analysis):
+        """Returns the test method name for BacLink based on the analysis
+        keyword: 'Disk' for disk diffusion, 'MIC' for MIC
+        """
+        keyword = analysis.getKeyword()
+        if keyword == ZONE_SIZE_KEY:
+            return "Disk"
+        if keyword == MIC_KEY:
+            return "MIC"
         return ""
 
     def get_age_ymd(self, dob, date_sampled):
