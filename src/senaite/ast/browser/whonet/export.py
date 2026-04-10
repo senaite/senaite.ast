@@ -8,8 +8,11 @@ from plone.memoize.view import memoize
 from Products.CMFPlone.utils import safe_unicode
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from senaite.ast.config import RESISTANCE_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.utils import get_antibiotics
+from senaite.ast.utils import get_ast_group
+from senaite.ast.utils import get_interim_text
 from senaite.core.api import dtime
 from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.catalog import SETUP_CATALOG
@@ -187,7 +190,6 @@ class WHONETExportView(BrowserView):
 
         # Get all antibiotics and sort them by title
         antibiotics = get_antibiotics(zone_ans)
-        antibiotics_titles = map(api.get_title, antibiotics)
 
         # Write the file header
         output = StringIO()
@@ -209,7 +211,11 @@ class WHONETExportView(BrowserView):
             "Microorganism",
         ]
 
-        header.extend(antibiotics_titles)
+        # Add paired columns per antibiotic: measurement + interpretation
+        for antibiotic in antibiotics:
+            title = api.get_title(antibiotic)
+            header.append(title)
+            header.append("{}_INTERP".format(title))
 
         def wrap_quotes(value):
             if not value:
@@ -249,17 +255,22 @@ class WHONETExportView(BrowserView):
 
             # Default values for when analysis is not a zone-size
             microorganism = "no growth"
-            results = [""]*len(antibiotics)
+            results = [""] * len(antibiotics) * 2
             if analysis.getKeyword() not in skip:
                 # Append the microorganism name (is the ShortTitle)
                 microorganism = analysis.getShortTitle()
 
-                # Extend with the diameter (mmg) result per antibiotic
+                # Get the resistance sibling for S/I/R interpretation
+                ast_group = get_ast_group(analysis)
+                resistance = ast_group.get(RESISTANCE_KEY)
+
+                # Extend with paired measurement + interpretation
                 results = []
                 for antibiotic in antibiotics:
-                    # Get the result for this analysis and antibiotic
                     result = self.get_result_for(analysis, antibiotic)
+                    interp = self.get_interp_for(resistance, antibiotic)
                     results.append(result)
+                    results.append(interp)
 
             data_line.append(microorganism)
             map(data_line.append, results)
@@ -278,13 +289,25 @@ class WHONETExportView(BrowserView):
 
     def get_result_for(self, analysis, antibiotic):
         """Extracts the result for the analysis and antibiotic passed in, if
-        any. Returns None otherwise
+        any. Returns empty string otherwise
         """
         antibiotic_uid = api.get_uid(antibiotic)
         for result in analysis.getInterimFields():
             if result.get("uid") == antibiotic_uid:
                 return result.get("value", "")
 
+        return ""
+
+    def get_interp_for(self, analysis, antibiotic):
+        """Extracts the S/I/R interpretation for the analysis and antibiotic
+        passed in. Returns empty string if not available
+        """
+        if not analysis:
+            return ""
+        antibiotic_uid = api.get_uid(antibiotic)
+        for interim in analysis.getInterimFields():
+            if interim.get("uid") == antibiotic_uid:
+                return get_interim_text(interim, default="")
         return ""
 
     def get_age_ymd(self, dob, date_sampled):
