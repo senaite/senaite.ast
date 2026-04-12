@@ -121,7 +121,7 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Cannot submit if no result
                 return False
 
-            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
+            if keyword in [DISK_CONTENT_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
                 value = self.strip_operator(antibiotic.get("value"))
 
@@ -131,7 +131,7 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 if value < 0:
                     return False
 
-            if keyword in [MIC_KEY]:
+            if keyword in [MIC_KEY, ZONE_SIZE_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
                 value = self.strip_operator(antibiotic.get("value"))
 

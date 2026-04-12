@@ -70,7 +70,7 @@ class AddPanelView(BrowserView):
 
                 # Create/Update the zone size analysis
                 if panel.zone_size:
-                    add(ZONE_SIZE_KEY, microorganism, antibiotics)
+                    self.add_zone_analysis(microorganism, antibiotics)
 
             elif panel.method == METHOD_MIC_ID:
                 # Create/Update the minimum inhibitory concentration analysis
@@ -156,6 +156,18 @@ class AddPanelView(BrowserView):
             interim_field["result_type"] = "fraction"
         mic.setInterimFields(interim_fields)
         return mic
+
+    def add_zone_analysis(self, microorganism, antibiotics):
+        """Updates or creates an analysis for the capture of the zone size (mm)
+        when the method Diffusion Disk is used, that allows the introduction of
+        '<', '>', '>=' and '<=' operators
+        """
+        zone = self.add_ast_analysis(ZONE_SIZE_KEY, microorganism, antibiotics)
+        interim_fields = zone.getInterimFields()
+        for interim_field in interim_fields:
+            interim_field["result_type"] = "fraction"
+        zone.setInterimFields(interim_fields)
+        return zone
 
     def add_reporting_analysis(self, microorganism, antibiotics):
         """Creates or updates the selective reporting flag (Y/N) analysis, that
