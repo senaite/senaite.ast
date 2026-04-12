@@ -85,6 +85,15 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
     """Guard for objects from IAnalysis type
     """
 
+    def strip_operator(self, value):
+        """Strip optional comparator operator from value
+        """
+        value = (value or "").strip()
+        operator = filter(lambda p: value.startswith(p), OPERATORS)
+        if operator:
+            value = value.replace(operator[0], "")
+        return value.strip()
+
     def guard_submit(self):
         """AST-like analyses have antibiotics as interim fields. Do not allow
         the submission unless all interim field values are non-empty
@@ -112,19 +121,16 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 # Cannot submit if no result
                 return False
 
-            if keyword in [ZONE_SIZE_KEY, DISK_CONTENT_KEY]:
+            if keyword in [DISK_CONTENT_KEY]:
                 # Negative values are not permitted
                 value = antibiotic.get("value")
                 value = api.to_float(value, default=-1)
                 if value < 0:
                     return False
 
-            if keyword in [MIC_KEY]:
+            if keyword in [MIC_KEY, ZONE_SIZE_KEY]:
                 # operators '>', '>=', '<' and '<=' are permitted
-                value = antibiotic.get("value") or ""
-                operator = filter(lambda p: value.startswith(p), OPERATORS)
-                if operator:
-                    value = value.replace(operator[0], "")
+                value = self.strip_operator(antibiotic.get("value"))
 
                 numerator, slash, denominator = value.partition("/")
 

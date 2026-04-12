@@ -40,6 +40,24 @@ from zope.interface import alsoProvides
 from zope.interface import noLongerProvides
 
 
+def resolve_fraction(value):
+    """Resolves a fraction value to a float (e.g. "1/2" -> 0.5).
+    Returns the original value if not a fraction
+    """
+    if api.is_floatable(value):
+        return value
+    value = (value or "").strip()
+    numerator, slash, denominator = value.partition("/")
+    if not slash:
+        return value
+    if not api.is_floatable(numerator) or not api.is_floatable(denominator):
+        return value
+    denominator = api.to_float(denominator)
+    if denominator <= 0:
+        return value
+    return api.to_float(numerator) / denominator
+
+
 def calc_ast(analysis_brain_uid, default_return='-'):
     """Handles the calculations of AST-like analyses that are triggered when
     results are saved.
@@ -121,8 +139,9 @@ def calc_sensitivity_categories(analysis):
 
         # Get the zone size / MIC value
         value = values.get(abx_uid)
+        value = resolve_fraction(value)
         if not api.is_floatable(value):
-            # No value entered yet or not floatable
+            # No value entered yet or not resolvable (e.g. operators)
             continue
 
         # Get the selected Breakpoints Table for this antibiotic

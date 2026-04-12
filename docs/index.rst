@@ -37,6 +37,7 @@ Once installed, this add-on allows the laboratory to:
 * Analysis for the identification of microorganisms
 * Assignment of pre-defined AST Panels to a sample
 * Sample-level customization of AST Panel
+* Support for operators, fractions and decimals in zone diameter and MIC
 * Selective reporting of resistance results
 * Support for and selective reporting of extrapolated antibiotics
 
