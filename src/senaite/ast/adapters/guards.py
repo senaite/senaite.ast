@@ -122,9 +122,6 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 return False
 
             if keyword in [DISK_CONTENT_KEY]:
-                # operators '>', '>=', '<' and '<=' are permitted
-                value = self.strip_operator(antibiotic.get("value"))
-
                 # Negative values are not permitted
                 value = antibiotic.get("value")
                 value = api.to_float(value, default=-1)
