@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from bika.lims import api
-from bika.lims.interfaces import IVerified
 from datetime import datetime
 from plone.app.layout.globals.interfaces import IViewView
 from plone.memoize.view import memoize
@@ -16,15 +15,11 @@ from senaite.ast.utils import get_ast_group
 from senaite.ast.utils import get_interim_text
 from senaite.core.api import dtime
 from senaite.core.catalog import ANALYSIS_CATALOG
-from senaite.core.catalog import SETUP_CATALOG
 from senaite.core.decorators import readonly_transaction
 from senaite.core.interfaces import IHideActionsMenu
 from senaite.patient import api as patient_api
 from six import StringIO
 from zope.interface import implementer
-
-
-CULTURE_INTERPRETATION_KEYWORD = "CINTER"
 
 
 @implementer(IHideActionsMenu, IViewView)
@@ -92,37 +87,14 @@ class WHONETExportView(BrowserView):
         date_to = api.to_date(date_to, default=datetime.now())
         return date_to.strftime("%Y-%m-%d")
 
-    @memoize
-    def get_ast_keywords(self):
-        """Returns the keywords of analyses that indicate the sample is being
-        tested for antibiotic sensitivity
-        See png#127 png#133
-        """
-        def is_ast_keyword(keyword):
-            if keyword in (ZONE_SIZE_KEY, MIC_KEY):
-                return True
-            return self.is_culture_interpretation(keyword)
-
-        query = {"portal_type": "AnalysisService"}
-        brains = api.search(query, SETUP_CATALOG)
-        keywords = map(lambda brain: brain.getKeyword, brains)
-        return filter(is_ast_keyword, keywords)
-
-    def is_culture_interpretation(self, keyword):
-        """Returns whether the analysis with the keyword passed-in is
-        considered a culture interpretation-like test
-        """
-        return keyword.startswith(CULTURE_INTERPRETATION_KEYWORD)
-
     def search_analyses(self):
-        """Returns a list of sensitivity category analyses that match with the
-        creation date criteria
+        """Returns a list of zone size and MIC analyses that match with the
+        date criteria, from published samples only
         """
-        keywords = self.get_ast_keywords()
         query = {
             "portal_type": "Analysis",
             "review_state": ["verified", "published"],
-            "getKeyword": keywords,
+            "getKeyword": [ZONE_SIZE_KEY, MIC_KEY],
             "date_sampled": {
                 "query": [self.created_from, self.created_to],
                 "range": "min:max"},
@@ -130,34 +102,13 @@ class WHONETExportView(BrowserView):
             "sort_order": "ascending"
         }
 
-        def ast_sort(a, b):
-            if a.getRequestID != b.getRequestID:
-                return 0
-            a_key = a.getKeyword
-            b_key = b.getKeyword
-            if a_key == b_key:
-                return 0
-            if self.is_culture_interpretation(a_key):
-                return 1
-            return -1
-
-        # Skip culture interpretation analyses with a zone size counterpart
-        purged = []
-        current_sample_id = None
         brains = api.search(query, ANALYSIS_CATALOG)
-        for brain in sorted(brains, cmp=ast_sort):
-            sample_id = brain.getRequestID
-            if sample_id == current_sample_id:
-                if self.is_culture_interpretation(brain.getKeyword):
-                    continue
-            purged.append(brain)
-            current_sample_id = brain.getRequestID
 
         # Fill with analysis objects
-        analyses = map(self.get_object, purged)
+        analyses = map(self.get_object, brains)
         analyses = filter(None, analyses)
 
-        # Exclude analyses that belong to not-yet-verified samples
+        # Exclude analyses that belong to not-yet-published samples
         analyses = filter(self.is_sample_published, analyses)
 
         return list(analyses)
@@ -170,12 +121,6 @@ class WHONETExportView(BrowserView):
         except AttributeError:
             return default
 
-    def is_sample_verified(self, analysis):
-        """Returns whether the sample of the analysis has been verified
-        """
-        sample = analysis.getRequest()
-        return IVerified.providedBy(sample)
-
     def is_sample_published(self, analysis):
         """Returns whether the sample of the analysis has been published
         """
@@ -185,12 +130,8 @@ class WHONETExportView(BrowserView):
     def get_export_output(self, analyses, delimiter=","):
         """Returns a CSV-like string with the data to be exported
         """
-        # Get ZONE_SIZE analyses
-        skip = filter(self.is_culture_interpretation, self.get_ast_keywords())
-        zone_ans = filter(lambda an: an.getKeyword() not in skip, analyses)
-
         # Get all antibiotics and sort them by title
-        antibiotics = get_antibiotics(zone_ans)
+        antibiotics = get_antibiotics(analyses)
 
         # Write the file header
         output = StringIO()
@@ -255,30 +196,18 @@ class WHONETExportView(BrowserView):
                 sample_info["antibiotics"],
             ])
 
-            # Default values for when analysis is not a zone/MIC analysis
-            microorganism = "no growth"
-            method = ""
-            results = [""] * len(antibiotics) * 2
-            if analysis.getKeyword() not in skip:
-                # Append the microorganism name (is the ShortTitle)
-                microorganism = analysis.getShortTitle()
-                method = self.get_method(analysis)
+            # Microorganism name (is the ShortTitle)
+            data_line.append(analysis.getShortTitle())
+            data_line.append(self.get_method(analysis))
 
-                # Get the resistance sibling for S/I/R interpretation
-                ast_group = get_ast_group(analysis)
-                resistance = ast_group.get(RESISTANCE_KEY)
+            # Get the resistance sibling for S/I/R interpretation
+            ast_group = get_ast_group(analysis)
+            resistance = ast_group.get(RESISTANCE_KEY)
 
-                # Extend with paired measurement + interpretation
-                results = []
-                for antibiotic in antibiotics:
-                    result = self.get_result_for(analysis, antibiotic)
-                    interp = self.get_interp_for(resistance, antibiotic)
-                    results.append(result)
-                    results.append(interp)
-
-            data_line.append(microorganism)
-            data_line.append(method)
-            map(data_line.append, results)
+            # Extend with paired measurement + interpretation
+            for antibiotic in antibiotics:
+                data_line.append(self.get_result_for(analysis, antibiotic))
+                data_line.append(self.get_interp_for(resistance, antibiotic))
 
             # Wrap values in double-quotes
             data_line = map(wrap_quotes, data_line)
