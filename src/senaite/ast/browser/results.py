@@ -86,6 +86,14 @@ class ManageResultsView(AnalysesView):
         self.show_workflow_action_buttons = True
         self.show_search = False
 
+        # Always fetch the available workflow transitions when analyses get
+        # selected, regardless of the `listing_fetch_transitions_on_select`
+        # global setting (senaite.app.listing#173). Results entry in this view
+        # relies on the workflow action buttons (e.g. "Submit") becoming
+        # available on selection. If auto-fetch is disabled site-wide, those
+        # buttons never show up and the user is unable to submit results
+        self.fetch_transitions_on_select = True
+
         # Add the Microorganism column
         new_columns = (
             ("Microorganism", {
