@@ -4,6 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #52 Fix unable to submit AST results when auto-fetch transitions is disabled
 - #51 Support for operators, fractions and decimals in zone diameter and MIC
 - #50 Compatibility with senaite.core#2600 (Calculations to DX)
 - #49 Default all antibiotics to reportable when selective reporting is enabled
