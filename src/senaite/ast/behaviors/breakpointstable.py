@@ -60,7 +60,7 @@ class IBreakpointsTableSchema(Interface):
         ),
         description=_(
             u"description_breakpoint_mic_s",
-            default=u"MIC breakpoint",
+            default=u"MIC S",
         ),
         min=0.0,
         default=0.0,
@@ -70,11 +70,11 @@ class IBreakpointsTableSchema(Interface):
     mic_r = schema.Float(
         title=_(
             u"label_breakpoint_mic_r",
-            default=u"R > (μg/mL)"
+            default=u"R >/≥ (μg/mL)"
         ),
         description=_(
             u"description_breakpoint_mic_r",
-            default=u"MIC breakpoint",
+            default=u"MIC R (EUCAST: R >, CLSI: R ≥)",
         ),
         min=0.0,
         default=0.0,
@@ -97,7 +97,7 @@ class IBreakpointsTableSchema(Interface):
         ),
         description=_(
             u"description_breakpoint_diameter_s",
-            default=u"Zone diameter breakpoint",
+            default=u"Zone diameter S",
         ),
         min=0,
         default=0,
@@ -107,11 +107,11 @@ class IBreakpointsTableSchema(Interface):
     diameter_r = schema.Int(
         title=_(
             u"label_breakpoint_diameter_r",
-            default=u"R < (mm)"
+            default=u"R </≤ (mm)"
         ),
         description=_(
             u"description_breakpoint_diameter_r",
-            default=u"Zone diameter breakpoint",
+            default=u"Zone diameter R (EUCAST: R <, CLSI: R ≤)",
         ),
         min=0,
         default=0,
@@ -121,6 +121,21 @@ class IBreakpointsTableSchema(Interface):
 
 @provider(IFormFieldProvider)
 class IBreakpointsTableBehavior(model.Schema):
+
+    guideline = schema.Choice(
+        title=_(
+            u"label_breakpointstable_guideline",
+            default=u"Guideline"
+        ),
+        description=_(
+            u"description_breakpointstable_guideline",
+            default=u"Clinical guideline standard for interpretation boundaries "
+                    u"applied to all breakpoints in this table"
+        ),
+        values=["EUCAST", "CLSI"],
+        default="EUCAST",
+        required=True,
+    )
 
     breakpoints = DataGridField(
         title=_(
@@ -156,6 +171,14 @@ class BreakpointsTable(object):
 
     def __init__(self, context):
         self.context = context
+
+    def _get_guideline(self):
+        return getattr(self.context, 'guideline', 'EUCAST')
+
+    def _set_guideline(self, value):
+        self.context.guideline = value
+
+    guideline = property(_get_guideline, _set_guideline)
 
     def _get_breakpoints(self):
         return self.context.breakpoints

@@ -43,6 +43,7 @@ SETUP_FOLDERS = [
     ("astbreakpoints", "AST Breakpoints Tables", "BreakpointsTables"),
 ]
 
+
 # Tuples of (portal_type, list of behaviors)
 BEHAVIORS = [
     ("Antibiotic", [
