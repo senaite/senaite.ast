@@ -32,6 +32,8 @@ Needed Imports:
     >>> from senaite.ast.config import RESISTANCE_KEY
     >>> from senaite.ast.utils import create_ast_analyses
     >>> from senaite.ast.utils import get_service
+    >>> from senaite.ast.upgrade.v01_03_000 import \
+    ...     allow_empty_selective_reporting
 
 Variables:
 
@@ -266,3 +268,50 @@ Antibiotics from the other AST analyses do not, and still require a value:
 
     >>> isTransitionAllowed(sensitivity, "submit")
     False
+
+
+Upgrade of existing analyses
+............................
+
+Result variables are only granted the `allow_empty` setting when they are
+created, so analyses that were already waiting for results when the add-on
+was upgraded have to be updated as well.
+
+Simulate an analysis created before the upgrade, when the setting was not
+granted yet:
+
+    >>> sample = new_sample([gram])
+    >>> ast_analyses = create_ast_analyses(
+    ...     sample, [REPORT_EXTRAPOLATED_KEY], ecoli, [amx])
+    >>> report = ast_analyses[0]
+    >>> interims = report.getInterimFields()
+    >>> for interim in interims:
+    ...     _ = interim.pop("allow_empty")
+    >>> report.setInterimFields(interims)
+
+The analysis cannot be submitted without a selection:
+
+    >>> get_interim(report, "AMX").get("allow_empty")
+
+    >>> is_result_complete(report)
+    False
+
+    >>> isTransitionAllowed(report, "submit")
+    False
+
+Run the upgrade step:
+
+    >>> allow_empty_selective_reporting(portal.portal_setup)
+
+The setting is granted to the result variables of the analysis, that becomes
+submittable:
+
+    >>> get_interim(report, "AMX").get("allow_empty")
+    True
+
+    >>> is_result_complete(report)
+    True
+
+    >>> transitioned = do_action_for(report, "submit")
+    >>> api.get_workflow_status_of(report)
+    'to_be_verified'
