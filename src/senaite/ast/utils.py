@@ -105,6 +105,7 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     short_title = api.get_title(microorganism)
     analysis.setTitle(title)
     analysis.setShortTitle(short_title)
+    analysis.setScientificName(True)
 
     # Apply the interface markers
     alsoProvides(analysis, IASTAnalysis)

@@ -167,6 +167,12 @@ category for the microorganism with the two antibiotics:
     >>> len(ast_analyses)
     3
 
+AST analyses are marked as scientific names so their microorganism labels and
+results use scientific-name formatting in reports:
+
+    >>> all(analysis.getScientificName() for analysis in ast_analyses)
+    True
+
 
 Verify formula is snapshotted onto analyses
 ............................................
