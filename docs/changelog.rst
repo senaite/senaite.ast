@@ -5,6 +5,7 @@ Changelog
 ------------------
 
 - #53 Compatibility with core#2962 (Remove RegulatoryInspector)
+- #54 Add scientific name setting to AST analyses (new and existing)
 - #52 Fix unable to submit AST results when auto-fetch transitions is disabled
 - #51 Support for operators, fractions and decimals in zone diameter and MIC
 - #50 Compatibility with senaite.core#2600 (Calculations to DX)

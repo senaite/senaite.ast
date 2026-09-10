@@ -18,8 +18,11 @@
 # Copyright 2020-2025 by it's authors.
 # Some rights reserved, see README and LICENSE.
 
+from bika.lims import api
 from senaite.ast import logger
 from senaite.ast import PRODUCT_NAME
+from senaite.ast.config import AST_POINT_OF_CAPTURE
+from senaite.core.catalog import ANALYSIS_CATALOG
 from senaite.core.upgrade import upgradestep
 from senaite.core.upgrade.utils import UpgradeUtils
 
@@ -45,3 +48,30 @@ def upgrade(tool):
 
     logger.info("{0} upgraded to version {1}".format(PRODUCT_NAME, version))
     return True
+
+
+def set_ast_analyses_scientific_name(tool):
+    """Mark existing AST analyses as scientific names
+    """
+    logger.info("Set ScientificName for AST analyses ...")
+    query = {
+        "portal_type": "Analysis",
+        "getPointOfCapture": AST_POINT_OF_CAPTURE,
+    }
+    brains = api.search(query, ANALYSIS_CATALOG)
+    total = len(brains)
+    for num, brain in enumerate(brains):
+
+        if num and num % 1000 == 0:
+            logger.info("Set ScientificName for AST analyses %s/%s"
+                        % (num, total))
+
+        analysis = api.get_object(brain)
+        if analysis.getScientificName():
+            continue
+
+        # ScientificName is not indexed, no need to reindex the analysis
+        analysis.setScientificName(True)
+        analysis._p_deactivate()
+
+    logger.info("Set ScientificName for AST analyses [DONE]")
