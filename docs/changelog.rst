@@ -4,6 +4,9 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #56 Fix unable to submit AST results if antibiotic has no breakpoint
+- #55 Allow to submit selective reporting without extrapolated antibiotics
+- #55 Compatibility with senaite.core#3015 (empty multi-valued results)
 - #54 Add scientific name setting to AST analyses (new and existing)
 - #52 Fix unable to submit AST results when auto-fetch transitions is disabled
 - #51 Support for operators, fractions and decimals in zone diameter and MIC
