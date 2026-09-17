@@ -26,6 +26,7 @@ from senaite.ast import utils
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import MIC_KEY
+from senaite.ast.config import NOT_REPORTED
 from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
@@ -58,7 +59,7 @@ def resolve_fraction(value):
     return api.to_float(numerator) / denominator
 
 
-def calc_ast(analysis_brain_uid, default_return='-'):
+def calc_ast(analysis_brain_uid, default_return=NOT_REPORTED):
     """Handles the calculations of AST-like analyses that are triggered when
     results are saved.
     """
@@ -155,8 +156,13 @@ def calc_sensitivity_categories(analysis):
                                        default="")
         cat = get_sensitivity_category_value(key, default="")
 
-        # Update the sensitivity category
-        antibiotic.update({"value": cat})
+        # Update the sensitivity category. Without a breakpoint for this
+        # microorganism and antibiotic no category can be inferred, so empty
+        # values are allowed for the analysis to be submitted
+        antibiotic.update({
+            "value": cat,
+            "allow_empty": not breakpoint,
+        })
 
     # Assign the antibiotics with the updated sensitivity categories
     sensitivity.setInterimFields(antibiotics)
@@ -303,12 +309,17 @@ def update_sensitivity_result(analysis):
     # The final result is a list with result option values
     result = map(lambda o: o.get("ResultValue"), options)
 
+    # An empty list is an empty result and the analysis could not be submitted
+    # then, so fall back to the "nothing to report" result. This is the case
+    # when no sensitivity category was inferred for any of the antibiotics
+    result = json.dumps(result) if result else NOT_REPORTED
+
     # No need to keep track of this in audit (this is internal)
     noLongerProvides(sensitivity, IAuditable)
 
     # Set the final result
     capture_date = sensitivity.getResultCaptureDate()
-    sensitivity.setResult(json.dumps(result))
+    sensitivity.setResult(result)
     sensitivity.setResultCaptureDate(capture_date)
 
     # Re-enable the audit for this analysis

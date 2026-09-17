@@ -4,6 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #56 Fix unable to submit AST results if antibiotic has no breakpoint
 - #55 Allow to submit selective reporting without extrapolated antibiotics
 - #55 Compatibility with senaite.core#3015 (empty multi-valued results)
 - #53 Compatibility with core#2962 (Remove RegulatoryInspector)
