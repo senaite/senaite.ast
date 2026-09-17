@@ -3,6 +3,18 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
 
   <genericsetup:upgradeStep
+      title="SENAITE AST 1.3.0: Allow empty selective reporting of
+        extrapolated antibiotics"
+      description="Allows empty values for the result variables of existing
+        analyses that store the selective reporting of extrapolated
+        antibiotics, so they can be submitted when no extrapolated antibiotic
+        is selected"
+      source="1301"
+      destination="1302"
+      handler="senaite.ast.upgrade.v01_03_000.allow_empty_selective_reporting"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="SENAITE AST 1.3.0: Mark AST analyses as scientific names"
       description="Sets ScientificName for existing AST analyses, so their
         microorganism labels and results are rendered with the standard

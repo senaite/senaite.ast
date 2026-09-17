@@ -4,6 +4,8 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #55 Allow to submit selective reporting without extrapolated antibiotics
+- #55 Compatibility with senaite.core#3015 (empty multi-valued results)
 - #53 Compatibility with core#2962 (Remove RegulatoryInspector)
 - #54 Add scientific name setting to AST analyses (new and existing)
 - #52 Fix unable to submit AST results when auto-fetch transitions is disabled

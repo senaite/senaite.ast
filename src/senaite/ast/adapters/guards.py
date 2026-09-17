@@ -118,6 +118,11 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
                 continue
 
             if utils.is_interim_empty(antibiotic):
+                allow_empty = antibiotic.get("allow_empty", False)
+                if api.to_bool(allow_empty):
+                    # Empty values are allowed for this antibiotic
+                    continue
+
                 # Cannot submit if no result
                 return False
 
