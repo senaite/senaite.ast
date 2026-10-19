@@ -4,7 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
-- #57 Allow to submit AST results when no sensitivity category can be inferred
+- #57 Fix unable to submit AST results without a sensitivity category
 - #56 Fix unable to submit AST results if antibiotic has no breakpoint
 - #55 Allow to submit selective reporting without extrapolated antibiotics
 - #55 Compatibility with senaite.core#3015 (empty multi-valued results)
