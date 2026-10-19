@@ -65,6 +65,9 @@ class ASTAnalysesViewlet(LabAnalysesViewlet):
 
         return False
 
+    def is_collapsed(self):
+        return False
+
 
 class ManageResultsView(AnalysesView):
     """Listing view for AST results entry
