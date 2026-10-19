@@ -27,9 +27,8 @@ from senaite.ast.config import DISK_CONTENT_KEY
 from senaite.ast.config import MIC_KEY
 from senaite.ast.config import ZONE_SIZE_KEY
 from senaite.ast.utils import is_ast_analysis
+from senaite.ast.utils import split_operator
 from zope.interface import implementer
-
-OPERATORS = ["<=", ">=", "<", ">"]
 
 
 class BaseGuardAdapter(object):
@@ -88,11 +87,8 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
     def strip_operator(self, value):
         """Strip optional comparator operator from value
         """
-        value = (value or "").strip()
-        operator = filter(lambda p: value.startswith(p), OPERATORS)
-        if operator:
-            value = value.replace(operator[0], "")
-        return value.strip()
+        operator, value = split_operator(value or "")
+        return value
 
     def guard_submit(self):
         """AST-like analyses have antibiotics as interim fields. Do not allow

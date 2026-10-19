@@ -138,9 +138,11 @@ def calc_sensitivity_categories(analysis):
         if not api.is_uid(abx_uid):
             abx_uid = antibiotic["uid"]
 
-        # Get the zone size / MIC value
+        # Get the zone size / MIC value. Both accept a comparison operator
+        # as a prefix, that makes the value a boundary instead of a measure
         raw_value = values.get(abx_uid)
-        value = resolve_fraction(raw_value)
+        operator, value = utils.split_operator(raw_value)
+        value = resolve_fraction(value)
         if not api.is_floatable(value):
             if raw_value:
                 # There is a result, but no number can be read from it, e.g.
@@ -162,17 +164,21 @@ def calc_sensitivity_categories(analysis):
 
         # Get the sensitivity category (S|I|R) and choice value
         key = get_sensitivity_category(value, breakpoint, method=ast_method,
-                                       default="")
+                                       operator=operator, default="")
         cat = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category. No category can be inferred
-        # without a breakpoint for this microorganism and antibiotic, and
-        # neither when the breakpoint has no thresholds set for the method in
-        # use, so empty values are allowed for the analysis to be submitted
-        antibiotic.update({
-            "value": cat,
-            "allow_empty": not key,
-        })
+        # without a breakpoint for this microorganism and antibiotic, when the
+        # breakpoint has no thresholds set for the method in use, and neither
+        # when the range the operator stands for spans more than one category.
+        # Empty values are allowed then, for the analysis to be submitted
+        antibiotic.update({"allow_empty": not key})
+
+        if key or not operator:
+            # The value is left untouched when it is a boundary and the
+            # category cannot be inferred from it, so a category the user set
+            # for this antibiotic is preserved
+            antibiotic.update({"value": cat})
 
     # Assign the antibiotics with the updated sensitivity categories
     sensitivity.setInterimFields(antibiotics)

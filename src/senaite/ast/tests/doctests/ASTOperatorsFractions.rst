@@ -8,9 +8,11 @@ correctly:
 
 - **Plain numbers and fractions**: sensitivity category is calculated
   automatically from the breakpoints table.
-- **Values with operators**: sensitivity category is **not** calculated
-  (the user must set it manually), but the antibiotic allows an empty
-  category, so the results can be submitted either way.
+- **Values with operators**: the value is a boundary and not an exact
+  measure, so the category is only calculated when it is the same for the
+  whole range the operator stands for. It is left for the user to set
+  otherwise, and the antibiotic allows an empty category meanwhile, so the
+  results can be submitted either way.
 
 Running this test from the buildout directory:
 
@@ -37,7 +39,9 @@ Needed Imports:
     >>> from senaite.ast.config import ZONE_SIZE_KEY
     >>> from senaite.ast.utils import create_ast_analyses
     >>> from senaite.ast.utils import get_ast_group
+    >>> from senaite.ast.utils import get_sensitivity_category
     >>> from senaite.ast.utils import get_sensitivity_category_value
+    >>> from senaite.ast.utils import split_operator
 
 Variables:
 
@@ -98,6 +102,103 @@ Edge cases:
 
     >>> resolve_fraction("1/-2")
     '1/-2'
+
+
+split_operator helper
+.....................
+
+Values without an operator are returned unchanged:
+
+    >>> split_operator("20")
+    ('', '20')
+
+    >>> split_operator("1/2")
+    ('', '1/2')
+
+The supported operators are split off the value:
+
+    >>> split_operator(">20")
+    ('>', '20')
+
+    >>> split_operator(">=20")
+    ('>=', '20')
+
+    >>> split_operator("<0.25")
+    ('<', '0.25')
+
+    >>> split_operator("<=1/2")
+    ('<=', '1/2')
+
+Surrounding whitespace is discarded:
+
+    >>> split_operator("  >=  20  ")
+    ('>=', '20')
+
+Values that are not strings are returned as they come:
+
+    >>> split_operator(None)
+    ('', None)
+
+    >>> split_operator(14.5)
+    ('', 14.5)
+
+
+Sensitivity category of a boundary value
+........................................
+
+A value with an operator stands for a range rather than for a measure, so
+its category is only inferred when the whole range falls into the same one.
+With zone diameter breakpoints of S >= 25 mm and R < 22 mm:
+
+    >>> breakpoint = {"diameter_s": 25, "diameter_r": 22,
+    ...               "mic_s": 0.25, "mic_r": 0.5}
+
+A diameter of at least 25 mm is susceptible, whatever its exact value:
+
+    >>> get_sensitivity_category(25, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator=">=", default="")
+    'S'
+
+The resistant range leaves its own threshold out (R is `value < 22`), just
+as a strict operator leaves the boundary out, so "< 22" is resistant:
+
+    >>> get_sensitivity_category(22, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator="<", default="")
+    'R'
+
+"<= 22" includes the 22 mm itself, which is already intermediate:
+
+    >>> get_sensitivity_category(22, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator="<=", default="")
+    ''
+
+A range that spans more than one category cannot be inferred either. Above
+23 mm the diameter can be both intermediate and susceptible:
+
+    >>> get_sensitivity_category(23, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator=">", default="")
+    ''
+
+MIC values read the other way round, the lower the more susceptible. Here
+S <= 0.25 and R > 0.5:
+
+    >>> get_sensitivity_category(0.25, breakpoint, MIC_KEY,
+    ...                          operator="<=", default="")
+    'S'
+
+    >>> get_sensitivity_category(0.5, breakpoint, MIC_KEY,
+    ...                          operator=">", default="")
+    'R'
+
+    >>> get_sensitivity_category(0.25, breakpoint, MIC_KEY,
+    ...                          operator=">", default="")
+    ''
+
+Without a breakpoint there is no category to infer, operator or not:
+
+    >>> get_sensitivity_category(20, None, ZONE_SIZE_KEY,
+    ...                          operator=">=", default="")
+    ''
 
 
 Create test data
@@ -216,7 +317,7 @@ Set the breakpoints table for all antibiotics:
 Set zone diameter results with mixed input types:
 
 - Amoxicillin: ``20`` mm (plain number, should calculate S >= 14)
-- Ciprofloxacin: ``>23`` (operator, should NOT auto-calculate)
+- Ciprofloxacin: ``>23`` (operator spanning I and S, should NOT calculate)
 - Gentamicin: ``29/2`` (fraction = 14.5, should calculate I: 14 <= 14.5 < 17)
 
     >>> zone_interims = zone_an.getInterimFields()
@@ -245,7 +346,9 @@ Amoxicillin with plain ``20`` mm is Susceptible (S >= 14):
     >>> results["AMX"] == get_sensitivity_category_value("S")
     True
 
-Ciprofloxacin with operator ``>23`` is left empty (no auto-calculation):
+Ciprofloxacin with operator ``>23`` covers both the intermediate range
+(22 to 24 mm) and the susceptible one (>= 25 mm), so no category is
+inferred and the result is left empty:
 
     >>> results["CIP"]
     ''
@@ -312,7 +415,7 @@ Set breakpoints table:
 Set MIC results with mixed input types:
 
 - Amoxicillin: ``1/2`` (fraction = 0.5, should calculate S <= 8)
-- Ciprofloxacin: ``<=0.25`` (operator, should NOT auto-calculate)
+- Ciprofloxacin: ``<=0.25`` (operator wholly within S, should calculate S)
 - Gentamicin: ``3`` (plain number, should calculate I: 2 < 3 <= 4)
 
     >>> mic_interims = mic_an.getInterimFields()
@@ -341,14 +444,10 @@ Amoxicillin with fraction ``1/2`` (= 0.5) is Susceptible (S <= 8):
     >>> results2["AMX"] == get_sensitivity_category_value("S")
     True
 
-Ciprofloxacin with operator ``<=0.25`` is left empty, and allows an empty
-value so the analysis can be submitted:
+Ciprofloxacin with operator ``<=0.25`` is Susceptible: the whole range the
+operator stands for sits at or below the susceptible breakpoint (S <= 0.25):
 
-    >>> results2["CIP"]
-    ''
-
-    >>> cip2 = [i for i in sens_interims2 if i["keyword"] == "CIP"][0]
-    >>> cip2.get("allow_empty")
+    >>> results2["CIP"] == get_sensitivity_category_value("S")
     True
 
     >>> "submit" in getAllowedTransitions(sensitivity2)
