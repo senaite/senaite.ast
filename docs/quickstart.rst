@@ -156,6 +156,62 @@ and the list of AST analyses is updated accordingly:
   :alt: Custom sensitivity testing analyses for a Sample
 
 
+.. _ResultEntry:
+
+Entering Zone Diameter and MIC results
+--------------------------------------
+
+Zone diameter (mm) and Minimum Inhibitory Concentration (MIC) fields
+support several input formats beyond plain numbers:
+
+**Comparison operators**
+
+The operators ``<``, ``>``, ``<=`` and ``>=`` can be prepended to a
+numeric value. This is useful when the exact value cannot be determined
+(e.g. ``>32``, ``<=0.5``).
+
+When a value includes an operator, the system **does not** automatically
+calculate the sensitivity category (S/I/R) from the breakpoints table,
+because the result is not an exact number. The user must set the
+sensitivity category manually.
+
+**Fractions**
+
+Values can be entered as fractions using the ``/`` separator (e.g.
+``1/2``, ``1/4``). This is common for MIC values expressed in dilution
+series.
+
+Unlike operators, fractions **are** resolved to their numeric equivalent
+for the automatic calculation of the sensitivity category. For example,
+a MIC value of ``1/2`` is treated as ``0.5`` when compared against the
+breakpoints table, so the system can still determine the R/I/S category
+automatically.
+
+**Decimals**
+
+Plain decimal values (e.g. ``0.5``, ``6.5``) are also supported and
+are used directly for breakpoint comparison.
+
+.. note:: The disk content (potency) field only accepts plain numeric
+   values. Operators and fractions are not supported for disk content.
+
+The following screenshot shows zone diameter results with operators
+(e.g. ``>13``, ``<=9``) and a fraction (``13/4``) entered before
+submission:
+
+.. image:: static/operators_fractions_before_submit.png
+  :width: 640
+  :alt: Zone diameter results with operators and fractions before submit
+
+After submission, the sensitivity category is automatically calculated
+for plain numbers and fractions, while results with operators are left
+blank for the user to fill in manually:
+
+.. image:: static/operators_fractions_after_submit.png
+  :width: 640
+  :alt: Zone diameter results with operators and fractions after submit
+
+
 .. _SelectiveReporting:
 
 Selective reporting

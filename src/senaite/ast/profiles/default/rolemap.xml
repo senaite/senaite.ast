@@ -8,7 +8,6 @@
     <role name="LabManager"/>
     <role name="Preserver"/>
     <role name="Publisher"/>
-    <role name="RegulatoryInspector"/>
     <role name="Sampler"/>
     <role name="SamplingCoordinator"/>
     <role name="Verifier"/>

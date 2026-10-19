@@ -105,6 +105,7 @@ def create_ast_analysis(sample, keyword, microorganism, antibiotics):
     short_title = api.get_title(microorganism)
     analysis.setTitle(title)
     analysis.setShortTitle(short_title)
+    analysis.setScientificName(True)
 
     # Apply the interface markers
     alsoProvides(analysis, IASTAnalysis)
@@ -278,9 +279,12 @@ def update_extrapolated_reporting(analysis):
             choice = "{}:{}".format(api.get_uid(extra), extra.abbreviation)
             choices.append(choice)
 
+        # The selection of extrapolated antibiotics to report is optional, so
+        # the analysis can be submitted without any of them selected
         interim.update({
             "choices": "|".join(choices),
             "result_type": "multichoice",
+            "allow_empty": True,
         })
         new_interim_fields.append(interim)
 

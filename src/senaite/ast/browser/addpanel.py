@@ -70,7 +70,7 @@ class AddPanelView(BrowserView):
 
                 # Create/Update the zone size analysis
                 if panel.zone_size:
-                    add(ZONE_SIZE_KEY, microorganism, antibiotics)
+                    self.add_zone_analysis(microorganism, antibiotics)
 
             elif panel.method == METHOD_MIC_ID:
                 # Create/Update the minimum inhibitory concentration analysis
@@ -82,7 +82,7 @@ class AddPanelView(BrowserView):
 
             # Create/Update the selective reporting analyses
             if panel.selective_reporting:
-                add(REPORT_KEY, microorganism, antibiotics)
+                self.add_reporting_analysis(microorganism, antibiotics)
 
                 # If there are extrapolated antibiotics defined, add the
                 # analysis for selective reporting of extrapolated
@@ -156,3 +156,29 @@ class AddPanelView(BrowserView):
             interim_field["result_type"] = "fraction"
         mic.setInterimFields(interim_fields)
         return mic
+
+    def add_zone_analysis(self, microorganism, antibiotics):
+        """Updates or creates an analysis for the capture of the zone size (mm)
+        when the method Diffusion Disk is used, that allows the introduction of
+        '<', '>', '>=' and '<=' operators
+        """
+        zone = self.add_ast_analysis(ZONE_SIZE_KEY, microorganism, antibiotics)
+        interim_fields = zone.getInterimFields()
+        for interim_field in interim_fields:
+            interim_field["result_type"] = "fraction"
+        zone.setInterimFields(interim_fields)
+        return zone
+
+    def add_reporting_analysis(self, microorganism, antibiotics):
+        """Creates or updates the selective reporting flag (Y/N) analysis, that
+        allows users to specify whether the result for the sensitivity category
+        should appear in the final results report
+        """
+        # add or update the analysis
+        an = self.add_ast_analysis(REPORT_KEY, microorganism, antibiotics)
+        # result is made of choices (0:|1:Y|2:N), set "Y" as default
+        interim_fields = an.getInterimFields()
+        for interim_field in interim_fields:
+            interim_field["value"] = "1"
+        an.setInterimFields(interim_fields)
+        return an

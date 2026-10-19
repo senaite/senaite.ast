@@ -172,7 +172,8 @@ def setup_ast_calculation(portal):
     """
     name = AST_CALCULATION_TITLE
     logger.info("Setup AST calculation ...")
-    folder = api.get_setup().bika_calculations
+    setup = api.get_senaite_setup()
+    folder = setup.calculations
     calculation = search_by_title(folder, name)
     if calculation:
         calculation = calculation[0]
@@ -240,7 +241,8 @@ def setup_ast_services(portal, update_existing=True):
 
         # Get the calculation
         if calc_name:
-            calcs = setup.bika_calculations.objectValues()
+            senaite_setup = api.get_senaite_setup()
+            calcs = senaite_setup.calculations.objectValues()
             calc = filter(lambda c: api.get_title(c) == calc_name, calcs)[0]
             service.setCalculation(calc)
 
