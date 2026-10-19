@@ -100,6 +100,10 @@ def calc_sensitivity_categories(analysis):
 
     # Extract the analysis that stores the sensitivity category
     sensitivity = analyses.get(RESISTANCE_KEY)
+    if not sensitivity:
+        # No sensitivity categories to infer, nothing to do here!
+        return None
+
     if ISubmitted.providedBy(sensitivity):
         # Sensitivity category submitted already, nothing to do here!
         return None
@@ -108,6 +112,11 @@ def calc_sensitivity_categories(analysis):
     breakpoints_analysis = analyses.get(BREAKPOINTS_TABLE_KEY)
     target_analysis = analyses.get(ZONE_SIZE_KEY) or analyses.get(MIC_KEY)
     if not all([breakpoints_analysis, target_analysis]):
+        # Without a breakpoints table, or without a zone diameter or MIC to
+        # read, there is nothing to infer a sensitivity category from. The
+        # categories are set by hand then, so empty values are allowed for
+        # the analysis to be submitted
+        allow_empty_categories(sensitivity)
         return None
 
     # Get the method used (MIC or Zone size)
@@ -182,6 +191,21 @@ def calc_sensitivity_categories(analysis):
 
     # Assign the antibiotics with the updated sensitivity categories
     sensitivity.setInterimFields(antibiotics)
+
+
+def allow_empty_categories(analysis):
+    """Allows empty values for all the antibiotics (interim fields) of the
+    sensitivity category analysis passed-in, so it can be submitted without a
+    category assigned to every one of them
+
+    The values are left untouched, so the categories the user set by hand are
+    preserved
+    """
+    antibiotics = analysis.getInterimFields()
+    for antibiotic in antibiotics:
+        antibiotic.update({"allow_empty": True})
+
+    analysis.setInterimFields(antibiotics)
 
 
 def calc_disk_dosages(analysis):

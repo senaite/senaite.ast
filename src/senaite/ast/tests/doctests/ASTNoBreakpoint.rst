@@ -29,6 +29,7 @@ Needed Imports:
     >>> from senaite.ast.config import ZONE_SIZE_KEY
     >>> from senaite.ast.utils import create_ast_analyses
     >>> from senaite.ast.utils import get_ast_group
+    >>> from senaite.ast.utils import get_sensitivity_category_value
 
 Variables:
 
@@ -221,3 +222,60 @@ category is assigned and the analysis cannot be submitted:
     >>> zone = group[ZONE_SIZE_KEY]
     >>> isTransitionAllowed(zone, "submit")
     False
+
+
+No breakpoints table analysis at all
+....................................
+
+A panel can be configured without a default breakpoints table, and then no
+analysis for the selection of a breakpoints table is created along with the
+others. There is nothing to infer a sensitivity category from in that case
+either, so the categories are set by hand and empty values are allowed:
+
+    >>> sample = new_sample([gram])
+    >>> no_bp_keywords = [ZONE_SIZE_KEY, RESISTANCE_KEY]
+    >>> ast_analyses = create_ast_analyses(
+    ...     sample, no_bp_keywords, ecoli, [amx, cip])
+    >>> group = get_ast_group(ast_analyses[0])
+    >>> BREAKPOINTS_TABLE_KEY in group
+    False
+
+Enter the zone diameters for both antibiotics and run the calculation:
+
+    >>> zone = group[ZONE_SIZE_KEY]
+    >>> set_zone_sizes(zone, "20")
+    >>> zone.calculateResult(override=True)
+    True
+
+Amoxicillin has a breakpoint in the table created above, but there is no
+analysis to select that table with. No category is inferred for either
+antibiotic then, and both allow empty values:
+
+    >>> sensitivity = group[RESISTANCE_KEY]
+    >>> get_interim(sensitivity, "AMX").get("value")
+    ''
+
+    >>> get_interim(sensitivity, "AMX").get("allow_empty")
+    True
+
+    >>> get_interim(sensitivity, "CIP").get("allow_empty")
+    True
+
+Therefore the analysis can be submitted:
+
+    >>> isTransitionAllowed(sensitivity, "submit")
+    True
+
+And a category the user sets by hand is kept when results are saved again:
+
+    >>> interims = sensitivity.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "AMX":
+    ...         interim["value"] = get_sensitivity_category_value("S")
+    >>> sensitivity.setInterimFields(interims)
+    >>> zone.calculateResult(override=True)
+    True
+
+    >>> cat = get_interim(sensitivity, "AMX").get("value")
+    >>> cat == get_sensitivity_category_value("S")
+    True

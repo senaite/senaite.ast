@@ -4,6 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #59 Fix unable to submit AST results when there is no breakpoints table
 - #58 Infer the sensitivity category from values with operators
 - #57 Fix unable to submit AST results without a sensitivity category
 - #56 Fix unable to submit AST results if antibiotic has no breakpoint
