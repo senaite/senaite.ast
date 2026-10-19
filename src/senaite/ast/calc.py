@@ -139,10 +139,19 @@ def calc_sensitivity_categories(analysis):
             abx_uid = antibiotic["uid"]
 
         # Get the zone size / MIC value
-        value = values.get(abx_uid)
-        value = resolve_fraction(value)
+        raw_value = values.get(abx_uid)
+        value = resolve_fraction(raw_value)
         if not api.is_floatable(value):
-            # No value entered yet or not resolvable (e.g. operators)
+            if raw_value:
+                # There is a result, but no number can be read from it, e.g.
+                # because it carries a comparison operator. No category can be
+                # inferred from it, so empty values are allowed for the
+                # analysis to be submitted, with the category set by hand or
+                # not set at all. The value itself is left untouched, so a
+                # category the user set for this antibiotic is preserved
+                antibiotic.update({"allow_empty": True})
+
+            # Nothing to infer a sensitivity category from
             continue
 
         # Get the selected Breakpoints Table for this antibiotic
@@ -156,12 +165,13 @@ def calc_sensitivity_categories(analysis):
                                        default="")
         cat = get_sensitivity_category_value(key, default="")
 
-        # Update the sensitivity category. Without a breakpoint for this
-        # microorganism and antibiotic no category can be inferred, so empty
-        # values are allowed for the analysis to be submitted
+        # Update the sensitivity category. No category can be inferred
+        # without a breakpoint for this microorganism and antibiotic, and
+        # neither when the breakpoint has no thresholds set for the method in
+        # use, so empty values are allowed for the analysis to be submitted
         antibiotic.update({
             "value": cat,
-            "allow_empty": not breakpoint,
+            "allow_empty": not key,
         })
 
     # Assign the antibiotics with the updated sensitivity categories

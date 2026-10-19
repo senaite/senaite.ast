@@ -9,7 +9,8 @@ correctly:
 - **Plain numbers and fractions**: sensitivity category is calculated
   automatically from the breakpoints table.
 - **Values with operators**: sensitivity category is **not** calculated
-  (the user must set it manually).
+  (the user must set it manually), but the antibiotic allows an empty
+  category, so the results can be submitted either way.
 
 Running this test from the buildout directory:
 
@@ -25,6 +26,7 @@ Needed Imports:
     >>> from bika.lims import api
     >>> from bika.lims.utils.analysisrequest import create_analysisrequest
     >>> from bika.lims.workflow import doActionFor as do_action_for
+    >>> from bika.lims.workflow import getAllowedTransitions
     >>> from plone.app.testing import setRoles
     >>> from plone.app.testing import TEST_USER_ID
 
@@ -248,6 +250,29 @@ Ciprofloxacin with operator ``>23`` is left empty (no auto-calculation):
     >>> results["CIP"]
     ''
 
+No category could be inferred for it, so the antibiotic allows an empty
+value and the analysis can be submitted all the same:
+
+    >>> cip = [i for i in sens_interims if i["keyword"] == "CIP"][0]
+    >>> cip.get("allow_empty")
+    True
+
+    >>> "submit" in getAllowedTransitions(sensitivity)
+    True
+
+A category the user sets by hand for such an antibiotic is kept when the
+results are saved again:
+
+    >>> cip["value"] = get_sensitivity_category_value("R")
+    >>> sensitivity.setInterimFields(sens_interims)
+    >>> zone_an.calculateResult(override=True)
+    True
+
+    >>> sens_interims = sensitivity.getInterimFields()
+    >>> cip = [i for i in sens_interims if i["keyword"] == "CIP"][0]
+    >>> cip["value"] == get_sensitivity_category_value("R")
+    True
+
 Gentamicin with fraction ``29/2`` (= 14.5 mm) is Susceptible at increased
 exposure (14 <= 14.5 < 17):
 
@@ -316,10 +341,18 @@ Amoxicillin with fraction ``1/2`` (= 0.5) is Susceptible (S <= 8):
     >>> results2["AMX"] == get_sensitivity_category_value("S")
     True
 
-Ciprofloxacin with operator ``<=0.25`` is left empty:
+Ciprofloxacin with operator ``<=0.25`` is left empty, and allows an empty
+value so the analysis can be submitted:
 
     >>> results2["CIP"]
     ''
+
+    >>> cip2 = [i for i in sens_interims2 if i["keyword"] == "CIP"][0]
+    >>> cip2.get("allow_empty")
+    True
+
+    >>> "submit" in getAllowedTransitions(sensitivity2)
+    True
 
 Gentamicin with plain ``3`` is Susceptible at increased exposure
 (2 < 3 <= 4):
