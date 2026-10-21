@@ -138,18 +138,24 @@ def calc_sensitivity_categories(analysis):
         if not api.is_uid(abx_uid):
             abx_uid = antibiotic["uid"]
 
-        # Get the zone size / MIC value
+        # Get the zone size / MIC value. Both accept a comparison operator
+        # as a prefix, that makes the value a boundary instead of a measure
         raw_value = values.get(abx_uid)
-        value = resolve_fraction(raw_value)
+        operator, value = utils.split_operator(raw_value)
+        value = resolve_fraction(value)
         if not api.is_floatable(value):
-            if raw_value:
-                # There is a result, but no number can be read from it, e.g.
-                # because it carries a comparison operator. No category can be
-                # inferred from it, so empty values are allowed for the
-                # analysis to be submitted, with the category set by hand or
-                # not set at all. The value itself is left untouched, so a
-                # category the user set for this antibiotic is preserved
-                antibiotic.update({"allow_empty": True})
+            # No category can be inferred from a result no number can be read
+            # from, so empty values are allowed and the category is left for
+            # the user to set. While no result has been entered at all the
+            # submission is held back instead, so the setting is assigned in
+            # both directions and never sticks from a previous calculation
+            antibiotic.update({"allow_empty": bool(raw_value)})
+
+            if antibiotic.get("inferred"):
+                # The category a previous calculation inferred no longer
+                # matches the result that is there now, so it is cleared
+                empty = get_sensitivity_category_value("", default="")
+                antibiotic.update({"value": empty, "inferred": False})
 
             # Nothing to infer a sensitivity category from
             continue
@@ -162,17 +168,26 @@ def calc_sensitivity_categories(analysis):
 
         # Get the sensitivity category (S|I|R) and choice value
         key = get_sensitivity_category(value, breakpoint, method=ast_method,
-                                       default="")
+                                       operator=operator, default="")
         cat = get_sensitivity_category_value(key, default="")
 
         # Update the sensitivity category. No category can be inferred
-        # without a breakpoint for this microorganism and antibiotic, and
-        # neither when the breakpoint has no thresholds set for the method in
-        # use, so empty values are allowed for the analysis to be submitted
-        antibiotic.update({
-            "value": cat,
-            "allow_empty": not key,
-        })
+        # without a breakpoint for this microorganism and antibiotic, when the
+        # breakpoint has no thresholds set for the method in use, and neither
+        # when the range the operator stands for spans more than one category.
+        # Empty values are allowed then, for the analysis to be submitted
+        antibiotic.update({"allow_empty": not key})
+
+        if key or not operator or antibiotic.get("inferred"):
+            # The value is only left untouched when it is a boundary whose
+            # category cannot be inferred and was not inferred before either.
+            # A category the user set by hand stands, while one a previous
+            # calculation left behind no longer matches the result
+            antibiotic.update({"value": cat})
+
+        # Keep track of whether the category was inferred, because an interim
+        # cannot tell a value the user set from one this calculation assigned
+        antibiotic.update({"inferred": bool(key)})
 
     # Assign the antibiotics with the updated sensitivity categories
     sensitivity.setInterimFields(antibiotics)

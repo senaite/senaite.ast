@@ -37,6 +37,7 @@ from senaite.ast.config import AST_POINT_OF_CAPTURE
 from senaite.ast.config import BREAKPOINTS_TABLE_KEY
 from senaite.ast.config import IDENTIFICATION_KEY
 from senaite.ast.config import MIC_KEY
+from senaite.ast.config import OPERATORS
 from senaite.ast.config import REPORT_EXTRAPOLATED_KEY
 from senaite.ast.config import REPORT_KEY
 from senaite.ast.config import RESISTANCE_KEY
@@ -613,7 +614,8 @@ def get_non_ast_points_of_capture():
     return pocs
 
 
-def get_sensitivity_category(value, breakpoint, method, default=_marker):
+def get_sensitivity_category(value, breakpoint, method, operator="",
+                             default=_marker):
     """Returns the sensitivity category inferred from the zone_size or MIC
     value and the breakpoint passed-in. Returns default value if zone size is
     negative and/or breakpoint is None
@@ -623,12 +625,45 @@ def get_sensitivity_category(value, breakpoint, method, default=_marker):
         depending on the microorganism, antibiotic, potency and zone size
     :param method: the id of the method (service keyword) that refers to
         MIC value or Zone size
+    :param operator: comparison operator ('<', '<=', '>' or '>='), when the
+        value is a boundary instead of an exact measure
     :type value: string, float, int
     :type breakpoint: dict
     :type method: string or analysis
+    :type operator: string
     :returns: the standard EUCAST sensitivity category (R, S or I)
     :rtype: string
     """
+    if operator:
+        # The value is a boundary and not an exact measure, so the category is
+        # only certain when it is the same across the whole range the operator
+        # stands for. Categories are monotonic for both zone diameter and MIC,
+        # so resolving them at the two ends of that range is enough
+        limit = 0 if operator in ["<", "<="] else float("inf")
+        category = get_sensitivity_category(value, breakpoint, method,
+                                            default="")
+        limit_category = get_sensitivity_category(limit, breakpoint, method,
+                                                  default="")
+
+        if limit_category == "R" and operator in ["<", ">"]:
+            # The resistant range is the one the limit falls into, and its
+            # tests ("value < diameter_r" and "value > mic_r") leave the
+            # threshold out, exactly as a strict operator leaves the boundary
+            # out. A boundary sitting on that threshold is therefore resistant
+            # along the whole range, e.g. MIC ">8" with mic_r=8
+            key = "diameter_r" if method == ZONE_SIZE_KEY else "mic_r"
+            threshold = api.to_float(breakpoint.get(key), default=0)
+            if threshold > 0 and threshold == api.to_float(value, default=-1):
+                category = "R"
+
+        if category and category == limit_category:
+            return category
+
+        # The range spans more than one category, so it cannot be inferred
+        if default is _marker:
+            raise ValueError("Sensitivity category is ambiguous")
+        return default
+
     if not breakpoint:
         if default is _marker:
             raise ValueError("Breakpoint is missing")
@@ -733,6 +768,29 @@ def get_choices(interim):
         return []
     choices = map(lambda choice: choice.split(":"), choices.split("|"))
     return map(lambda choice: (choice[0], choice[1]), choices)
+
+
+def split_operator(value):
+    """Splits the value passed-in into its comparison operator and the rest
+
+    Zone diameter and MIC results accept the operators '<', '<=', '>' and '>='
+    as a prefix of the value
+
+    :param value: the raw value of a zone diameter or MIC result variable
+    :type value: string
+    :returns: a tuple with the operator, empty if none, and the remaining
+        value
+    :rtype: tuple
+    """
+    if not api.is_string(value):
+        return "", value
+
+    value = value.strip()
+    for operator in OPERATORS:
+        if value.startswith(operator):
+            return operator, value[len(operator):].strip()
+
+    return "", value
 
 
 def is_interim_empty(interim):

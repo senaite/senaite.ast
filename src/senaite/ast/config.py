@@ -85,6 +85,10 @@ NOT_TESTED = "NT"
 # Result of an AST analysis when there is nothing to report
 NOT_REPORTED = "-"
 
+# Comparison operators accepted as a prefix of zone diameter and MIC results.
+# Longest first, so ">=" is matched before ">"
+OPERATORS = ("<=", ">=", "<", ">")
+
 # Id of the Diffusion Disk method
 METHOD_DIFFUSION_DISK_ID = "diffusion_disk"
 
