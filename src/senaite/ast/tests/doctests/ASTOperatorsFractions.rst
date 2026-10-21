@@ -458,3 +458,113 @@ Gentamicin with plain ``3`` is Susceptible at increased exposure
 
     >>> results2["GEN"] == get_sensitivity_category_value("I")
     True
+
+A MIC that changes brings the category along with it. Raise the
+Ciprofloxacin MIC above its resistant breakpoint (R > 0.5) and the category
+inferred before is replaced:
+
+    >>> mic_interims = mic_an.getInterimFields()
+    >>> for interim in mic_interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = "1.0"
+    >>> mic_an.setInterimFields(mic_interims)
+    >>> mic_an.calculateResult(override=True)
+    True
+
+    >>> results2 = dict((i["keyword"], i["value"])
+    ...     for i in sensitivity2.getInterimFields())
+    >>> results2["CIP"] == get_sensitivity_category_value("R")
+    True
+
+    >>> cip2 = [i for i in sensitivity2.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip2.get("allow_empty")
+    False
+
+
+A category inferred before is not kept when it no longer applies
+................................................................
+
+An interim cannot tell a category the user set by hand from one a previous
+calculation inferred. The first stands when the result becomes a boundary,
+the second does not, because it no longer matches the result on display.
+
+Create a new sample and enter a zone diameter Ciprofloxacin has a category
+for (22 to 24 mm is the intermediate range):
+
+    >>> sample3 = create_analysisrequest(
+    ...     client, request, values, [api.get_uid(gram)])
+    >>> transitioned = do_action_for(sample3, "receive")
+    >>> ast_analyses3 = create_ast_analyses(
+    ...     sample3, keywords, ecoli, antibiotics)
+    >>> zone3 = [a for a in ast_analyses3
+    ...     if a.getKeyword() == ZONE_SIZE_KEY][0]
+    >>> group3 = get_ast_group(zone3)
+    >>> bp3 = group3[BREAKPOINTS_TABLE_KEY]
+    >>> interims = bp3.getInterimFields()
+    >>> for interim in interims:
+    ...     interim["value"] = bp_uid
+    >>> bp3.setInterimFields(interims)
+
+    >>> interims = zone3.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = "23"
+    >>> zone3.setInterimFields(interims)
+    >>> zone3.calculateResult(override=True)
+    True
+
+The category is inferred, and the analysis does not allow it to be empty:
+
+    >>> sensitivity3 = group3[RESISTANCE_KEY]
+    >>> cip3 = [i for i in sensitivity3.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip3["value"] == get_sensitivity_category_value("I")
+    True
+
+    >>> cip3.get("allow_empty")
+    False
+
+Change the zone diameter to a boundary that spans more than one category.
+The category cannot be inferred any longer, and the one inferred before is
+cleared instead of being kept:
+
+    >>> interims = zone3.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = ">23"
+    >>> zone3.setInterimFields(interims)
+    >>> zone3.calculateResult(override=True)
+    True
+
+    >>> cip3 = [i for i in sensitivity3.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip3["value"] == get_sensitivity_category_value("")
+    True
+
+    >>> cip3.get("allow_empty")
+    True
+
+
+An antibiotic without a result still holds the submission back
+..............................................................
+
+Empty values are allowed while the result is a boundary, but the setting is
+withdrawn as soon as the result is removed, so an antibiotic nobody entered
+a result for keeps holding the submission back:
+
+    >>> interims = zone3.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = ""
+    >>> zone3.setInterimFields(interims)
+    >>> zone3.calculateResult(override=True)
+    True
+
+    >>> cip3 = [i for i in sensitivity3.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip3.get("allow_empty")
+    False
+
+    >>> "submit" in getAllowedTransitions(sensitivity3)
+    False
