@@ -87,8 +87,7 @@ class AnalysisGuardAdapter(BaseGuardAdapter):
     def strip_operator(self, value):
         """Strip optional comparator operator from value
         """
-        operator, value = split_operator(value or "")
-        return value
+        return split_operator(value or "")[1]
 
     def guard_submit(self):
         """AST-like analyses have antibiotics as interim fields. Do not allow
