@@ -5,6 +5,8 @@ Changelog
 ------------------
 
 - #41 Fix No registry record found for 'sampleview_collapse_ast_analysis_table'
+- #58 Infer the sensitivity category from values with operators
+- #57 Fix unable to submit AST results without a sensitivity category
 - #56 Fix unable to submit AST results if antibiotic has no breakpoint
 - #55 Allow to submit selective reporting without extrapolated antibiotics
 - #55 Compatibility with senaite.core#3015 (empty multi-valued results)

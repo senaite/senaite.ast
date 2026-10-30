@@ -118,6 +118,20 @@ microorganism.  Zone diameter breakpoints are:
     ...      "mic_s": 0.0, "mic_r": 0.0},
     ... ]
 
+Create a second Breakpoints Table, that is less demanding for Ciprofloxacin
+(S >= 21 mm, R < 15 mm), so the category inferred for the same zone diameter
+depends on the table in use:
+
+    >>> bp_table_2 = api.create(bp_folder, "BreakpointsTable",
+    ...     title="CLSI 2025")
+    >>> bp_table_2.breakpoints = [
+    ...     {"antibiotic": api.get_uid(cip),
+    ...      "microorganism": api.get_uid(ecoli),
+    ...      "diameter_s": 21, "diameter_r": 15,
+    ...      "disk_content": 5,
+    ...      "mic_s": 0.0, "mic_r": 0.0},
+    ... ]
+
 
 Verify calculation is linked to AST services
 .............................................
@@ -289,3 +303,71 @@ Amoxicillin remains Susceptible (zone size was not changed):
 
     >>> results["AMX"]
     '1'
+
+
+Recalculate after changing the breakpoints table
+.................................................
+
+The category is inferred from the zone diameter and the breakpoints table
+together, so changing the table is enough for it to change. Put the
+Ciprofloxacin zone diameter back to 23 mm, which is Susceptible at
+increased exposure with the table in use:
+
+    >>> zone_interims = zone_an.getInterimFields()
+    >>> for interim in zone_interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = "23"
+    >>> zone_an.setInterimFields(zone_interims)
+    >>> zone_an.calculateResult(override=True)
+    True
+
+    >>> results = dict((i["keyword"], i["value"])
+    ...     for i in sensitivity.getInterimFields())
+    >>> results["CIP"] == get_sensitivity_category_value("I")
+    True
+
+Select the second breakpoints table for Ciprofloxacin and recalculate. The
+calculation is triggered from the breakpoints table analysis this time, and
+the very same zone diameter is now Susceptible (S >= 21):
+
+    >>> bp_interims = bp_analysis.getInterimFields()
+    >>> for interim in bp_interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = api.get_uid(bp_table_2)
+    >>> bp_analysis.setInterimFields(bp_interims)
+    >>> bp_analysis.calculateResult(override=True)
+    True
+
+    >>> results = dict((i["keyword"], i["value"])
+    ...     for i in sensitivity.getInterimFields())
+    >>> results["CIP"] == get_sensitivity_category_value("S")
+    True
+
+Amoxicillin keeps the table it had, and its category does not change:
+
+    >>> results["AMX"] == get_sensitivity_category_value("S")
+    True
+
+
+Recalculate after removing the breakpoints table
+.................................................
+
+Without a breakpoints table there is no breakpoint to infer a category
+from. The category inferred before is cleared rather than left behind, and
+the antibiotic allows an empty value so the results can still be submitted:
+
+    >>> bp_interims = bp_analysis.getInterimFields()
+    >>> for interim in bp_interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = "0"
+    >>> bp_analysis.setInterimFields(bp_interims)
+    >>> bp_analysis.calculateResult(override=True)
+    True
+
+    >>> cip_interim = [i for i in sensitivity.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip_interim["value"] == get_sensitivity_category_value("")
+    True
+
+    >>> cip_interim.get("allow_empty")
+    True

@@ -8,8 +8,11 @@ correctly:
 
 - **Plain numbers and fractions**: sensitivity category is calculated
   automatically from the breakpoints table.
-- **Values with operators**: sensitivity category is **not** calculated
-  (the user must set it manually).
+- **Values with operators**: the value is a boundary and not an exact
+  measure, so the category is only calculated when it is the same for the
+  whole range the operator stands for. It is left for the user to set
+  otherwise, and the antibiotic allows an empty category meanwhile, so the
+  results can be submitted either way.
 
 Running this test from the buildout directory:
 
@@ -25,6 +28,7 @@ Needed Imports:
     >>> from bika.lims import api
     >>> from bika.lims.utils.analysisrequest import create_analysisrequest
     >>> from bika.lims.workflow import doActionFor as do_action_for
+    >>> from bika.lims.workflow import getAllowedTransitions
     >>> from plone.app.testing import setRoles
     >>> from plone.app.testing import TEST_USER_ID
 
@@ -35,7 +39,9 @@ Needed Imports:
     >>> from senaite.ast.config import ZONE_SIZE_KEY
     >>> from senaite.ast.utils import create_ast_analyses
     >>> from senaite.ast.utils import get_ast_group
+    >>> from senaite.ast.utils import get_sensitivity_category
     >>> from senaite.ast.utils import get_sensitivity_category_value
+    >>> from senaite.ast.utils import split_operator
 
 Variables:
 
@@ -96,6 +102,103 @@ Edge cases:
 
     >>> resolve_fraction("1/-2")
     '1/-2'
+
+
+split_operator helper
+.....................
+
+Values without an operator are returned unchanged:
+
+    >>> split_operator("20")
+    ('', '20')
+
+    >>> split_operator("1/2")
+    ('', '1/2')
+
+The supported operators are split off the value:
+
+    >>> split_operator(">20")
+    ('>', '20')
+
+    >>> split_operator(">=20")
+    ('>=', '20')
+
+    >>> split_operator("<0.25")
+    ('<', '0.25')
+
+    >>> split_operator("<=1/2")
+    ('<=', '1/2')
+
+Surrounding whitespace is discarded:
+
+    >>> split_operator("  >=  20  ")
+    ('>=', '20')
+
+Values that are not strings are returned as they come:
+
+    >>> split_operator(None)
+    ('', None)
+
+    >>> split_operator(14.5)
+    ('', 14.5)
+
+
+Sensitivity category of a boundary value
+........................................
+
+A value with an operator stands for a range rather than for a measure, so
+its category is only inferred when the whole range falls into the same one.
+With zone diameter breakpoints of S >= 25 mm and R < 22 mm:
+
+    >>> breakpoint = {"diameter_s": 25, "diameter_r": 22,
+    ...               "mic_s": 0.25, "mic_r": 0.5}
+
+A diameter of at least 25 mm is susceptible, whatever its exact value:
+
+    >>> get_sensitivity_category(25, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator=">=", default="")
+    'S'
+
+The resistant range leaves its own threshold out (R is `value < 22`), just
+as a strict operator leaves the boundary out, so "< 22" is resistant:
+
+    >>> get_sensitivity_category(22, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator="<", default="")
+    'R'
+
+"<= 22" includes the 22 mm itself, which is already intermediate:
+
+    >>> get_sensitivity_category(22, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator="<=", default="")
+    ''
+
+A range that spans more than one category cannot be inferred either. Above
+23 mm the diameter can be both intermediate and susceptible:
+
+    >>> get_sensitivity_category(23, breakpoint, ZONE_SIZE_KEY,
+    ...                          operator=">", default="")
+    ''
+
+MIC values read the other way round, the lower the more susceptible. Here
+S <= 0.25 and R > 0.5:
+
+    >>> get_sensitivity_category(0.25, breakpoint, MIC_KEY,
+    ...                          operator="<=", default="")
+    'S'
+
+    >>> get_sensitivity_category(0.5, breakpoint, MIC_KEY,
+    ...                          operator=">", default="")
+    'R'
+
+    >>> get_sensitivity_category(0.25, breakpoint, MIC_KEY,
+    ...                          operator=">", default="")
+    ''
+
+Without a breakpoint there is no category to infer, operator or not:
+
+    >>> get_sensitivity_category(20, None, ZONE_SIZE_KEY,
+    ...                          operator=">=", default="")
+    ''
 
 
 Create test data
@@ -214,7 +317,7 @@ Set the breakpoints table for all antibiotics:
 Set zone diameter results with mixed input types:
 
 - Amoxicillin: ``20`` mm (plain number, should calculate S >= 14)
-- Ciprofloxacin: ``>23`` (operator, should NOT auto-calculate)
+- Ciprofloxacin: ``>23`` (operator spanning I and S, should NOT calculate)
 - Gentamicin: ``29/2`` (fraction = 14.5, should calculate I: 14 <= 14.5 < 17)
 
     >>> zone_interims = zone_an.getInterimFields()
@@ -243,10 +346,35 @@ Amoxicillin with plain ``20`` mm is Susceptible (S >= 14):
     >>> results["AMX"] == get_sensitivity_category_value("S")
     True
 
-Ciprofloxacin with operator ``>23`` is left empty (no auto-calculation):
+Ciprofloxacin with operator ``>23`` covers both the intermediate range
+(22 to 24 mm) and the susceptible one (>= 25 mm), so no category is
+inferred and the result is left empty:
 
     >>> results["CIP"]
     ''
+
+No category could be inferred for it, so the antibiotic allows an empty
+value and the analysis can be submitted all the same:
+
+    >>> cip = [i for i in sens_interims if i["keyword"] == "CIP"][0]
+    >>> cip.get("allow_empty")
+    True
+
+    >>> "submit" in getAllowedTransitions(sensitivity)
+    True
+
+A category the user sets by hand for such an antibiotic is kept when the
+results are saved again:
+
+    >>> cip["value"] = get_sensitivity_category_value("R")
+    >>> sensitivity.setInterimFields(sens_interims)
+    >>> zone_an.calculateResult(override=True)
+    True
+
+    >>> sens_interims = sensitivity.getInterimFields()
+    >>> cip = [i for i in sens_interims if i["keyword"] == "CIP"][0]
+    >>> cip["value"] == get_sensitivity_category_value("R")
+    True
 
 Gentamicin with fraction ``29/2`` (= 14.5 mm) is Susceptible at increased
 exposure (14 <= 14.5 < 17):
@@ -287,7 +415,7 @@ Set breakpoints table:
 Set MIC results with mixed input types:
 
 - Amoxicillin: ``1/2`` (fraction = 0.5, should calculate S <= 8)
-- Ciprofloxacin: ``<=0.25`` (operator, should NOT auto-calculate)
+- Ciprofloxacin: ``<=0.25`` (operator wholly within S, should calculate S)
 - Gentamicin: ``3`` (plain number, should calculate I: 2 < 3 <= 4)
 
     >>> mic_interims = mic_an.getInterimFields()
@@ -316,13 +444,127 @@ Amoxicillin with fraction ``1/2`` (= 0.5) is Susceptible (S <= 8):
     >>> results2["AMX"] == get_sensitivity_category_value("S")
     True
 
-Ciprofloxacin with operator ``<=0.25`` is left empty:
+Ciprofloxacin with operator ``<=0.25`` is Susceptible: the whole range the
+operator stands for sits at or below the susceptible breakpoint (S <= 0.25):
 
-    >>> results2["CIP"]
-    ''
+    >>> results2["CIP"] == get_sensitivity_category_value("S")
+    True
+
+    >>> "submit" in getAllowedTransitions(sensitivity2)
+    True
 
 Gentamicin with plain ``3`` is Susceptible at increased exposure
 (2 < 3 <= 4):
 
     >>> results2["GEN"] == get_sensitivity_category_value("I")
     True
+
+A MIC that changes brings the category along with it. Raise the
+Ciprofloxacin MIC above its resistant breakpoint (R > 0.5) and the category
+inferred before is replaced:
+
+    >>> mic_interims = mic_an.getInterimFields()
+    >>> for interim in mic_interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = "1.0"
+    >>> mic_an.setInterimFields(mic_interims)
+    >>> mic_an.calculateResult(override=True)
+    True
+
+    >>> results2 = dict((i["keyword"], i["value"])
+    ...     for i in sensitivity2.getInterimFields())
+    >>> results2["CIP"] == get_sensitivity_category_value("R")
+    True
+
+    >>> cip2 = [i for i in sensitivity2.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip2.get("allow_empty")
+    False
+
+
+A category inferred before is not kept when it no longer applies
+................................................................
+
+An interim cannot tell a category the user set by hand from one a previous
+calculation inferred. The first stands when the result becomes a boundary,
+the second does not, because it no longer matches the result on display.
+
+Create a new sample and enter a zone diameter Ciprofloxacin has a category
+for (22 to 24 mm is the intermediate range):
+
+    >>> sample3 = create_analysisrequest(
+    ...     client, request, values, [api.get_uid(gram)])
+    >>> transitioned = do_action_for(sample3, "receive")
+    >>> ast_analyses3 = create_ast_analyses(
+    ...     sample3, keywords, ecoli, antibiotics)
+    >>> zone3 = [a for a in ast_analyses3
+    ...     if a.getKeyword() == ZONE_SIZE_KEY][0]
+    >>> group3 = get_ast_group(zone3)
+    >>> bp3 = group3[BREAKPOINTS_TABLE_KEY]
+    >>> interims = bp3.getInterimFields()
+    >>> for interim in interims:
+    ...     interim["value"] = bp_uid
+    >>> bp3.setInterimFields(interims)
+
+    >>> interims = zone3.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = "23"
+    >>> zone3.setInterimFields(interims)
+    >>> zone3.calculateResult(override=True)
+    True
+
+The category is inferred, and the analysis does not allow it to be empty:
+
+    >>> sensitivity3 = group3[RESISTANCE_KEY]
+    >>> cip3 = [i for i in sensitivity3.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip3["value"] == get_sensitivity_category_value("I")
+    True
+
+    >>> cip3.get("allow_empty")
+    False
+
+Change the zone diameter to a boundary that spans more than one category.
+The category cannot be inferred any longer, and the one inferred before is
+cleared instead of being kept:
+
+    >>> interims = zone3.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = ">23"
+    >>> zone3.setInterimFields(interims)
+    >>> zone3.calculateResult(override=True)
+    True
+
+    >>> cip3 = [i for i in sensitivity3.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip3["value"] == get_sensitivity_category_value("")
+    True
+
+    >>> cip3.get("allow_empty")
+    True
+
+
+An antibiotic without a result still holds the submission back
+..............................................................
+
+Empty values are allowed while the result is a boundary, but the setting is
+withdrawn as soon as the result is removed, so an antibiotic nobody entered
+a result for keeps holding the submission back:
+
+    >>> interims = zone3.getInterimFields()
+    >>> for interim in interims:
+    ...     if interim["keyword"] == "CIP":
+    ...         interim["value"] = ""
+    >>> zone3.setInterimFields(interims)
+    >>> zone3.calculateResult(override=True)
+    True
+
+    >>> cip3 = [i for i in sensitivity3.getInterimFields()
+    ...     if i["keyword"] == "CIP"][0]
+    >>> cip3.get("allow_empty")
+    False
+
+    >>> "submit" in getAllowedTransitions(sensitivity3)
+    False
