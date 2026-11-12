@@ -3,6 +3,18 @@
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
 
   <genericsetup:upgradeStep
+      title="SENAITE AST 1.3.0: Allow calculations to import from
+        senaite.ast.calc"
+      description="Adds senaite.ast.calc to the modules the site allows
+        calculations to import from, so that the AST calculation, which
+        imports calc_ast from it, keeps calculating the results of AST
+        analyses"
+      source="1302"
+      destination="1303"
+      handler="senaite.ast.upgrade.v01_03_000.allow_calculation_module"
+      profile="senaite.ast:default"/>
+
+  <genericsetup:upgradeStep
       title="SENAITE AST 1.3.0: Allow empty selective reporting of
         extrapolated antibiotics"
       description="Allows empty values for the result variables of existing

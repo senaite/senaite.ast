@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<registry>
+
+  <!-- Allow calculations to import from senaite.ast.calc, next to the
+       modules the site allows already: the AST calculation imports
+       `calc_ast` from it -->
+  <record name="senaite.core.registry.schema.ICalculationImportsRegistry.calculation_import_modules">
+    <value purge="false">
+      <element>senaite.ast.calc</element>
+    </value>
+  </record>
+
+</registry>

@@ -39,6 +39,14 @@
       component="senaite.ast.vocabularies.ASTMethodsVocabularyFactory"
       name="senaite.ast.vocabularies.ast_methods" />
 
+  <!-- Module calculations may import from. The AST calculation imports
+       `calc_ast` from it, and it is part of the `senaite` package, which
+       calculations must not import from otherwise -->
+  <utility
+      component=".calc"
+      provides="senaite.core.interfaces.ICalculationModule"
+      name="senaite.ast.calc" />
+
   <!-- Datamanagers -->
   <adapter factory=".datamanagers.ASTAnalysisDataManager" />
 
