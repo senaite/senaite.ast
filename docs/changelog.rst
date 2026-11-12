@@ -4,6 +4,7 @@ Changelog
 1.3.0 (unreleased)
 ------------------
 
+- #60 Compatibility with senaite.core#3067
 - #41 Fix No registry record found for 'sampleview_collapse_ast_analysis_table'
 - #58 Infer the sensitivity category from values with operators
 - #57 Fix unable to submit AST results without a sensitivity category
