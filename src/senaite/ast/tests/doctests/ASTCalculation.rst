@@ -58,6 +58,14 @@ installed.  It must live in the DX calculations folder:
     >>> calculation.getPythonImports()
     [{'function': 'calc_ast', 'module': 'senaite.ast.calc'}]
 
+The module is part of the `senaite` package, which calculations must not
+import from. `senaite.ast` registers it as a module for calculations and adds
+it to the modules the site allows, so the calculation can import from it:
+
+    >>> from senaite.core.api.calculation import is_allowed_module
+    >>> is_allowed_module("senaite.ast.calc")
+    True
+
 
 Create test data
 ................
